@@ -1,0 +1,2902 @@
+TOTAL_PAGES: 157
+
+===== PAGE 1 =====
+Máquinas de Turing
+Pablo Castro - UNRC
+
+===== PAGE 2 =====
+Un poco de historia
+La idea de “algoritmo” se utilizó por mucho tiempo aún
+cuando las computadoras no existían:
+• Unas tablas de arcillas encontradas en
+Baghdad del año 1600 antes de Cristo,
+describen el algoritmo de la división.
+• La criva de Eratostenes es 200~ antes de
+Cristo, describe un procesos para
+encontrar números primos:
+• El algoritmo de Euclides para encontrar el
+máximo común divisor
+
+===== PAGE 3 =====
+Más sobre algoritmos
+Sin embargo la definición estos algoritmos es informal, por
+ejemplo:
+Supongamos que queremos encontrar todos los números
+primos menores a un N dado, entonces:
+• Listar todos los números hasta n: 1,2,3,…,N;
+• Para todo hacer:
+i= 2,…, n
+i + 1,…, n
+Tachar todos los números desde que son
+múltiplos de i.
+• Lo números que quedan sin tachar son los números primos.
+
+===== PAGE 4 =====
+El problema de Hilbert
+David Hilbert planteó en 1900 los 23 problemas
+más importantes para los matemáticos de su
+tiempo
+El problema número 10 de Hilbert era el siguiente:
+“Existe un procedimiento que permita en una secuencia de pasos
+finitos determinar si un polinomio tiene una raíz integral.”
+6x3yz2 + 3xz2
+Por ejemplo: es un polinomio de grado 3, se
+debe decir si hay valores enteros de x,y,z tal que:
+Si existiera tal procedimiento se lo debe describir. Si
+no existiera, es más difícil se debe demostrar el por
+qué tal procedimiento es imposible.
+
+===== PAGE 5 =====
+Las Máquinas de Turing
+El décimo problema de Hilbert inspiró a
+Alan Turing a tratar definir la idea de
+algoritmo para poder demostrar que
+existían que eran no computables
+230 A. M. TUKING [Nov. 12,
+ON COMPUTABLE NUMBERS, WITH AN APPLICATION TO
+THE ENTSCHEIDUNGSPROBLEM
+By A. M. TURING.
+[Received 28 May, 1936.—Read 12 November, 1936.]
+The "computable" numbers may be described briefly as the real
+numbers whose expressions as a decimal are calculable by finite means.
+Although the subject of this paper is ostensibly the computable numbers.
+it is almost equally easy to define and investigate computable functions
+of an integral variable or a real or computable variable, computable
+predicates, and so forth. The fundamental problems involved are,
+however, the same in each case, and I have chosen the computable numbers
+for explicit treatment as involving the least cumbrous technique. I hope
+shortly to give an account of the relations of the computable numbers,
+functions, and so forth to one another. This will include a development
+of the theory of functions of a real variable expressed in terms of com-
+putable numbers. According to my definition, a number is computable
+if its decimal can be written down by a machine.
+In §§ 9, 10 I give some arguments with the intention of showing that the
+computable numbers include all numbers which could naturally be
+regarded as computable. In particular, I show that certain large classes
+of numbers are computable. They include, for instance, the real parts of
+ll l b i b th l t f th f th B l f ti
+Es un artículo en 1936, Turing
+describe
+las máquinas de Turing, y
+demuestra que existen problemas
+no computables.
+
+===== PAGE 6 =====
+Las Máquinas de Turing
+Las máquinas de Turing pueden pensarse como una
+formalización de la noción de computación:
+Un cabezal con
+un estado
+Estado
+Símbolos que pueden ser
+leídos y escritos
+Cinta con todo el espacio que
+querramos
+w0 w1 w2 w3 w4 w5 ⊔ ⊔ ⊔
+Símbolo vacío
+En cada paso la máquina lee un símbolo, puede escribir un
+símbolo en la cinta y moverse a la izq. o der.
+
+===== PAGE 7 =====
+Definición Formal
+Una máquina de Turing es una tupla:
+⟨Q, Σ, Γ, δ, q0, qA, qR⟩
+En donde:
+• , es un conjunto finitos de estados,
+Q
+Σ ⊔
+• , es el alfabeto de entrada conteniendo
+• , es el alfabeto de la cinta,
+Γ Σ ⊆ Γ
+• , es la función de
+δ : Q × Γ → Q × Γ × {L, R}
+transición,
+• , es el estado inicial,
+q0
+• , es el estado de aceptación,
+qA
+• , es el estado de rechazo.
+qR
+
+===== PAGE 8 =====
+Intuición
+Dada una máquina de Turing y
+M = ⟨Q, Σ, Γ, δ, q0, qA, qR⟩
+un cadena de entrada la máquina funciona de la siguiente
+w
+manera:
+• Se empieza con el estado inicial con el cabezal
+q0
+apuntando al primer carácter.
+δ
+• Lee el carácter, y según esta lee, escribe, y se mueve a la
+izq. o der. y cambia su estado,
+• Se repite el paso anterior hasta que se llega a , se acepta
+qA
+la , o , se rechaza .
+w qR w
+Una máquina de Turing puede: (i) aceptar una cadena, (ii) rechazarla al llegar
+al estado , (iii) rechazarla al no terminar.
+qR
+
+===== PAGE 9 =====
+Configuraciones (Estados)
+Podemos describir el funcionamiento de las máquinas de
+Turing usando las nociones de configuración/estados:
+Una configuración tiene tres componentes:
+String a la izq.
+del cabezal
+wqiv
+String a la der. del
+cabezal, incluyendo el
+símbolo leído por el
+mismo.
+Estado actual
+Escribimos si de la configuración
+wqiv →M w′
+￼ qjv′
+￼ wqiv
+w′
+pasamos a en la máquina .
+￼ qjv′
+￼ M
+
+===== PAGE 10 =====
+Aceptación
+w
+Una MT M acepta una cadena si existe una secuencia
+de configuraciones tal que:
+C0, C1, …, Cn
+• es la configuración inicial.
+C0 = qinitw
+• Para cada :
+1 ≤ i ≤ n Ci → Ci+1
+• es una configuración de aceptación, es decir:
+Cn
+Cn
+= w′
+￼ qAw′
+′
+M
+Dada una máquina de Turing podemos definir el lenguaje
+que esta reconoce: .
+ℒ(M) = {w ∣ M acepta w}
+Un lenguaje se dice Turing reconocible ssi
+L ℒ(M) = L
+M
+para alguna máquina de Turing .
+￼
+￼
+
+===== PAGE 11 =====
+Máquinas de Decisión
+Una máquina de decisión es una maquina de Turing que solo
+acepta o rechaza cadenas.
+Siempre terminan
+Las máquinas de Turing
+clásicas pueden no terminar
+para una entrada
+Un lenguaje se dice decidible ssi existe una máquina de
+decisión que reconoce el lenguaje.
+Veremos que hay lenguajes que no son decidibles.
+También lenguajes que son Turing reconocibles pero no
+decidibles.
+Una máquina de decision permite reconocer si algo es una
+respuesta o no a un problema.
+
+===== PAGE 12 =====
+Ejemplo de Lenguaje
+Reconocible pero no decidible
+Consideremos el siguiente lenguaje: L = {ϕ ∣ ⊢ ϕ}
+Las formulas de primer orden que son válidas (teoremas).
+Podemos pensar una MT que reconozca este lenguaje.
+1. Se empieza con la formula codificada en la cinta,
+2. Después de la secuencia inicial, se escribe un #
+3.Utilizando las reglas y axiomas se empiezan a escribir las
+posibles demostraciones
+4. Si aparece se acepta. ϕ
+Si es demostrable, alguna vez aparecerá, pero sino la
+ϕmáquina se ejecuta para siempre. Se puede demostrar que
+este lenguaje no es decidible.
+
+===== PAGE 13 =====
+Describiendo Máquinas de
+Turing
+Ejemplo: Consideremos el lenguaje: ,
+A= {w#w ∣ w ∈ {0,1}*}
+pensemos una MT para reconocer este lenguaje.
+w M
+Dado un input , procede de la siguiente forma:
+• Dada la configuración reemplazamos por y
+wqibv b x
+avanzamos hasta que encontramos el primer símbolo
+# x b
+después de diferente de . Si es igual que lo
+x
+reemplazamos por , y volvemos al comienzo, sino
+rechazamos.
+• En configuración nos fijamos que todos los símbolos
+w#qjv
+xson , en ese caso aceptamos, sino rechazamos la cadena.
+
+===== PAGE 14 =====
+EXAMPLE 3.9
+Definición Formal
+The following is a formal description of M1 = (Q, Σ, Γ, δ, q1, qaccept, qreject), the
+Turing machine that we informally described (page 167) for deciding the lan-
+guage B= {w#w| w ∈ {0,1}∗}.
+• Q= {q1, . . . , q8, qaccept, qreject},
+M
+Podemos definir formalmente:
+• Σ= {0,1,#}, and Γ= {0,1,#,x,␣}.
+• We describe δ with a state diagram (see the following figure).
+Σ = {0,1,#} • The start, accept, and reject states are q1, qaccept, and qreject, respectively.
+Γ = {0,1,#, x, ⊔ }
+Si viene un 1 se lo
+M1 :
+reemplaza por x y
+se va a la derecha
+si viene un 0 se lo
+reemplaza por x y
+se va a la derecha
+Definición de δ
+Las transiciones
+que no se ponen
+van a qR
+FIGURE 3.10
+State diagram for Turing machine M
+
+===== PAGE 15 =====
+Otro Ejemplo
+Veamos un ejemplo de una máquina de Turing que acepta el
+lenguaje: A= {02n ∣ n ≥ 0}
+⊔• Reemplazar el primer 0 por , si no hay más símbolos
+se acepta,
+• Si hay un 0 más se lo reemplaza por x,
+• Para todos los 0’s a la derecha, reemplazar el de al
+lado (si es cero) por x
+• Si se llega al fin y no hay más ceros y todos x, se
+acepta. En otro caso se repite el paso (3)
+
+===== PAGE 16 =====
+Definición Formal
+Σ = {0} 172 CHAPTER 3 / THE CHURCH---TURING THESIS
+Q= {q0, q1, q2, q3, q4} M2 :
+Γ = {0,x, ⊔ }
+FIGURE 3.8
+State diagram for Turing machine M2
+
+===== PAGE 17 =====
+Definición Formal (cont.)
+δ
+También podemos definir con una tabla:
+q0 q1 q2
+q3 q4 q5
+write move next write move next write move next write move next write move next write move next
+Simbo
+lo
+0 R ⊔
+q2
+x R q3
+0 R q3
+0 R q4
+x
+R 0 L
+q4 q5
+⊔
+⊔
+x R ⊔
+R R qR ⊔ ⊔ ⊔
+qA
+R L qA
+qA
+q2
+q5
+⊔ q2
+L R
+qR
+⊔
+qR
+x R q2
+x R x R q3
+x R
+q4 x L
+q5
+Para máquinas de Turing muy grandes es impracticables.
+
+===== PAGE 18 =====
+Ejercicios:
+1. Implementar en Python las máquinas de Turing. Utilizar su implementación para
+programar los ejemplos dados, y testearlos.
+2. Para la MT dar la secuencia de configuraciones cuando se empieza con:
+M2
+I. 0
+II.00
+III.000
+IV.000000
+3. Dar definiciones de máquinas de Turing para decidir los siguientes lenguajes:
+1.
+2.
+{w ∣ w contiene un número igual de 0's y 1's}
+{w ∣ w contiene dos veces mas 0's que 1's}
+4. Una máquina de Turing con cinta doblemente infinita son máquinas de Turing en las
+cuales las cintas son infinitas tanto para la izquierda como para la derecha. Mostrar
+que estas máquinas reconocen los mismos lenguajes que las máquinas de Turing.
+
+===== PAGE 19 =====
+MTs con muchas cintas
+Las máquinas de Turing con muchas cintas son una
+generalización de las MTs, que permiten procesar las cosas de
+forma más simple.
+Un cabezal con
+un estado
+Estado
+Podemos tener k cintas
+w0 w1 w2 w3 w4 w5 ⊔ ⊔ ⊔
+{Al principio están
+vacías
+w1
+0 w1
+1 w1
+2 w1
+3 w1
+4 w1
+5 ⊔ ⊔ ⊔
+⋮
+wk
+0 wk
+1 wk
+2 wk
+3 wk
+4 wk
+5 ⊔ ⊔ ⊔
+
+===== PAGE 20 =====
+Definición Formal
+Podemos definir formalmente las MT con muchas cintas:
+⟨Q, Σ, {Γi}0≤i≤k, δ, q0, qA, qR⟩
+En donde:
+• es el alfabeto de la i-ésima cinta
+Γi
+• es la función
+δ : Q × Γ0 ×… × Γk−1 → Q × {L, R}kde transición
+
+===== PAGE 21 =====
+Equivalencia
+M, M′
+Decimos que dos máquinas de Turing son equivalentes
+￼
+cuando, para cualquier palabra
+w
+M M′
+• acepta la palabra ssi acepta la palabra,
+￼
+• rechaza ssi rechaza
+M w M′
+￼ w
+M M′
+• no termina ssi no termina
+￼
+La equivalencia de máquinas de Turing es un problema no
+decidible
+
+===== PAGE 22 =====
+Equivalencia entre Modelos
+Teorema : Toda MT con k cintas tiene una MT con una cinta
+que es equivalente.
+Estado
+Se utilizan
+nuevos símbolos
+para marcar
+dónde están las
+cabezas
+w0 w1 w2 ⊔
+⊔
+⊔
+⊔ ⊔ ⊔
+w1
+0 w1
+1 w1
+⊔ ⊔ 2 ⊔ ⊔ w1
+⊔ ⊔
+w0 # w1
+w1 w2
+0
+1 w1
+2 # wk
+0 wk
+1 wk
+2 wk
+3 wk
+4 wk
+5
+⋮
+wk
+0 wk
+1 wk
+2 wk
+3 wk
+4 wk
+5 ⊔ ⊔ ⊔
+S
+• escanea toda la cinta para ver dónde están los cabezales
+• Dependiendo eso, cambia la cinta de la forma que lo hace
+• Si es necesario tener más espacio se corren todos los
+símbolos para la derecha.
+M
+
+===== PAGE 23 =====
+Máquinas de Turing No-
+Deterministas
+Las máquinas de Turing no-deterministas permiten considerar
+ejecuciones no deterministas, es decir, en cada configuración
+tenemos muchos posibles sucesores
+Estado
+w0 w1 w2 w3 w4 w5 ⊔ ⊔ ⊔
+Estado
+Estado
+w0 w1 w2 w3 w4 w5 ⊔ ⊔
+w0 w1 w2 w3 Estado
+w′
+￼ 4 w5 ⊔ ⊔ ⊔
+w0 w1 w2 w3 w4 w5 ⊔ ⊔ ⊔
+
+===== PAGE 24 =====
+q4
+q4
+<latexit sha1_base64="hsxF2+eR4qOJbe+YJlhojIL5Y2U=">AAAB/nicbVDLSgMxFM3UV62vUXElSLAIXZUZBXVnwY3LVuwDOkPJpJk2NJOMSUYpQ8GNH+LGhaJu+x3u/AZ/wvSx0NYDFw7n3Mu99wQxo0o7zpeVWVhcWl7JrubW1jc2t+ztnZoSicSkigUTshEgRRjlpKqpZqQRS4KigJF60Lsc+fU7IhUV/Eb3Y+JHqMNpSDHSRmrZe9BTtziJoSdpp6uRlOIeXrfsvFN0xoDzxJ2S/MX7sPL9eDAst+xPry1wEhGuMUNKNV0n1n6KpKaYkUHOSxSJEe6hDmkaylFElJ+Ozx/AI6O0YSikKa7hWP09kaJIqX4UmM4I6a6a9Ubif14z0eG5n1IeJ5pwPFkUJgxqAUdZwDaVBGvWNwRhSc2tEHeRRFibxHImBHf25XlSOy66p8WTipsvFcAEWbAPDkEBuOAMlMAVKIMqwCAFT+AFvFoP1rP1Zn1MWjPWdGYX/IE1/AF1V5mD</latexit>
+t ! R<latexit sha1_base64="hsxF2+eR4qOJbe+YJlhojIL5Y2U=">AAAB/nicbVDLSgMxFM3UV62vUXElSLAIXZUZBXVnwY3LVuwDOkPJpJk2NJOMSUYpQ8GNH+LGhaJu+x3u/AZ/wvSx0NYDFw7n3Mu99wQxo0o7zpeVWVhcWl7JrubW1jc2t+ztnZoSicSkigUTshEgRRjlpKqpZqQRS4KigJF60Lsc+fU7IhUV/Eb3Y+JHqMNpSDHSRmrZe9BTtziJoSdpp6uRlOIeXrfsvFN0xoDzxJ2S/MX7sPL9eDAst+xPry1wEhGuMUNKNV0n1n6KpKaYkUHOSxSJEe6hDmkaylFElJ+Ozx/AI6O0YSikKa7hWP09kaJIqX4UmM4I6a6a9Ubif14z0eG5n1IeJ5pwPFkUJgxqAUdZwDaVBGvWNwRhSc2tEHeRRFibxHImBHf25XlSOy66p8WTipsvFcAEWbAPDkEBuOAMlMAVKIMqwCAFT+AFvFoP1rP1Zn1MWjPWdGYX/IE1/AF1V5mD</latexit>
+t ! R
+<latexit sha1_base64="BT2VFbNjjOIjoB33C1V2Ct3YYTI=">AAAB+XicbVC7SgNBFJ2Nrxhfq5aCDAYhVdhVUDsDNpaJmAckIcxOZpMhszvLzN1oWFL6FzYWiljY2OQ77PwGf8LJo9DEAxcO59zLvfd4keAaHOfLSi0tr6yupdczG5tb2zv27l5Fy1hRVqZSSFXziGaCh6wMHASrRYqRwBOs6vWuxn61z5TmMryFQcSaAemE3OeUgJFato3vcUPxTheIUvIO37TsrJN3JsCLxJ2R7OX7qPT9cDgqtuzPRlvSOGAhUEG0rrtOBM2EKOBUsGGmEWsWEdojHVY3NCQB081kcvkQHxuljX2pTIWAJ+rviYQEWg8Cz3QGBLp63huL/3n1GPyLZsLDKAYW0ukiPxYYJB7HgNtcMQpiYAihiptbMe0SRSiYsDImBHf+5UVSOcm7Z/nTkpst5NAUaXSAjlAOuegcFdA1KqIyoqiPHtEzerES68l6td6mrSlrNrOP/sD6+AF3fJdB</latexit>
+x ! R<latexit sha1_base64="BT2VFbNjjOIjoB33C1V2Ct3YYTI=">AAAB+XicbVC7SgNBFJ2Nrxhfq5aCDAYhVdhVUDsDNpaJmAckIcxOZpMhszvLzN1oWFL6FzYWiljY2OQ77PwGf8LJo9DEAxcO59zLvfd4keAaHOfLSi0tr6yupdczG5tb2zv27l5Fy1hRVqZSSFXziGaCh6wMHASrRYqRwBOs6vWuxn61z5TmMryFQcSaAemE3OeUgJFato3vcUPxTheIUvIO37TsrJN3JsCLxJ2R7OX7qPT9cDgqtuzPRlvSOGAhUEG0rrtOBM2EKOBUsGGmEWsWEdojHVY3NCQB081kcvkQHxuljX2pTIWAJ+rviYQEWg8Cz3QGBLp63huL/3n1GPyLZsLDKAYW0ukiPxYYJB7HgNtcMQpiYAihiptbMe0SRSiYsDImBHf+5UVSOcm7Z/nTkpst5NAUaXSAjlAOuegcFdA1KqIyoqiPHtEzerES68l6td6mrSlrNrOP/sD6+AF3fJdB</latexit>
+x ! R
+Definición Formal
+q0<latexit sha1_base64="5l4TzGRKz4Mop48HHsxLPaWjviM=">AAAB6nicbZDLSgMxFIbPWC+13qou3QRLoasyo6AuC25cVrQXaIeSSTNtaCYZk4xQhuLGrRsXSnEl+Aw+iDvfxvSy0NYfAh//fw455wQxZ9q47rezklldW9/Ibua2tnd29/L7B3UtE0VojUguVTPAmnImaM0ww2kzVhRHAaeNYHA5yRv3VGkmxa0ZxtSPcE+wkBFsrHVz13E7+YJbdqdCy+DNoVDJFB8+x4/v1U7+q92VJImoMIRjrVueGxs/xcowwuko1040jTEZ4B5tWRQ4otpPp6OOUNE6XRRKZZ8waOr+7khxpPUwCmxlhE1fL2YT87+slZjwwk+ZiBNDBZl9FCYcGYkme6MuU5QYPrSAiWJ2VkT6WGFi7HVy9gje4srLUD8pe2fl02uvUCnBTFk4gmMogQfnUIErqEINCPTgCV7g1eHOszN23malK8685xD+yPn4AXoukN4=</latexit>
+q1<latexit sha1_base64="5l4TzGRKz4Mop48HHsxLPaWjviM=">AAAB6nicbZDLSgMxFIbPWC+13qou3QRLoasyo6AuC25cVrQXaIeSSTNtaCYZk4xQhuLGrRsXSnEl+Aw+iDvfxvSy0NYfAh//fw455wQxZ9q47rezklldW9/Ibua2tnd29/L7B3UtE0VojUguVTPAmnImaM0ww2kzVhRHAaeNYHA5yRv3VGkmxa0ZxtSPcE+wkBFsrHVz13E7+YJbdqdCy+DNoVDJFB8+x4/v1U7+q92VJImoMIRjrVueGxs/xcowwuko1040jTEZ4B5tWRQ4otpPp6OOUNE6XRRKZZ8waOr+7khxpPUwCmxlhE1fL2YT87+slZjwwk+ZiBNDBZl9FCYcGYkme6MuU5QYPrSAiWJ2VkT6WGFi7HVy9gje4srLUD8pe2fl02uvUCnBTFk4gmMogQfnUIErqEINCPTgCV7g1eHOszN23malK8685xD+yPn4AXoukN4=</latexit>
+q0
+q1<latexit sha1_base64="KSpI+PmmDUQG27bd+Qh6uTiuo9I=">AAAB6nicbZDLSgMxFIbPWC+13qou3QRLoasyo6AuC25cVrQXaIeSSTNtaCYZk4xQhuLGrRsXSnEl+Aw+iDvfxvSy0NYfAh//fw455wQxZ9q47rezklldW9/Ibua2tnd29/L7B3UtE0VojUguVTPAmnImaM0ww2kzVhRHAaeNYHA5yRv3VGkmxa0ZxtSPcE+wkBFsrHVz1/E6+YJbdqdCy+DNoVDJFB8+x4/v1U7+q92VJImoMIRjrVueGxs/xcowwuko1040jTEZ4B5tWRQ4otpPp6OOUNE6XRRKZZ8waOr+7khxpPUwCmxlhE1fL2YT87+slZjwwk+ZiBNDBZl9FCYcGYkme6MuU5QYPrSAiWJ2VkT6WGFi7HVy9gje4srLUD8pe2fl02uvUCnBTFk4gmMogQfnUIErqEINCPTgCV7g1eHOszN23malK8685xD+yPn4AXuykN8=</latexit>
+<latexit sha1_base64="KSpI+PmmDUQG27bd+Qh6uTiuo9I=">AAAB6nicbZDLSgMxFIbPWC+13qou3QRLoasyo6AuC25cVrQXaIeSSTNtaCYZk4xQhuLGrRsXSnEl+Aw+iDvfxvSy0NYfAh//fw455wQxZ9q47rezklldW9/Ibua2tnd29/L7B3UtE0VojUguVTPAmnImaM0ww2kzVhRHAaeNYHA5yRv3VGkmxa0ZxtSPcE+wkBFsrHVz1/E6+YJbdqdCy+DNoVDJFB8+x4/v1U7+q92VJImoMIRjrVueGxs/xcowwuko1040jTEZ4B5tWRQ4otpPp6OOUNE6XRRKZZ8waOr+7khxpPUwCmxlhE1fL2YT87+slZjwwk+ZiBNDBZl9FCYcGYkme6MuU5QYPrSAiWJ2VkT6WGFi7HVy9gje4srLUD8pe2fl02uvUCnBTFk4gmMogQfnUIErqEINCPTgCV7g1eHOszN23malK8685xD+yPn4AXuykN8=</latexit>
+t ! R<latexit sha1_base64="hsxF2+eR4qOJbe+YJlhojIL5Y2U=">AAAB/nicbVDLSgMxFM3UV62vUXElSLAIXZUZBXVnwY3LVuwDOkPJpJk2NJOMSUYpQ8GNH+LGhaJu+x3u/AZ/wvSx0NYDFw7n3Mu99wQxo0o7zpeVWVhcWl7JrubW1jc2t+ztnZoSicSkigUTshEgRRjlpKqpZqQRS4KigJF60Lsc+fU7IhUV/Eb3Y+JHqMNpSDHSRmrZe9BTtziJoSdpp6uRlOIeXrfsvFN0xoDzxJ2S/MX7sPL9eDAst+xPry1wEhGuMUNKNV0n1n6KpKaYkUHOSxSJEe6hDmkaylFElJ+Ozx/AI6O0YSikKa7hWP09kaJIqX4UmM4I6a6a9Ubif14z0eG5n1IeJ5pwPFkUJgxqAUdZwDaVBGvWNwRhSc2tEHeRRFibxHImBHf25XlSOy66p8WTipsvFcAEWbAPDkEBuOAMlMAVKIMqwCAFT+AFvFoP1rP1Zn1MWjPWdGYX/IE1/AF1V5mD</latexit>
+<latexit sha1_base64="hsxF2+eR4qOJbe+YJlhojIL5Y2U=">AAAB/nicbVDLSgMxFM3UV62vUXElSLAIXZUZBXVnwY3LVuwDOkPJpJk2NJOMSUYpQ8GNH+LGhaJu+x3u/AZ/wvSx0NYDFw7n3Mu99wQxo0o7zpeVWVhcWl7JrubW1jc2t+ztnZoSicSkigUTshEgRRjlpKqpZqQRS4KigJF60Lsc+fU7IhUV/Eb3Y+JHqMNpSDHSRmrZe9BTtziJoSdpp6uRlOIeXrfsvFN0xoDzxJ2S/MX7sPL9eDAst+xPry1wEhGuMUNKNV0n1n6KpKaYkUHOSxSJEe6hDmkaylFElJ+Ozx/AI6O0YSikKa7hWP09kaJIqX4UmM4I6a6a9Ubif14z0eG5n1IeJ5pwPFkUJgxqAUdZwDaVBGvWNwRhSc2tEHeRRFibxHImBHf25XlSOy66p8WTipsvFcAEWbAPDkEBuOAMlMAVKIMqwCAFT+AFvFoP1rP1Zn1MWjPWdGYX/IE1/AF1V5mD</latexit>
+t ! R
+x ! R<latexit sha1_base64="BT2VFbNjjOIjoB33C1V2Ct3YYTI=">AAAB+XicbVC7SgNBFJ2Nrxhfq5aCDAYhVdhVUDsDNpaJmAckIcxOZpMhszvLzN1oWFL6FzYWiljY2OQ77PwGf8LJo9DEAxcO59zLvfd4keAaHOfLSi0tr6yupdczG5tb2zv27l5Fy1hRVqZSSFXziGaCh6wMHASrRYqRwBOs6vWuxn61z5TmMryFQcSaAemE3OeUgJFato3vcUPxTheIUvIO37TsrJN3JsCLxJ2R7OX7qPT9cDgqtuzPRlvSOGAhUEG0rrtOBM2EKOBUsGGmEWsWEdojHVY3NCQB081kcvkQHxuljX2pTIWAJ+rviYQEWg8Cz3QGBLp63huL/3n1GPyLZsLDKAYW0ukiPxYYJB7HgNtcMQpiYAihiptbMe0SRSiYsDImBHf+5UVSOcm7Z/nTkpst5NAUaXSAjlAOuegcFdA1KqIyoqiPHtEzerES68l6td6mrSlrNrOP/sD6+AF3fJdB</latexit>
+<latexit sha1_base64="BT2VFbNjjOIjoB33C1V2Ct3YYTI=">AAAB+XicbVC7SgNBFJ2Nrxhfq5aCDAYhVdhVUDsDNpaJmAckIcxOZpMhszvLzN1oWFL6FzYWiljY2OQ77PwGf8LJo9DEAxcO59zLvfd4keAaHOfLSi0tr6yupdczG5tb2zv27l5Fy1hRVqZSSFXziGaCh6wMHASrRYqRwBOs6vWuxn61z5TmMryFQcSaAemE3OeUgJFato3vcUPxTheIUvIO37TsrJN3JsCLxJ2R7OX7qPT9cDgqtuzPRlvSOGAhUEG0rrtOBM2EKOBUsGGmEWsWEdojHVY3NCQB081kcvkQHxuljX2pTIWAJ+rviYQEWg8Cz3QGBLp63huL/3n1GPyLZsLDKAYW0ukiPxYYJB7HgNtcMQpiYAihiptbMe0SRSiYsDImBHf+5UVSOcm7Z/nTkpst5NAUaXSAjlAOuegcFdA1KqIyoqiPHtEzerES68l6td6mrSlrNrOP/sD6+AF3fJdB</latexit>
+x ! R
+qR<latexit sha1_base64="3Xdq82bVa0GcpY6DqQ6LmXd5kkI=">AAAB6nicbZC7SgNBFIbPJl5ivEUtbQZDIFXYVVDLgI1lvGwSSJYwO5lNhszOrjOzQliCja2NhRKsBJ/BB7HzbZxcCk38YeDj/89hzjl+zJnStv1tZbIrq2vruY385tb2zm5hb7+uokQS6pKIR7LpY0U5E9TVTHPajCXFoc9pwx9cTPLGPZWKReJWD2PqhbgnWMAI1sa6uetcdwpFu2JPhZbBmUOxmi09fI4f32udwle7G5EkpEITjpVqOXasvRRLzQino3w7UTTGZIB7tGVQ4JAqL52OOkIl43RREEnzhEZT93dHikOlhqFvKkOs+2oxm5j/Za1EB+deykScaCrI7KMg4UhHaLI36jJJieZDA5hIZmZFpI8lJtpcJ2+O4CyuvAz144pzWjm5corVMsyUg0M4gjI4cAZVuIQauECgB0/wAq8Wt56tsfU2K81Y854D+CPr4wettpEA</latexit>
+En la definición formal lo único que cambia es la función de
+<latexit sha1_base64="3Xdq82bVa0GcpY6DqQ6LmXd5kkI=">AAAB6nicbZC7SgNBFIbPJl5ivEUtbQZDIFXYVVDLgI1lvGwSSJYwO5lNhszOrjOzQliCja2NhRKsBJ/BB7HzbZxcCk38YeDj/89hzjl+zJnStv1tZbIrq2vruY385tb2zm5hb7+uokQS6pKIR7LpY0U5E9TVTHPajCXFoc9pwx9cTPLGPZWKReJWD2PqhbgnWMAI1sa6uetcdwpFu2JPhZbBmUOxmi09fI4f32udwle7G5EkpEITjpVqOXasvRRLzQino3w7UTTGZIB7tGVQ4JAqL52OOkIl43RREEnzhEZT93dHikOlhqFvKkOs+2oxm5j/Za1EB+deykScaCrI7KMg4UhHaLI36jJJieZDA5hIZmZFpI8lJtpcJ2+O4CyuvAz144pzWjm5corVMsyUg0M4gjI4cAZVuIQauECgB0/wAq8Wt56tsfU2K81Y854D+CPr4wettpEA</latexit>
+qR<latexit sha1_base64="G240FsFuYSqGphkIP0sg2R0fymw=">AAAB6nicbZC7SgNBFIbPJl5ivEUtbQZDIFXYVVDLiI1lRHOBZAmzk9lkyOzsOjMrhCXY2NpYKMFK8Bl8EDvfxskmhSb+MPDx/+cw5xwv4kxp2/62MtmV1bX13EZ+c2t7Z7ewt99QYSwJrZOQh7LlYUU5E7Sumea0FUmKA4/Tpje8nObNeyoVC8WtHkXUDXBfMJ8RrI11c9e96BaKdsVOhZbBmUOxmi09fE4e32vdwlenF5I4oEITjpVqO3ak3QRLzQin43wnVjTCZIj7tG1Q4IAqN0lHHaOScXrID6V5QqPU/d2R4ECpUeCZygDrgVrMpuZ/WTvW/rmbMBHFmgoy+8iPOdIhmu6NekxSovnIACaSmVkRGWCJiTbXyZsjOIsrL0PjuOKcVk6unWK1DDPl4BCOoAwOnEEVrqAGdSDQhyd4gVeLW8/WxHqblWasec8B/JH18QOT8pDv</latexit>
+qA<latexit sha1_base64="G240FsFuYSqGphkIP0sg2R0fymw=">AAAB6nicbZC7SgNBFIbPJl5ivEUtbQZDIFXYVVDLiI1lRHOBZAmzk9lkyOzsOjMrhCXY2NpYKMFK8Bl8EDvfxskmhSb+MPDx/+cw5xwv4kxp2/62MtmV1bX13EZ+c2t7Z7ewt99QYSwJrZOQh7LlYUU5E7Sumea0FUmKA4/Tpje8nObNeyoVC8WtHkXUDXBfMJ8RrI11c9e96BaKdsVOhZbBmUOxmi09fE4e32vdwlenF5I4oEITjpVqO3ak3QRLzQin43wnVjTCZIj7tG1Q4IAqN0lHHaOScXrID6V5QqPU/d2R4ECpUeCZygDrgVrMpuZ/WTvW/rmbMBHFmgoy+8iPOdIhmu6NekxSovnIACaSmVkRGWCJiTbXyZsjOIsrL0PjuOKcVk6unWK1DDPl4BCOoAwOnEEVrqAGdSDQhyd4gVeLW8/WxHqblWasec8B/JH18QOT8pDv</latexit>
+qA
+transición:
+t ! R<latexit sha1_base64="hsxF2+eR4qOJbe+YJlhojIL5Y2U=">AAAB/nicbVDLSgMxFM3UV62vUXElSLAIXZUZBXVnwY3LVuwDOkPJpJk2NJOMSUYpQ8GNH+LGhaJu+x3u/AZ/wvSx0NYDFw7n3Mu99wQxo0o7zpeVWVhcWl7JrubW1jc2t+ztnZoSicSkigUTshEgRRjlpKqpZqQRS4KigJF60Lsc+fU7IhUV/Eb3Y+JHqMNpSDHSRmrZe9BTtziJoSdpp6uRlOIeXrfsvFN0xoDzxJ2S/MX7sPL9eDAst+xPry1wEhGuMUNKNV0n1n6KpKaYkUHOSxSJEe6hDmkaylFElJ+Ozx/AI6O0YSikKa7hWP09kaJIqX4UmM4I6a6a9Ubif14z0eG5n1IeJ5pwPFkUJgxqAUdZwDaVBGvWNwRhSc2tEHeRRFibxHImBHf25XlSOy66p8WTipsvFcAEWbAPDkEBuOAMlMAVKIMqwCAFT+AFvFoP1rP1Zn1MWjPWdGYX/IE1/AF1V5mD</latexit>
+<latexit sha1_base64="hsxF2+eR4qOJbe+YJlhojIL5Y2U=">AAAB/nicbVDLSgMxFM3UV62vUXElSLAIXZUZBXVnwY3LVuwDOkPJpJk2NJOMSUYpQ8GNH+LGhaJu+x3u/AZ/wvSx0NYDFw7n3Mu99wQxo0o7zpeVWVhcWl7JrubW1jc2t+ztnZoSicSkigUTshEgRRjlpKqpZqQRS4KigJF60Lsc+fU7IhUV/Eb3Y+JHqMNpSDHSRmrZe9BTtziJoSdpp6uRlOIeXrfsvFN0xoDzxJ2S/MX7sPL9eDAst+xPry1wEhGuMUNKNV0n1n6KpKaYkUHOSxSJEe6hDmkaylFElJ+Ozx/AI6O0YSikKa7hWP09kaJIqX4UmM4I6a6a9Ubif14z0eG5n1IeJ5pwPFkUJgxqAUdZwDaVBGvWNwRhSc2tEHeRRFibxHImBHf25XlSOy66p8WTipsvFcAEWbAPDkEBuOAMlMAVKIMqwCAFT+AFvFoP1rP1Zn1MWjPWdGYX/IE1/AF1V5mD</latexit>
+t ! R
+0<latexit sha1_base64="q/okuOMtjRWKKfCfgO9ckhHtGqM=">AAAB+HicbVC7SgNBFJ2NrxgfWbUUZDAIqcKugtoZsLFMxDwgCWF2MpsMmd1ZZu4qcUnpV9hYKGJjYZXvsPMb/Aknj0ITD1w4nHMv997jRYJrcJwvK7W0vLK6ll7PbGxubWftnd2qlrGirEKlkKruEc0ED1kFOAhWjxQjgSdYzetfjv3aLVOay/AGBhFrBaQbcp9TAkZq21kHNxXv9oAoJe/wddvOOQVnArxI3BnJXbyPyt8PB6NS2/5sdiSNAxYCFUTrhutE0EqIAk4FG2aasWYRoX3SZQ1DQxIw3Uomhw/xkVE62JfKVAh4ov6eSEig9SDwTGdAoKfnvbH4n9eIwT9vJTyMYmAhnS7yY4FB4nEKuMMVoyAGhhCquLkV0x5RhILJKmNCcOdfXiTV44J7Wjgpu7liHk2RRvvoEOWRi85QEV2hEqogimL0iJ7Ri3VvPVmv1tu0NWXNZvbQH1gfP67els8=</latexit>
+<latexit sha1_base64="q/okuOMtjRWKKfCfgO9ckhHtGqM=">AAAB+HicbVC7SgNBFJ2NrxgfWbUUZDAIqcKugtoZsLFMxDwgCWF2MpsMmd1ZZu4qcUnpV9hYKGJjYZXvsPMb/Aknj0ITD1w4nHMv997jRYJrcJwvK7W0vLK6ll7PbGxubWftnd2qlrGirEKlkKruEc0ED1kFOAhWjxQjgSdYzetfjv3aLVOay/AGBhFrBaQbcp9TAkZq21kHNxXv9oAoJe/wddvOOQVnArxI3BnJXbyPyt8PB6NS2/5sdiSNAxYCFUTrhutE0EqIAk4FG2aasWYRoX3SZQ1DQxIw3Uomhw/xkVE62JfKVAh4ov6eSEig9SDwTGdAoKfnvbH4n9eIwT9vJTyMYmAhnS7yY4FB4nEKuMMVoyAGhhCquLkV0x5RhILJKmNCcOdfXiTV44J7Wjgpu7liHk2RRvvoEOWRi85QEV2hEqogimL0iJ7Ri3VvPVmv1tu0NWXNZvbQH1gfP67els8=</latexit>
+0
+t ! R<latexit sha1_base64="hsxF2+eR4qOJbe+YJlhojIL5Y2U=">AAAB/nicbVDLSgMxFM3UV62vUXElSLAIXZUZBXVnwY3LVuwDOkPJpJk2NJOMSUYpQ8GNH+LGhaJu+x3u/AZ/wvSx0NYDFw7n3Mu99wQxo0o7zpeVWVhcWl7JrubW1jc2t+ztnZoSicSkigUTshEgRRjlpKqpZqQRS4KigJF60Lsc+fU7IhUV/Eb3Y+JHqMNpSDHSRmrZe9BTtziJoSdpp6uRlOIeXrfsvFN0xoDzxJ2S/MX7sPL9eDAst+xPry1wEhGuMUNKNV0n1n6KpKaYkUHOSxSJEe6hDmkaylFElJ+Ozx/AI6O0YSikKa7hWP09kaJIqX4UmM4I6a6a9Ubif14z0eG5n1IeJ5pwPFkUJgxqAUdZwDaVBGvWNwRhSc2tEHeRRFibxHImBHf25XlSOy66p8WTipsvFcAEWbAPDkEBuOAMlMAVKIMqwCAFT+AFvFoP1rP1Zn1MWjPWdGYX/IE1/AF1V5mD</latexit>
+t ! R
+<latexit sha1_base64="hsxF2+eR4qOJbe+YJlhojIL5Y2U=">AAAB/nicbVDLSgMxFM3UV62vUXElSLAIXZUZBXVnwY3LVuwDOkPJpJk2NJOMSUYpQ8GNH+LGhaJu+x3u/AZ/wvSx0NYDFw7n3Mu99wQxo0o7zpeVWVhcWl7JrubW1jc2t+ztnZoSicSkigUTshEgRRjlpKqpZqQRS4KigJF60Lsc+fU7IhUV/Eb3Y+JHqMNpSDHSRmrZe9BTtziJoSdpp6uRlOIeXrfsvFN0xoDzxJ2S/MX7sPL9eDAst+xPry1wEhGuMUNKNV0n1n6KpKaYkUHOSxSJEe6hDmkaylFElJ+Ozx/AI6O0YSikKa7hWP09kaJIqX4UmM4I6a6a9Ubif14z0eG5n1IeJ5pwPFkUJgxqAUdZwDaVBGvWNwRhSc2tEHeRRFibxHImBHf25XlSOy66p8WTipsvFcAEWbAPDkEBuOAMlMAVKIMqwCAFT+AFvFoP1rP1Zn1MWjPWdGYX/IE1/AF1V5mD</latexit>
+δ : Q × Γ → 𝒫(Q × Γ × {L, R})
+Notar que:
+• Cada configuración tiene solo una
+cantidad finita de posibles
+sucesores.
+• Se acepta una cadena cuando hay
+al menos una rama del árbol de
+ejecución que la acepta.
+• No es un modelo realista de
+computación.
+
+===== PAGE 25 =====
+Las MT no-deterministicas
+son equivalentes a la MT
+Teorema: Para cualquier máquina de Turing no-determinista
+existe una máquina de Turing determinista que es
+equivalente.
+Prueba: La idea es que dada MT N, no deterministica,
+construimos una máquina M deterministica que acepta una
+cadena si y solo si N acepta la cadena. La idea es recorrer
+el árbol de ejecución de N con un BFS, si la cadena es
+aceptada por N en algún momento encontraremos la
+ejecución que la acepta. Si la N tiene una ejecución que no
+termina y no acepta la cadena entonces M no va a terminar.
+
+===== PAGE 26 =====
+Enumeradores
+Los enumeradores son máquinas de Turing que, intuitivamente
+tienen una impresora.
+Estado
+w0 w1 w2 w3 w4 w5 ⊔ ⊔ ⊔
+Impresora
+• La impresora sirve para
+mostrar un output
+• Formalmente es una cinta
+más
+• Sirve para investigar los
+lenguajes que pueden ser
+computados por una
+computadora
+
+===== PAGE 27 =====
+Formalización
+Un enumerador es una máquina de Turing con 2 cintas:
+⟨Q, Σ, Γ0, Γ1, q0, qinit, qA, qR, qprint⟩
+• es el alfabeto de la cinta,
+Γ0
+• es el alfabeto de la impresora,
+Γ1
+• es un estado de impresión cuando se llega se
+qprint
+imprime y se limpia la cinta de impresión.
+Una lenguaje se dice que es (recursivamente) enumerado por
+un enumerador si existe un enumerador tal que imprime toda
+las palabras de lenguaje
+
+===== PAGE 28 =====
+Lenguajes Reconocibles y
+Enumerados
+Teorema: Un lenguaje es Turing reconocible ssi existe un
+enumerador que lo enumera.
+Prueba: Primero demostramos que si una enumerador E
+enumera un leng. A existe una MT M que la reconoce.
+M con dos cintas actúa de la siguiente forma:
+• Ejecutamos E, cada vez que imprimimos un string w,
+w
+comparamos con si son iguales se acepta,
+Ahora dado una MT M definimos E como sigue:
+
+===== PAGE 29 =====
+Enumeradores (cont.)
+El enumerador E se construye de la siguiente forma:
+• Se ignora el input
+• Se repite para i=1,2,3,4,…
+• Se corre M i pasos para cada input s,s’,s’’,s’’’…
+• Si alguno se acepta se lo imprime
+Cualquier cadena acepta será impresa en algún momento.
+
+===== PAGE 30 =====
+Tesis de Church-Turing
+Podemos pensar en diferentes
+formalizaciones de la noción de
+computación, todas ellas hasta ahora
+resultaron equivalentes. Esto se conoce
+como la tesis de Church-Turing
+Tesis de Church-Turing: Todos los modelos de la noción de
+computación son equivalentes
+
+===== PAGE 31 =====
+Ejercicios:
+1. Demostrar que la clase de lenguajes decidibles es cerrada bajo las operaciones de:
+A. Union,
+B. Concatenación,
+C. Complemento,
+D. Intersección,
+E. iteración.
+2. Demostrar que la clase de lenguajes reconocibles es cerrada bajo las operaciones de:
+F. Union,
+G. Concatenación,
+H. Intersección,
+I. Iteración.
+
+===== PAGE 32 =====
+Indecidibilidad
+Pablo Castro - Computabilidad y Complejidad
+
+===== PAGE 33 =====
+Problemas Decidibles vs
+Indecidibles
+En general podemos codificar los problemas cómo
+lenguajes:
+L = {⟨M, w⟩ ∣ la MT M acepta w}
+Es decir, si podemos decidir este lenguaje, podemos
+M
+construir una máquina de Turing que decide si acepta o
+no la palabra
+w
+Otro ejemplo:
+Si podemos decidir este lenguaje, entonces tenemos un
+programa que dice si una formula es SAT o no
+SAT = {⟨ϕ⟩ ∣ si ϕ es satisfacible}
+
+===== PAGE 34 =====
+Problemas Decidibles:
+El siguiente lenguaje es decidible:
+EDFA = {⟨A⟩ ∣ A es un AFD y L(A) = ∅}
+Es decir, si el lenguaje de un autómata es vacío.
+M
+Idea: Construimos de la siguiente manera, la entrada es
+⟨A⟩
+la representación de un autómata
+• Se marca el estado inicial de
+⟨A⟩• Repetir mientras haya nuevos estados marcados:
+• Marcar cualquier estado que este conectado a un
+estado ya marcado
+• Si todos los estados están marcados se acepta, sino se
+rechaza
+
+===== PAGE 35 =====
+Problemas Decidibles
+El siguiente lenguaje es decidible:
+ACFG = {⟨G, w⟩ ∣ G es un gramática libre de contexto que genera w}
+Para ver que el lenguaje es decidible tenemos que usar la
+siguientes propiedades:
+Forma Normal de Chomsky:
+A → BC
+A → a } Solo producciones de esta forma
+Propiedad: Si una gramática está en formal normal de Chomsky
+w 2 * n− 1
+entonces todas la derivaciones de tienen pasos.
+Siendo el tamaño de .
+n w
+
+===== PAGE 36 =====
+Problemas Decidibles
+Teniendo en cuenta esta propiedad podemos diseñar la
+M
+siguiente MT :
+Dada una entrada ,
+w
+1. Convertir la gramática a Chomsky normal form,
+2. Generar todas las derivaciones de 2n-1 pasos,
+3. Si se genera aceptar, en otro caso, rechazar:
+w
+Podemos hacer un DFS acotado
+S
+Gramática:
+AS
+a
+S → AS ∣ a
+A → SA ∣ b
+SAS bS
+⋮ ⋮ ⋮
+
+===== PAGE 37 =====
+Problemas indecidibles
+Veremos que existen muchos problemas que son indecidibles:
+Ejemplo: ATM = {⟨M, w⟩ ∣ w es aceptado por M}
+Es decir, decir si una máquina de Turing reconoce una palabra
+Este lenguaje es reconocible por una MT:
+La MT en la entrada actúa de la siguiente forma:
+U ⟨M, w⟩
+1. Simula en la entrada
+M w
+2. Si acepta, acepta
+M U Puede que no termine
+U
+Ues una máquina de Turing universal, puede simular cualquier
+máquina de Turing
+
+===== PAGE 38 =====
+Cardinalidad
+Cantor introdujo una forma de comparar conjuntos infinitos:
+Dos conjuntos tienen la misma cantidad de elementos, si
+existe una función uno a uno (biyectiva) entre ellos
+A ≅ B
+a
+1
+b
+2
+Cuando y
+A B
+tienen la misma
+cantidad de
+elementos
+c
+3
+A < B
+d
+4
+Esta idea se puede utilizar para
+conjuntos infinitos
+Cuando hay una
+inyección pero
+no biyección
+
+===== PAGE 39 =====
+Aritmética Transfinita
+Además Cantor demostró que es decir, que el
+A < 𝒫(A)
+conjunto partes siempre tiene más elementos que el conjunto
+original.
+La cardinalidad (tamaño) de un conjunto se nota #A
+ℵ0 = #ℕ
+ℵ1 = segundo infinito
+ℵ2
+ℵ3
+⋮
+ℵ
+Existen infinitos , depende la
+axiomatización que usemos tenemos
+ℵ1 = 𝒫(ℵ0)
+
+===== PAGE 40 =====
+Conjunto Contables
+Son aquellos que tienen la misma cardinalidad que los ℕ
+ℕ ≅ ℤ
+Veamos que , definimos la siguiente biyección:
+f : ℕ → ℤ
+n f(n)
+0 0
+1 1
+2−1
+3 2
+Es decir: f(n) = {⌈n ÷ 2⌉ si n impar
+n ÷ 2 si n par
+4−2
+5 3
+⋮ ⋮
+
+===== PAGE 41 =====
+Un ejemplo más difícil
+ℕ ℚ
+Veamos que y tienen la misma cardinalidad:
+2 3 4
+1
+1/1 1/2 1 2
+1/3 6 7
+1/4
+…
+2
+3
+2/1 3
+2/2 5
+2/3 8
+2/4
+3/1 4
+3/2 9
+3/3 3/4
+4
+4/1 10
+4/2 4/3 4/4
+Podemos definir
+un función
+biyectiva
+recorriendo
+diagonalmente
+⋮
+
+===== PAGE 42 =====
+vs ℕ ℝ
+Habrá más reales que naturales? Para ver esto primero
+comparemos con . Supongamos que hay una
+ℕ [0,1)
+biyección:
+1
+2 3 4
+1
+2
+3
+4
+d1
+1 d1
+1 d1
+2 d1
+3
+…
+d1
+2 d2
+2 d3
+2 d4
+2
+d1
+3 d1
+0 d3
+3 d1
+0
+d1
+4 d2
+d1
+4 d4
+4
+4
+⋮
+En donde enumeramos cada número del estilo:
+0,d1
+i d2
+i d3
+i…
+
+===== PAGE 43 =====
+vs ℕ ℝ
+Consideremos el siguiente número:
+0,d 1d 2d 3d4
+…
+En donde:
+di
+j = {1 si dj
+i ≠ 1
+0 en otro caso.
+Entonces para todo i: di
+i ≠ di
+i
+Es decir, el número no está enumerado! 0,d 1d 2d 3d4
+…
+
+===== PAGE 44 =====
+Existencia de Lenguajes no
+Computables
+Veamos que existen lenguajes no computables (no pueden
+ser reconocidos por MTs):
+La cardinalidad del conjunto es
+{⟨T⟩ ∣ T es una MT} ℵ0
+La cardinalidad de (el lenguaje que contiene todas
+{0,1}*
+las palabras) es también.
+ℵ0
+Hay más
+lenguajes que
+máquinas de
+Turing
+Por el teorema de Cantor:
+#{⟨M⟩ ∣ M es una MT } = #{0,1}* < #𝒫({0,1}*)
+
+===== PAGE 45 =====
+El Problema de la
+Terminación
+Consideremos el siguiente problema:
+ATM = {⟨M, w⟩ ∣ M acepta w}
+H
+Veamos que es indecidible. Supongamos que existe MT :
+H(⟨M, w⟩) = {acepta si M acepta w
+rechaza si M no acepta w
+
+===== PAGE 46 =====
+El Halting Problem
+D H
+Podemos construir una máquina que usa de la
+siguiente forma:
+Dado un input , hace lo siguiente:
+⟨M⟩ D
+1. Simula con la entrada
+H ⟨M, ⟨M⟩⟩
+H
+2. Si, acepta, entonces rechaza
+H
+3. Si, rechaza, entonces acepta.
+Se llega a una
+contradicción,
+H
+luego no
+existe
+Corremos con la entrada si acepta entonces
+D ⟨D⟩ D D
+rechaza la entrada (contradicción). Si rechaza
+⟨D⟩ D
+entonces debería aceptar (contradicción.)
+D ⟨D⟩
+
+===== PAGE 47 =====
+El Uso de Diagonalización
+Veamos cómo se utilizó la diagonalización:
+⟨M1⟩ ⟨M2⟩ ⟨M3⟩…
+M1
+A R
+M2
+R A
+M3
+A A
+M4
+R R
+⋮
+En la celda (i,j) tenemos si la MT
+acepta o rechaza
+⟨Mj⟩
+Mi
+
+===== PAGE 48 =====
+Diagonalización (cont)
+⟨M1⟩ ⟨M2⟩ ⟨M3⟩…
+M1
+A R R
+M2
+R R A
+M3
+A R A
+M4
+R R R
+⋮
+H completa la grilla, diciendo en todos
+los casos si una MT acepta o no cada
+entrada
+
+===== PAGE 49 =====
+Diagonalización (cont)
+⟨M1⟩ ⟨M2⟩ ⟨M3⟩
+…
+⟨D⟩
+M1
+A R R
+M2
+R R A
+M3
+A R A
+M4
+R R R
+⋮
+D
+?
+Es A ssi no acepta , Es R ssi
+D ⟨D⟩ D
+acepta , la MT H no existe.
+⟨D⟩
+
+===== PAGE 50 =====
+Un Lenguaje No
+Reconocible por MT
+Usaremos el siguiente teorema:
+L
+Teorema: Si un lenguaje es Turing reconocible, y
+L L
+también es Turing reconocible, entonces es decidible.
+Prueba: Supongamos que reconoce y que
+M L M
+L T
+reconoce . Entonces construimos la MT de la siguiente
+forma:
+Utiliza dos cintas además de la cinta de entrada. En la
+M Mcinta 2 simula , en la cinta 3 simula . Si en algún
+momento acepta en la cinta 2, entonces se acepta la
+entrada. Si en algún momento se acepta la de la cinta 3,
+entonces se rechaza.
+
+===== PAGE 51 =====
+Lenguajes no reconocibles
+Utilizando el teorema anterior podemos ver que:
+ATM = {⟨M, w⟩ ∣ M no reconoce w}
+No es reconocible por una máquina de Turing.
+Si fuese reconocible, tendríamos que:
+ATM
+ATM es reconocible
+es reconocible
+}Por el teorema tendríamos que
+es reconocible
+ATM
+
+===== PAGE 52 =====
+Ejercicios
+1. Demostrar que el siguiente lenguaje es decidible:
+L = {w ∣ w ∈ {0,1}*}
+2. Demostrar que el conjunto es
+{w ∣ w es una cadena infinita de 0s y 1s }
+no contable
+C C
+3. Sea un lenguaje, demostrar que es reconocible, sii existe un
+lenguaje decidible tal que:
+D {w ∣ ∃y : ⟨x, y⟩ ∈ D}
+4. Demostrar que el problema de ver si una gramática libre de contexto
+genera alguna palabra con todos unos es decidible.
+5. Escribir en Python una función que enumere todos los pares de naturales.
+
+===== PAGE 53 =====
+Reducciones
+Pablo Castro - UNRC
+
+===== PAGE 54 =====
+Reducciones
+Para demostrar que un problema A no es computable, lo que
+generalmente hacemos es reducir un problema no
+computable a A:
+Si podemos pudiéramos
+resolver B entonces
+resolveríamos A!
+Problema A
+(se sabe que es
+indecidible o no
+reconocible)
+Problema B
+(se quiere ver si es
+decidible o
+reconocible)
+Reducción: se hace utilizando
+una máquina de Turing
+
+===== PAGE 55 =====
+Ejemplo
+Recordemos el lenguaje: ATM = {⟨M, w⟩ ∣ M acepta w}
+Consideremos el lenguaje:
+HTM = {⟨M, w⟩ ∣ M termina con la entrada w}
+Veamos que no es decidible.
+HTM
+Supongamos que es decidible por una MT , entonces
+HTM H
+M′
+definimos tal que:
+￼
+En la entrada , actúa de la siguiente forma:
+⟨M, w⟩ M′
+￼
+• Ejecuta con :
+H ⟨M, w⟩
+• Si no termina se rechaza,
+M w
+• Si termina, se simula con .
+Esta máquina decide lo
+ATMcual es una contradicción.
+
+===== PAGE 56 =====
+Otro Ejemplo
+Consideremos el lenguaje:
+ETM = {⟨M⟩ ∣ ℒ(M) = ∅}
+Para ver que no es decidible podemos reducir a este
+ATM
+problema.
+Supongamos que decide entonces diseñamos de
+E ETM M′
+￼
+la siguiente forma:
+M′
+decide
+￼ ATM
+Cuando recibe la entrada :
+⟨M, w⟩
+S
+• Definimos una máquina que rechaza todas las
+w w M
+cadenas diferentes de , en corre .
+• Corremos con la entrada , si acepta
+E ⟨S, w⟩
+acetamos, sino rechazamos.
+
+===== PAGE 57 =====
+Más Ejemplos
+Consideremos el siguiente lenguaje:
+Reg = {M ∣ M acepta un lenguaje regular}
+Supongamos que decide , podemos reducir a
+R Reg ATM
+este problema.
+M
+Construimos una MT de la siguiente forma:
+Dada la entrada , se construye una MT :
+⟨M, w⟩ M′
+￼
+M′
+• acepta el lenguaje
+￼ {0n1n ∣ n ≥ 0}
+• Para , corre
+x ∉ {0n1n ∣ n ≥ 0} M′
+￼ M
+R M′
+Corremos con si acepta, aceptamos, sino rechazamos
+￼
+M′
+￼ Σ* M wNotar que reconoce cuando acepta . Sino
+reconoce un lenguaje no regular.
+
+===== PAGE 58 =====
+Equivalencia de MTs
+Veamos que el problema de ver si dos MTs reconocen el
+mismo lenguaje es indecidible
+EqTM = {⟨M, M′
+￼ ⟩ ∣ ℒ(M) = ℒ(M′
+￼ )}
+Podemos reducir a este problema. Asumamos que hay
+ETM
+una MT que decide entonces, construimos que
+R EqTM E
+decide :
+ETM
+En la entrada , corremos con
+⟨M⟩ EqTM ⟨M, M′
+￼ ⟩
+• Si acepta, entonces aceptamos,
+R MT que rechaza
+todas las palabras.• Sino se rechaza
+
+===== PAGE 59 =====
+Teorema de Rice
+El teorema de Rice es importante porque dice que cualquier
+propiedad no trivial sobre MTs es indecidible:
+Un conjunto se
+P ⊆ {⟨M⟩ ∣ M es una máquina de Turing}
+dice propiedad si:
+Si entonces: ssi
+ℒ(M) = ℒ(M′
+￼ ) M ∈ P M′
+￼ ∈ P
+Se dice no-trivial si:
+1.
+P ≠ ∅
+2.
+P ≠ {⟨M⟩ ∣ M es una máquina de Turing }
+
+===== PAGE 60 =====
+Teorema de Rice
+Teorema: Cualquier propiedad no trivial sobre máquinas de
+Turing es indecidible.
+Prueba:
+Sea una propiedad no trivial sobre MTs. Asumamos
+P MP
+P T ∈ P S
+que decida . Sea , definimos la MT de la siguiente
+forma:
+En la entrada , utilizaremos la MT :
+⟨M, w⟩ Mw
+• con input , simula con input
+Mw x M w :
+• Si termina y rechaza, termina y rechaza
+M Mw
+• Si acepta, entonces simula con . Si
+M Mw T x
+esta acepta, entonces acepta.
+• Usamos para saber si
+MP ⟨Mw⟩ ∈ P
+Soluciona ATM
+Notar que simula
+Mw
+T M
+cuando acepta
+w
+
+===== PAGE 61 =====
+Historia de Ejecución
+Dada una MT un historia de ejecución es una secuencia:
+C0, C1, …, Ck
+Conf. inicial Conf. final
+mov. legales
+Las máquinas de Turing deterministicas tienen a lo sumo
+una ejecución para cada entrada
+Las ejecuciones que aceptan son las que terminan en qA
+Las ejecuciones que rechazan son las que terminan en qR
+
+===== PAGE 62 =====
+Autómatas Linearmente
+Acotados
+Los autómatas linearmente acotados (LBAs) son MTs, que
+solo pueden usar la cadena de entrada de memoria:
+Estado
+a0 a1 a2 a3 a4 a5 a7
+a6
+Si se quiere pasar
+de un extremo se
+mantiene en la
+posición
+La posible cantidad de configuraciones es:
+#q * n * #Γn
+
+===== PAGE 63 =====
+LBAs
+Muchos problemas para LBAs se vuelven decidibles:
+ALBA = {⟨A, w⟩ ∣ LBA A acepta w} Problema de
+aceptación en LBA
+es decidible
+Para decidir este lenguaje tenemos que detectar loops:
+C0 C1 C2… Ck
+En la entrada :
+⟨A, w⟩
+Si se hacen más de
+#q * n * #Γn
+pasos
+entramos en un
+ciclo
+Se simula en por pasos
+A w #q * n * #Γn
+Si se acepta, se acepta
+Si se rechaza, se rechaza
+si se hacen más pasos, se rechaza
+
+===== PAGE 64 =====
+Problemas Indecidibles
+sobre LBAs
+También podemos encontrar problemas indecidibles sobre
+LBAs:
+ELBA = {⟨A⟩ ∣ ℒ(A) = ∅}
+Este problema es indecidible. Podemos reducir a
+ATM ELBA
+Dada podemos considerar la LBA que chequea
+⟨M, w⟩ E
+todas las posibles configuraciones de empezando con
+M w
+Es decir, si empieza con y acepta si
+E C0C1…Ck C0 = q0w
+M w
+esta es la ejecución de con , sino rechaza.
+Luego usamos que resuelve para chequear si este
+A ELBAlenguaje es vacío o no.
+
+===== PAGE 65 =====
+El Problema de
+Correspondencia de Post
+Dados dominos del estilo:
+b
+a
+ca
+abc
+ca
+ab
+a
+c
+Se tiene que encontrar un matching (con posibles repeticiones)
+Por ejemplo:
+a
+b
+ca
+a
+abc
+ab
+ca
+a
+ab
+c
+Es una posible solución.
+
+===== PAGE 66 =====
+El Problema de Post
+Este problema es indecidible. Idea:
+Introducir dominos para simular las ejecuciones de
+con la entrada
+w
+qia
+M
+bqj
+aqib
+Si δ(a, qi) = (b, qj, R)
+Si δ(b, qi) = (c, qj, L) }Permiten codificar
+δ
+qjbc
+
+===== PAGE 67 =====
+El Problema de Post
+Se agregan dominos adicionales:
+a
+a para cualquier símbolo
+Veamos un ejemplo:
+1 ↦ 1,R
+0 ↦ 0,R
+q0 qA
+Acepta cadenas
+con 0’s
+q01
+q00
+0
+1
+#
+qA##
+0qA
+1qA
+qA0
+qA1
+1q0
+0qA
+0
+1
+#
+#
+qA
+qA
+qA
+qA
+
+===== PAGE 68 =====
+Juguemos el Juego
+M w
+Una ejecución de acepta ssi hay una matching
+La parte de arriba va
+copiando la de abajo
+Al final se empieza a
+consumir símbolos
+#
+q01
+0
+#
+1
+q00
+#
+1
+0qA
+#
+1qA
+#
+qA##
+#q010#
+1q0
+0
+#
+1
+0qA
+#
+1
+qA
+#
+qA
+#
+#
+La configuración inicial
+Aplicando los pasos de la
+MT
+Si Post fuera decidible, también sería decidible.
+ATM
+La demostración consiste en codificar las ejecuciones de
+M
+
+===== PAGE 69 =====
+Funciones Computables
+Para caracterizar la noción de función computable:
+Una función se dice computable si existe una
+f : Σ* → Σ*
+M w
+máquina de Turing tal que empezando con termina con
+f(w)
+en la cinta.
+Ejemplo: Las funciones aritméticas son computables, por
+ejemplo podemos diseñar una máquina de Turing que con
+entrada devuelva .
+⟨m, n⟩ m + n
+Ejemplo: Podemos considerar los procedimientos que
+cambian máquinas de Turing, como funciones que
+transforman textos en textos.
+
+===== PAGE 70 =====
+La Noción de Reducibilidad
+Definamos cuando un lenguaje es reducible a otro:
+A B A ≤ B
+El lenguaje se dice reducible al lenguaje , si hay
+una función computable tal que para todo :
+w
+w ∈ A ⇔ f(w) ∈ B
+La función es llamada una reducción de a
+f A B
+f
+
+===== PAGE 71 =====
+Reducibilidad
+Tenemos la siguiente propiedad:
+A ≤ B B A
+Si y es decidible, entonces es decidible
+Prueba:
+Si es decidible, tenemos la máquina que lo decide
+B MB
+A
+Podemos decidir de la siguiente forma:
+En la entrada :
+w
+• computar f(w)
+• correr en la entrada y devolver lo
+MB f(w)mismo
+
+===== PAGE 72 =====
+Reducidibilidad
+La misma clase de propiedad se cumple para reconocedores:
+A ≤ B B A
+Propiedad: Si y es reconocible, entonces es
+reconocible.
+Si es reconocible, tenemos la máquina que lo
+B MB
+A
+reconoce. Podemos reconocer de la siguiente forma:
+En la entrada :
+w
+• computar f(w)
+• correr en la entrada y devolver lo
+MB f(w)mismo
+
+===== PAGE 73 =====
+Ejemplo: Halt
+Veamos la reducción de a :
+ATM Halt
+Tenemos que describir una función computable
+f : Σ* → Σ*
+tal que:
+⟨M, w⟩ ∈ ATM ssi f(⟨M, w)⟩ ∈ Halt
+La función computable en la entrada hace lo
+f ⟨M, w⟩
+siguiente:
+Con la entrada construye la MT :
+⟨M, w⟩ f M′
+￼
+M′
+￼ M w
+corre con :
+M M′
+Si acepta, acepta,
+￼
+M M′
+Si rechaza, hace un loop y no
+￼
+termina
+Se cumple la
+condición para la
+reducción
+
+===== PAGE 74 =====
+Ejercicios:
+1. Encontrar un matching para el siguiente problema de Post.
+ab
+b
+aba
+aa
+abab
+, , ,
+a
+b
+a
+A ≤ B A
+2.Si y B es un lenguaje regular, esto implica que es y un
+lenguaje regular? Fundamentar.
+≤
+3. Demostrar que es transitiva.
+A A ≤ A A
+4.Demostrar que si es reconocible y entonces es decidible.
+5.Demostrar que es reconocible sii
+A A ≤ ATM
+6.Usar el teorema de Rice, para demostrar la indecibilidad del siguiente
+lenguaje:
+All= {⟨M⟩ ∣ ℒ(M) = Σ*}
+
+===== PAGE 75 =====
+Tópicos Avanzados en
+Computabilidad
+Pablo F. Castro - UNRC
+
+===== PAGE 76 =====
+AutoReferencia
+Una característica importante de las máquinas de Turing es
+la posibilidad de autoreferencia:
+• Las máquinas de Turing pueden tomar descripciones
+de otras máquinas de Turing como entrada,
+• Podemos pasarle a una MT como entrada la
+descripción de ella misma,
+• Esto permite, por ejemplo, demostrar que hay
+problemas indecidibles.
+De la misma forma las MT pueden producir descripciones
+de MT
+Podrá una MT escribir una descripción de ella misma?
+
+===== PAGE 77 =====
+La MT Self
+Veremos como construir una máquina de Turing que
+devuelve una descripción de ella misma.
+Propiedad: Existe una función computable tal
+q : Σ* → Σ*
+que dado , es la descripción de una MT
+w ∈ Σ* q(w) Pw
+w
+que imprime y luego termina.
+La MT M que computa es la siguiente: q
+Dada una entrada :
+w
+•Construye una máquina que:
+Pw
+w
+• borra todo de la cinta, escribe y termina
+• Escribe en la cinta ⟨Pw⟩
+
+===== PAGE 78 =====
+La MT Self
+Utilizando podemos definir Self:
+q
+La idea es que Self consta de dos partes A y B:
+• A es , es decir la MT que imprime y termina, esta
+P⟨B⟩ ⟨B⟩
+se puede obtener mediante
+q(⟨B⟩)
+• B hace lo siguiente, después que se ejecutó quedó
+A ⟨B⟩
+en la cinta, entonces ejecuta y obtiene que es
+q(⟨B⟩) P⟨B⟩
+A, y imprime en la cinta.
+⟨AB⟩
+
+===== PAGE 79 =====
+La MT Self
+Lo que hace Self es reproducirse (al estilo de un virus). Lo
+mismo podemos hacer textualmente con:
+Copiar dos veces el siguiente párrafo, una con doble
+comillas:
+comillas:”
+“Copiar dos veces el siguiente párrafo, una con doble
+Aca el B es la primer parte sin comillas, la parte A es la parte
+con comillas.
+A le da a B una copia de ella misma para que la pueda
+procesar.
+
+===== PAGE 80 =====
+El Teorema de la Recursión
+La idea del teorema es que nos provee una forma de
+implementar autoreferencia en cualquier lenguaje de
+programación
+t : Σ* × Σ* → Σ*
+Teorema: Sea una función computable
+T
+por MT , entonces existe una función computable (por una
+MT ) tal que computa con .
+R r : Σ* → Σ* r(w) = t(R, w)
+T
+Intuición: es una máquina de Turing que dada una
+máquina y una entrada computa el resultado de ejecutar esa
+MT con la entrada. El teorema me garantiza que puedo crear
+una MT en donde se corre a ella misma
+r(T, w)
+
+===== PAGE 81 =====
+Teorema de la Recursión
+Para demostrarlo la idea es parecida que la construcción de
+la MT Self:
+T A B
+Dada consideremos las MT y ,
+• es la MT además escribe el string pasado como
+A P⟨BT⟩ A
+A
+parámetro, es decir, después de ejecutar en la cinta
+tenemos ,
+w⟨BT⟩
+• B toma y le aplica , es decir, obtiene la MT ,
+⟨BT⟩ q PBT = A
+entonces obtiene , escribe en la cinta y
+⟨ABT⟩= R ⟨R, w⟩
+ejecuta
+T
+
+===== PAGE 82 =====
+Teorema de la Recursión
+El teorema de la recursión nos dice que podemos obtener
+la descripción de la MT que estamos usando y ejecutarla
+⟨M⟩ w
+w
+T R
+t(⟨M⟩, w)
+}
+Se puede pensar como que
+M
+usa para computar un resultado
+con la entrada
+w
+t(⟨R⟩, w)
+}
+Usa su propia descripción para
+computar un resultado
+
+===== PAGE 83 =====
+Usando el Teorema de la
+Recursión
+Podemos usar el teorema de la recursión para demostrar
+que es indecidible
+ATM
+Supongamos que tenemos una MT que decide ,
+H ATM
+B
+entonces podemos construir la siguiente máquina ( ):
+• Con el input :
+w
+• se obtiene la descripción de la misma máquina ,
+⟨B⟩
+• corremos con con el input
+H ⟨B⟩ w
+H H
+• si acepta entonces se rechaza, si rechaza de
+acepta
+B w H
+Observar que en el input hace lo contrario que dice
+Hentonces no puede existir.
+
+===== PAGE 84 =====
+Introspección
+La introspección en los lenguajes de programación nos permite
+ver el mismo código que estamos ejecutando
+En Python podemos usar la biblioteca inspect:
+import inspect
+def foo():
+pass
+Imprime toda la
+información sobre el
+método
+print(inspect.getmembers(foo))
+import inspect
+def foo(x, y, z):
+Imprime información
+sobre los argumentos
+del método
+pass
+print(inspect.getargspec(foo))
+
+===== PAGE 85 =====
+El Lenguaje Min
+Sea una MT y su descripción, decimos que es
+T ⟨T⟩ T
+minimal si no existe una MT cuya descripción sea más corta,
+que sea equivalente.
+Podemos considerar el siguiente lenguaje:
+Min = {⟨M⟩ ∣ M es minimal }
+Min
+El lenguaje no es reconocible. Supongamos que es
+E
+reconocible. Es decir, existe un enumerador que lo
+enumera. Consideremos la MT
+M
+D
+Entonces no puede ser
+minimal!
+E
+• Ejecutamos ,
+D
+• Cuando aparece una MT cuya descripción es
+M
+más larga que la de ,
+M
+• Ejecutamos con la entrada.
+
+===== PAGE 86 =====
+Oráculos
+En general hemos visto que podemos definir máquinas de
+Turing que utilizan otras máquinas de Turing para resolver
+tareas. Podemos generalizar esto:
+B
+Definición: Un oráculo para el lenguaje es una máquina
+w ∈ B
+que dice si o no .
+Definición: Una máquina de Turing con un oráculo, es una
+máquina que puede consultar a un oráculo para decidir
+pertenencia a un lenguaje.
+MB M
+Escribimos Notamos cuando la MT puede utilizar el
+oráculo
+B
+
+===== PAGE 87 =====
+Oráculos
+Si asumimos oráculos que pueden responder correctamente
+cualquier pregunta, podríamos computar problemas no
+computables
+Suponiendo que tenemos un oráculo para , entonces
+ATM
+podemos resolver , veamos:
+ETM
+E M
+Construimos la MT que dada la MT hace lo siguiente:
+N
+Consideramos la MT que en cualquier entrada:
+M
+• Corre con string de longitud 1,2,3,4,…
+• Si acepta alguno acepta
+N ϵChequeamos con el oráculo si con termina o no
+
+===== PAGE 88 =====
+Reducibilidad Usando
+Oráculos
+Podemos definir la noción de reducibilidad utilizando oráculos:
+A B
+Decimos que el lenguaje es decidible relativo a , si hay
+MB A
+una máquina de Turing que decide teniendo un oráculo
+para
+B
+Reducción: ( es Turing reducible a ) ssi el
+A ≤R B A B
+A B
+lenguaje es decidible relativo a
+Por ejemplo es reducible a .
+ETM ATM
+
+===== PAGE 89 =====
+Ejercicios
+1. Escribir en Python la función Self que se reproduce a si misma.
+M N
+2.Describir dos máquina de Turing y tal que cuando comienza en cualquier
+input, imprime y imprime .
+M ⟨N⟩ N ⟨M⟩
+3. Usar la propiedad que el conjunto de lenguajes es incontable para demostrar
+que existen lenguajes que no pueden ser reconocidos con una máquina con un
+oráculo .
+ATM
+4. Escribir una clase Persona en Python, con los atributos clásicos. Y hacer una
+función que con introspección:
+• Imprima la lista de atributos de la clase,
+• Imprima el código de alguno de los métodos
+5. Usando introspección hacer una función que cree una clase dinámicamente.
+
+===== PAGE 90 =====
+
+
+===== PAGE 91 =====
+Complejidad Temporal
+Pablo Castro
+UNRC - Computabilidad y Complejidad
+
+===== PAGE 92 =====
+Tiempo de Ejecución
+En computabilidad nos preocupamos por el siguiente
+problema:
+P
+Dado in problema , es computable?
+En complejidad ya trabajamos con problemas computables,
+la pregunta es:
+P
+Hay algoritmos eficientes para resolver ?
+Una cuestión es cuál modelo de computación usamos para
+evaluar si un algoritmo es eficiente o no?
+
+===== PAGE 93 =====
+Tiempo de Ejecución como
+un Función
+M
+Dado un algoritmo su tiempo de ejecución viene dado por
+una función:
+TM : ℕ → ℝ≥0
+Que dice, para una entrada de tamaño , cuantos pasos
+n
+M
+realiza en el peor caso, o caso promedio.
+T
+• En general asumimos que es monotona,
+M
+• es una MT que termina en todas sus entradas,
+• En general hacemos un análisis en el peor caso.
+T• Nos interesa analizar como crece cuando las
+entradas se hacen más grandes.
+
+===== PAGE 94 =====
+Notación O
+O
+La notación (big oh) nos permite analizar el tiempo de
+ejecución de los algoritmos.
+f(n) ∈ O(g(n)) ⇔ ∃c, n0 > 0 : ∀n ≥ n0 : f(n) ≤ c * g(n)
+Intuitivamente: para entradas
+grandes crece más rápido
+g
+que modulo constantes
+fmultiplicativas.
+
+===== PAGE 95 =====
+Notación (little oh)
+o
+o O
+La (little oh) es una versión estricta de la :
+f(n) ∈ o(g(n)) ⇔ ∃c, n0 > 0 : ∀n ≥ n0 : f(n) < c * g(n)
+La dice que crece estrictamente más rápido que . Es
+o g(n) f
+decir, no tenemos .
+f(n) ∈ o( f(n))
+f(n)
+lim
+n→∞
+= 0 sii f(n) ∈ o(g(n))
+g(n)
+
+===== PAGE 96 =====
+Notación Ω
+Ω
+La (omega) es sirve para hablar de cotas por abajo.
+f(n) ∈ Ω(g(n)) ⇔ ∃c, n0 > 0 : ∀n ≥ n0 : f(n) ≥ c * g(n)
+Intuitivamente: para entradas
+grandes crece más rápido
+f
+que modulo constantes
+gmultiplicativas.
+
+===== PAGE 97 =====
+Notación θ
+Θ
+La (omega) sirve para ver que dos funciones crecen de la
+misma forma:
+Intuitivamente: para entradas
+grandes y crecen igual
+f gmodulo constantes
+multiplicativas.
+
+===== PAGE 98 =====
+Análisis de Tiempo de
+Ejecución
+Supongamos el siguiente lenguaje:
+A= {0k1k ∣ k ≥ 0}
+Podemos hacer la siguiente MT para decidirlo.
+wDado el input :
+1. Se recorre la cinta, si se encuentra “10” se rechaza,
+2. Se vuelve al principio, se tacha el primer “0” y se
+busca el primer “1” y se tacha,
+3. Se repite el paso 2 hasta que:
+I. No queden 0s y 1s, en tal caso se acepta,
+II.Queden solo 0s o solo 1s, en tal caso se rechaza
+
+===== PAGE 99 =====
+Análisis de Tiempo de
+Ejecución
+Su tiempo ejecución depende de la entrada:
+01111…1110
+➡ Para la entrada con una pasada se
+rechaza, es decir, se realizan pasos.
+O(n)
+000…000111…111 n/2
+➡ Para entradas del tipo ( 1’
+y 0s). Hacemos aproximadamente
+2 * n + n/2 * 2n
+pasos.
+Es decir, en el peor caso es y en el mejor caso es
+O(n2)
+O(n)
+.
+caso.
+En lo siguiente nos enfocaremos en el análisis en el peor
+
+===== PAGE 100 =====
+Análisis detallado de
+Tiempo de Ejecución
+n
+Para una entrada de longitud , analicemos cuántos pasos
+realiza la máquina:
+O(n)
+pasos
+2 * n
+( )
+w
+Dado el input :
+pasos n
+1. Se recorre la cinta, si se encuentra “10” se rechaza,
+2. Se vuelve al principio, se tacha el primer “0” y se busca el primer “1”
+y se tacha,
+3. Se repite el paso 2 hasta que:
+I. No queden 0s y 1s, en tal caso se acepta,
+II.Queden solo 0s o solo 1s, en tal caso se rechaza
+n/2
+veces
+En total tenemos pasos, es
+O(n) + O(n/2 * n) ∈ O(n2)
+decir, es
+O(n2)
+
+===== PAGE 101 =====
+Análisis de Tiempo de
+Ejecución
+La solución es , consideremos la siguiente solución:
+O(n2)
+Dada la entrada se procede de la siguiente forma:
+w
+1.Se recorre la cinta, si se encuentra “10” se rechaza,
+2. Repetir mientras haya 0’s o 1’s
+a. Se cuenta la cantidad de 0’s y 1’, si es impar se
+rechaza.
+b. Cada dos 0’s tachar de forma alternante 0’s, y lo
+mismo para los 1’s,
+3. Si no quedan 0s y 1’s se acepta, sino se rechaza
+
+===== PAGE 102 =====
+Ejemplo de Corrida
+Supongamos que tenemos:
+000…111… (25 0s y 25 1s)
+Entonces:
+➡ El paso (1) se verifica que está en la forma correcta
+➡ En el paso (2.I) se verifica que la cantidad es par.
+➡ En el paso (2.II) se tachan 12 0’s y 12 1’s.
+➡ En el paso (2.I) se verifica que la cantidad es par.
+➡ En el paso (2.II) se tachan 6 0’s y 6 1’s.
+➡ En el paso (2.I) se verifica que la cantidad es par.
+➡ En el paso (2.II) se tachan 3 0’s y 3 1’s.
+➡ En el paso (2.I) se verifica que la cantidad es par.
+➡ En el paso (2.II) se tachan 2 0’s y 2 1’s.
+➡ En el paso (2.I) se verifica que la cantidad es par.
+➡ En el paso (2.II) se tachan 1 0’s y 1 1’s, termina.
+
+===== PAGE 103 =====
+Análisis del Algoritmo
+Analicemos este algoritmo:
+O(n)
+pasos
+Dada la entrada se procede de la siguiente forma: w
+1.Se recorre la cinta, si se encuentra “10” se rechaza,
+2. Repetir mientras haya 0’s o 1’s
+O(log n)
+pasos
+I. Se cuenta la cantidad de 0’s y 1’, si es impar se
+rechaza.
+II. Cada dos 0’s tachar uno de ellos, y lo mismo para los
+1’s,
+O(n)
+pasos
+3. Si no quedan 0s y 1’s se acepta, sino se rechaza
+En total realizamos pasos. Mejor que la otra
+O(n * log n)
+solución.
+
+===== PAGE 104 =====
+Clases de Complejidad
+Permite clasificar los problemas en base a cotas superiores
+de algoritmos que los resuelven:
+Time(t(n)) = {L ∣ L se puede decidir con una MT en O(t(n)) pasos}
+Por ejemplo:
+• , problemas para los cuales existen un
+Time(O(n2))
+c * n2
+algoritmo que en el peor caso realizan pasos,
+para alguna constante (sorting, por ejemplo)
+c
+Qué se estudia en complejidad:
+• Dado un problema, pertenece a ?
+Time(O(t(n)))
+• Habrá problemas que pertenecen a pero
+Time(O(t(n))
+no a
+Time(O(t′
+￼ (n)))
+
+===== PAGE 105 =====
+La Clase P
+Los algoritmos que corren en para una entrada de
+O(nk)
+n
+longitud se dicen tratables.
+n=10 n=20 n=30 n=40 n=50
+n
+0.00001 segs 0.00002 segs 0.00003 segs 0.00004 segs 0.00005 segs
+n2
+0.0002 segs 0.0004 segs 0.0009 segs 0.0016 segs 0.0025 segs
+n3
+0.1 segs 3.2 segs 24.3 segs 1.7 min 15.2 min
+2n
+0.001 segs 1.0 segs 17.9 min 12.7 dias 35.6 años
+
+===== PAGE 106 =====
+Definición de la clase de
+complejidad P
+Podemos definir la clase de los algoritmos cuyo tiempo
+ejecución es polinomial.
+P = ⋃
+Time(O(nk))
+k>0
+Es decir, aquellos problemas para los cuales existen
+algoritmos en ,para algún , que los resuelven.
+O(nk) k
+P✓ La clase es invariante con respecto a los modelos de
+computación deterministas.
+✓ Se consideran eficientes, si tenemos una solución
+polinomial, en general, el avance en el hardware va a
+tener un impacto.
+
+===== PAGE 107 =====
+Modelos de Computación
+Como hemos visto existen varios modelos de computación:
+• Máquinas de Turing deterministas con una sola
+cinta,
+• Máquinas de Turing deterministas con varias cintas,
+• Máquinas de Turing deterministas con cinta infinita
+en ambos lados
+• Máquinas de Turing no-deterministas.
+simular en
+}Se pueden
+tiempo polinomial
+Time
+La clase solo toma como referencia las máquinas
+deterministas
+
+===== PAGE 108 =====
+MT con muchas cintas vs
+MT con una cinta
+Cualquier MT con muchas cintas que hace pasos
+O(t(n))
+puede ser traducida a una MT con una cinta que la simula en
+O(t(n)2)
+pasos:
+Se utilizan nuevos símbolos para marcar
+dónde están las cabezas
+Estado
+w0 w1 w2 ⊔ w0 # w1
+⊔
+⊔
+⊔ ⊔ ⊔ w1 w2
+w1
+0
+1 w1
+2 # wk
+0 wk
+1 wk
+2 wk
+3 wk
+4 wk
+5
+w1
+0 w1
+1 w1
+⊔ ⊔ ⊔
+2 ⊔ ⊔ ⊔
+⋮
+wk
+0 wk
+1 wk
+2 wk
+3 wk
+4 wk
+5 ⊔ ⊔ ⊔
+Por cada paso de la MT multicinta
+tenemos a los sumo símbolos.Es
+t(n)
+decir, en la la MT de una cinta tenemos
+k * t(n)
+símbolos. Para cada paso de M
+hacemos pasos. Es decir
+k * t(n)
+hacemos pasos.
+O(t(n)2)
+
+===== PAGE 109 =====
+Tesis de Church-Turing
+Extendida
+Recordemos la tésis de Church-Turing.
+Si un problema es computable por algún modelo de
+computación, entonces es computable en todos los otros.
+Generalmente se considera una versión extendida de la tésis
+de Church-Turing:
+Si un problema es decidible en tiempo por algún
+O(t(n))
+modelo razonable de computación (determinista), entonces
+es decidible en en cualquier otro modelo razonable
+O(t(n)k)de computación (determinista).
+
+===== PAGE 110 =====
+Tiempo de Ejecución en MT
+no-deterministas
+Definición de tiempo de ejecución en máquinas de Turing
+no-deterministas
+En máquinas
+deterministas la
+única ejecución
+tiene que terminar
+en a lo sumo
+t(n)
+pasos
+}t(n)
+⋮ En máquinas deterministas todas las
+ejecuciones tienen que realizar a lo sumo
+t(n)
+pasos
+
+===== PAGE 111 =====
+Simulando Máquinas No-Deterministas
+Cualquier MT no-determinista que hace pasos
+O(t(n))
+puede ser simulada por una MT determinista que hace
+2O(t(n))
+pasos.
+Recordemos que la simulamos con un
+BFS, por niveles
+• Como la MT termina, el árbol tiene a lo sumo nodos
+| b |t(n)
+• En el peor caso los tenemos que recorrer todos,
+•
+bt(n) ≤ (2c)t(n) = 2c*t(n) ∈ 2O(t(n))
+
+===== PAGE 112 =====
+P
+Clase : Un Ejemplo
+P
+Veamos un ejemplo de problema en :
+Path= {⟨G, v, w⟩ ∣ G es un grafo con un camino de v a w}
+Es , siendo la cantidad de nodos
+O(n!) n
+Algoritmo ineficiente:
+del grafo
+Dado un grafo codificado con matriz de adyacencia:
+Para i=1,2,3,…,#V
+➡ Se generan todos los posibles caminos de longitud i,
+con empiezan con v y terminan con w
+➡ Si alguno de estos está en el grafo, se acepta
+Si no se encontró, se rechaza.
+
+===== PAGE 113 =====
+Ejemplo (cont.)
+Veamos una solución mejor:
+Dado un grafo representado con matrices de
+adyacencia:
+➡ Se marca v,
+➡ Mientras haya nodos sin marcar
+➡ Recorrer los arcos de G, para cada arco (a,b)
+con a marcado y b no, se marca b.
+➡ Si se marca w, se acepta.
+➡ Se rechaza.
+Se recorren todos los nodos, por cada uno se hace a lo sumo
+la cantidad de arcos,es decir, el algoritmo es:
+O(|V|*|E|) pasos, es decir, es polinomial.
+
+===== PAGE 114 =====
+Otro ejemplo
+Veamos otro ejemplo en : P
+Coprimos= {⟨x, y⟩ ∣ x es coprimo de y}
+Podríamos intentar el siguiente algoritmo:
+➡ Dados dos números x e y en
+binario:
+➡ Para todo z <= min(x,y) hacer
+➡ Si z|x y z|y, terminar y rechazar
+➡ Sino aceptar
+Los números vienen representados en binario. Es decir, si
+n 2ntenemos números de bits, hacemos pasos
+
+===== PAGE 115 =====
+Otro Ejemplo (cont.)
+Veamos otra posible implementación:
+➡ Dados dos números x e y en binario:
+➡ Repetir hasta que y = 0
+➡
+x = x mod y
+➡ intercambiar e
+x y
+x = 1
+➡ Si aceptar, sino rechazar
+Veamos el tiempo de ejecución.
+x 2
+• En cada paso es dividido al menos por ,
+n n
+• Es decir, si los números tienen bits, toma pasos,
+• La división se puede calcular en tiempo polinomial
+•Es decir, es que es polinomial.
+n * p(n)
+p(n)
+
+===== PAGE 116 =====
+Gramáticas Libre de
+Contexto
+Veamos el siguiente ejemplo:
+GLC= {⟨G, w⟩ ∣ w es generado por la gramática libre de contexto G}
+La idea es usar programación dinámica y la forma normal
+de Chomsky, es decir, producciones del estilo:
+A → BC A → a A → ϵ
+La idea es, dado , construir una matriz:
+w = w0w1…wn−1
+M[i][ j] no terminal que genera desde i a j
+
+===== PAGE 117 =====
+n pasos
+v variables
+and C generates the second piece, using table entries previously computed. If
+both B and C generate the respective pieces, A generates the substring and so
+is added to the associated table entry. The algorithm starts the process with the
+strings of length 1 by examining the table for the rules A → b.
+Algoritmo
+PROOF The following algorithm D implements the proof idea. Let G be
+El algoritmo es el siguiente:
+a CFG in Chomsky normal form generating the CFL L. Assume that S is the
+start variable. (Recall that the empty string is handled specially in a Chomsky
+normal form grammar. The algorithm handles the special case in which w = ε
+in stage 1.) Comments appear inside double brackets.
+D=
+“On input w = w1· · · wn:
+1. For w = ε, if S → ε is a rule, accept ; else, reject. [[ w = ε case ]]
+2. For i = 1 to n: [[ examine each substring of length 1 ]]
+3. For each variable A:
+4. Test whether A → b is a rule, where b= wi.
+5. If so, place A in table(i, i).
+6. For l = 2 to n: [[ l is the length of the substring ]]
+7. For i = 1 to n− l + 1: [[ i is the start position of the substring ]]
+8. Let j= i + l− 1. [[ j is the end position of the substring ]]
+9. For k= i to j− 1: [[ k is the split position ]]
+10. For each rule A → BC:
+11. If table(i, k) contains B and table(k + 1, j) contains
+C, put A in table(i, j).
+12. If S is in table(1, n), accept ; else, reject.
+”
+Now we analyze D. Each stage is easily implemented to run in polynomial
+time. Stages 4 and 5 run at most nv times, where v is the number of variables in
+G and is a fixed constant independent of n; hence these stages run O(n) times.
+Stage 6 runs at most n times. Each time stage 6 runs, stage 7 runs at most n
+Este algoritmo es O( | v | + n2)
+times. Each time stage 7 runs, stages 8 and 9 run at most n times. Each time
+stage 9 runs, stage 10 runs r times, where r is the number of rules of G and
+is another fixed constant. Thus stage 11, the inner loop of the algorithm, runs
+n pasos
+n pasos
+
+===== PAGE 118 =====
+La Clase NP
+P
+Al igual que hicimos con la clase podemos utilizar MT no
+deterministas para categorizar los problemas según su
+complejidad.
+NTIME(t(n)) = {L ∣ L es un lenguaje decidido por una MT no determista en t(n) pasos }
+De la misma forma que hicimos de la forma anterior
+podemos definir:
+NP = ⋃
+NTIME(nk) k>0
+Todos los problemas resolubles por una
+máquina de Turing no-deterministas en
+tiempo polinomial
+
+===== PAGE 119 =====
+and obtain polynomial time solutions. However, attempts to avoid brute force
+in certain other problems, including many interesting and useful ones, haven’t
+been successful, and polynomial time algorithms that solve them aren’t known
+to exist.
+Caminos Hamiltonianos
+Why have we been unsuccessful in finding polynomial time algorithms for
+these problems? We don’t know the answer to this important question. Perhaps
+these problems have as yet undiscovered polynomial time algorithms that rest
+on unknown principles. Or possibly some of these problems simply cannot be
+Dado un grafo dirigido :
+solved in polynomial time. They may be intrinsically difficult.
+G= (V, E)
+One remarkable discovery concerning this question shows that the complex-
+ities of many problems are linked. A polynomial time algorithm for one such
+problem can be used to solve an entire class of problems. To understand this
+Un camino Hamiltoniano es un camino que pasa
+phenomenon, let’s begin with an example.
+A Hamiltonian path in a directed graph G is a directed path that goes through
+exactamente una vez por cada nodo.
+each node exactly once. We consider the problem of testing whether a directed
+graph contains a Hamiltonian path connecting two specified nodes, as shown in
+the following figure. Let
+Definimos:
+HAMPATH= {⟨G, s, t⟩| G is a directed graph
+with a Hamiltonian path from s to t}.
+HAMPATH= {⟨G, s, v⟩ ∣ G tiene un camino Hamiltoniano de s a t}
+Un camino Hamiltoniano de a
+s
+t
+FIGURE 7.17
+A Hamiltonian path goes through every node exactly once
+
+===== PAGE 120 =====
+Una Solución No
+Determinista
+Veamos cómo sería una MT no determinista que resuelva
+este problema:
+Dado un grafo en la cinta de entrada:
+G= ⟨V, E⟩
+1. Escribimos de forma no-determinista nodos
+| V |
+2. Verificamos que estos nodos estén conectados, y son
+todos distintos, si es así aceptamos, sino rechazamos
+Veamos que el algoritmo tiene dos etapas:
+➡ En la primera etapa (1) se “adivina” no deterministicamente
+una posible solución,
+➡ En la segunda etapa se verifica esta solución.
+
+===== PAGE 121 =====
+Verificabilidad Polinomial
+Decimos que una cadena es un certificado de un problema,
+si con esa cadena podemos ver la solución al problema.
+El problema tiene dos características importantes: HAMPATH
+1. Posee certificados cortos: un camino Hamiltoniano se
+puede describir en menos espacio que el grafo.
+2. Los certificados se pueden verificar rápidamente: Dado un
+camino podemos verificar en tiempo lineal si es una
+solución o no.
+NP
+Los problemas que están en tienen esta característica
+poseen certificados polinomiales que se pueden verificar
+polinomialmente
+
+===== PAGE 122 =====
+Verificadores y Certificados
+A A V
+Dado un lenguaje , un verificador para es una MT tal
+que:
+A= {w ∣ ∃c : V acepta (w, c)}
+M c
+Intuitivamente, verifica que certifica una solución al
+w
+problema .
+Un verificador se dice polinomial si corre en y los
+V O(nk)
+certificados son polinomiales con respecto a la entrada:
+A= {w ∣ ∃c : | c | ≤ | w |k y V acepta (w, c)}
+Para algún y MT que corre en .
+k > 0 V O(nk)
+
+===== PAGE 123 =====
+Ejemplos
+Veamos un ejemplo:
+HAMPATH= {⟨G, s, t⟩ ∣ ∃p : V verifica que p es un camino de s a t}
+Los caminos Hamiltoneanos tienen la misma cantidad de
+nodos que el grafo, y pueden ser verificados rápidamente.
+COMP= {x ∣ ∃p, q > 1 : x = p * q}
+p, q x
+son números con menos tamaño que y la
+multiplicación se puede computar en tiempo polinomial. Es
+decir, es un certificado para .
+(p, q) COMP
+
+===== PAGE 124 =====
+Definición Alternativa de NP
+NP
+Podemos definir como el conjunto de problemas que
+tienen verificadores polinomiales:
+L ∈ NP L
+Propiedad: si y solo si tiene un verificador
+polinomial.
+La idea de la demostración es construir una MT no determinista
+desde un verificador, y viceversa.
+Si tiene un verificador Adivinamos no deterministicamente y
+verificamos
+Si tiene un MT
+no-deterministica
+En input , se usa para obtener
+⟨w, c⟩ cla rama de ejecución, y se acepta si la
+MT acepta
+
+===== PAGE 125 =====
+Ejemplos de Problemas en
+NP
+
+===== PAGE 126 =====
+Clique
+G G
+Dado un grafo no dirigido , un clique es un subgrafo de
+en el cual cada par de nodos está conectado.
+G
+Dado un grafo no dirigido , un k-clique es un clique con k
+CHAPTER 7 / TIME COMPLEXITY
+nodos.
+Grafo con un 5-clique
+URE 7.23
+aph with a 5-clique
+CLIQUE= {⟨G, k⟩ ∣ G tiene un k clique }
+he clique problem is to determine whether a graph contains a clique of a
+fied size Let
+
+===== PAGE 127 =====
+Clique
+CLIQUE NP
+es en , construyamos un verificador para el
+problema:
+Dado :
+⟨G, c⟩
+➡Controlamos que los nodos en esten en c G
+➡Controlamos que todos los nodos tengan
+arcos entre ellos
+➡Si las dos condiciones se cumplen se
+acepta, sino se rechaza.
+cNotar que es un subconjunto de nodos, es decir, es de
+longitud polinomial
+
+===== PAGE 128 =====
+Subset-Sum
+Dada una colección de números enteros y un
+x1, …, xk
+t
+número , decir si hay algún subconjunto tal que su suma sea
+t
+.
+SUBSET-SUM= {⟨S, t⟩ ∣ ∃S′
+￼ ⊆ S : ∑ S′
+￼
+= t}
+Por ejemplo: ya que:
+⟨{4,11,16,21,27},25⟩ ∈ SUBSET-SUM
+4 + 21 = 25
+
+===== PAGE 129 =====
+Problemas afuera de NP
+NP
+Hay muchos problemas que quedan afuera de . Por
+ejemplo:
+HAMPATH = {w ∣ w ∉ HAMPATH}
+HAMPATH
+Este es el complemento de , no hay certificados
+obvios para ver que un grafo no tenga ciclos Hamiltoneanos
+CLIQUE = {w ∣ w ∉ CLIQUE}
+No hay certificados obvios para ver que una grafo no tiene
+un clique.
+
+===== PAGE 130 =====
+vs P NP
+Podemos resumir lo visto de la siguiente forma:
+: lenguajes que pueden ser decididos rápidamente P
+NP
+: lenguajes cuya pertenencia puede ser verificada
+rápidamente
+Obviamente, tenemos:
+NP
+La pregunta si P=NP, es una
+de los grandes problemas
+no resueltos de
+computación. A priori la
+verificabilidad polinomial
+parece más potente que la
+la decidibilidad polinomial
+P
+
+===== PAGE 131 =====
+NP-Completitud
+Los problemas NP-Completos son una subclase de los
+problemas NP, que permiten resolver cualquiera de los otros
+problemas NP
+NP
+NP-Completo
+- Todos los problemas en NP
+son reducibles a cualquier
+problema NP-completo
+- Si se encuentra una solución
+en P para un problema NP-
+completo, tendríamos que
+NP=P
+
+===== PAGE 132 =====
+Reducibilidad Polinomial
+Una función se dice polinomialmente
+f : Σ* → Σ*
+computable si existe una MT que corre en tiempo polinomial
+y compute .
+f
+A
+Un lenguaje es polinomialmente reducible a un lenguaje
+B A ≤P B
+, notado si existe una función polinomialmente
+computable tal que para todo w:
+f : Σ* → Σ*
+w ∈ A ⇔ f(w) ∈ B
+Esto nos permite reducir problemas que no sabemos como
+solucionar a otros que ya sabemos solucionar.
+
+===== PAGE 133 =====
+Propiedades de la
+Reducibilidad Polinomial
+Algunas propiedades de la reducibilidad polinomial:
+Propiedad: Si and , entonces .
+A ≤P B B ∈ P A ∈ P
+M
+Para ver que se cumple consideremos una MT que
+computa la función tal que
+f : Σ* → Σ*
+w ∈ A ⇔ f(w) ∈ B MB B
+. Y una MT que decide
+N A
+Diseñemos una MT para resolver :
+➡En entrada , se ejecuta con se obtiene
+w M w f(w)
+➡Se ejecuta que decide , si acepta, se acepta, sino
+MB B
+se rechaza.
+M O(nk) MB O(nk′
+toma pasos y toma pasos, luego se
+￼ )
+toman pasos.
+O(nk) + O(nk′
+￼ )
+
+===== PAGE 134 =====
+SAT
+SAT fue el primer problema NP-completo que se encontró
+Fórmulas:
+ϕ, ψ = X ∣¬ϕ ∣ ϕ ∧ ψ ∣ ϕ ∨ ψ en donde: X = {x, y, z, …}
+Su semántica viene dada por asignaciones:
+v : X → {0,1} (funciones a valores de verdad)
+Dada una
+asignación
+podemos
+evaluar una
+fórmula:
+( ¬x ∧ y) ∨ (x ∧ ¬y)
+0
+0 0
+0 0
+1
+1
+0
+0
+0 1 1
+1 1
+Una fórmula es satisfacible
+si hay una asignación que la
+hace verdadera
+0
+0
+1
+0 0 0
+0
+0
+1
+0
+1
+0
+0
+0
+
+===== PAGE 135 =====
+3-SAT
+Llamamos clausula a formulas del estilo:
+(x1 ∨… ∨ xn)
+Una formula se dice en CNF (Conjunctive Normal Form) si
+tiene la forma:
+c0 ∧ c1 ∧… ∧ cm
+Todas las fórmulas se
+pueden escribir en CNF
+Es decir, es una conjunción de disyunciones.
+Una fórmula se dice en 3NF si está está en CNF, y cada
+cláusula tiene exactamente 3 variables. Por ejemplo:
+(x0 ∨ x1 ∨ x3) ∧ ( ¬x0 ∨ ¬x1 ∨ x2)
+
+===== PAGE 136 =====
+3-SAT a Clique
+Veamos cómo podemos reducir 3-SAT a Clique
+ϕ= (a1 ∨ b1 ∨ c1) ∧ (a2 ∨ b2 ∨ c2) ∧… ∧ (ak ∨ bk ∨ ck)
+G
+Definimos un grafo en donde:
+• Por cada cláusula tenemos 3 nodos,
+• Todos los nodos están conectados entre ellos salvo:
+• Aquellos que son contradictorios ( , ),
+x ¬x• Aquellos que están en la misma cláusula.
+
+===== PAGE 137 =====
+Ejemplo
+Veamos un ejemplo:
+(x1 ∨ x2 ∨ x3) ∧ ( ¬x1 ∨ ¬x2 ∨ ¬x3) ∧ ( ¬x1 ∨ x2 ∨ x2)
+¬x1
+¬x2 ¬x3
+x1
+x2
+x3
+¬x1
+x2
+x2
+Si hay un clique, podemos
+asignarle
+True a los nodos del clique y
+se hará verdadera
+la formula
+
+===== PAGE 138 =====
+SAT
+Podemos definir el problema SAT:
+SAT= {⟨ϕ⟩ ∣ ϕ is a satisfiable formula}
+El teorema de Cook-Levin permitió encontrar el primer
+problema NP-completo:
+Un problema se dice NP-completo si:
+I. Si está en NP.
+II.Si cualquier problema en NP es reducible
+polinomialmente a él.
+Si algún problema NP-completo está en NP entonces: NP=P.
+
+===== PAGE 139 =====
+Teorema de Cook-Levin
+El teorema de Cook-Levin permite demostrar que SAT es NP-
+completo
+Idea:
+1.Ver que SAT está en NP.
+2.Demostrar que cualquier problema NP puede ser reducido
+a SAT:
+El punto 2 es el más difícil: dado un problema en NP, que
+es decidido por una MT N, se construye una fórmula que
+ϕ
+es SAT ssi N acepta la entrada. Es importante que pueda
+ϕser construida en tiempo polinomial
+
+===== PAGE 140 =====
+Teorema de Cook-Levin
+nk
+Dada la MT no-determinista N, que hace pasos:
+consideramos la siguiente matriz.
+nk
+nk
+Cada fila es un
+estado
+se pasa de la fila
+a la si del
+i + 1
+estado en la
+i
+existe una
+ejecución que se
+pasa a la
+ejecución
+i + 1
+i
+
+===== PAGE 141 =====
+tents of the cells with the variables of φ. If xi,j,s takes on the value 1,
+ns that cell [i, j] contains an s.
+La formula ϕ
+Now we design φ so that a satisfying assignment to the variables does corr
+nd to an accepting tableau for N on w. The formula φ is the AND of fo
+Para cada símbolo consideramos
+s ∈ C= Γ ∪ Σ ∪ Q ∪ {#}
+s: φcell ∧ φstart ∧ φmove ∧ φaccept. We describe each part in turn.
+la variable: que es verdadera cuando
+xi,j,s cell[i][ j] = s
+As we mentioned previously, turning variable xi,j,s on corresponds to placin
+bol s in cell [i, j]. The first thing we must guarantee in order to obtain a co
+ϕ= ϕcell ∧ ϕstart ∧ ϕmove ∧ ϕaccept
+ondence between an assignment and a tableau is that the assignment tur
+exactly one variable for each cell. Formula φcell ensures this requirement b
+Cada una de las partes describe un aspecto de N
+ressing it in terms of Boolean operations:
+φcell =
+1≤i,j≤nk s∈C
+xi,j,s ∧
+(xi,j,s ∨ xi,j,t).
+s,t∈C
+s̸=t
+The symbols and stand for iterated AND and OR. For example, th
+en todas las posiciones hay
+Puede haber solo un
+algún símbolo valido
+ression in the preceding formula
+símbolo
+xi,j,s
+
+===== PAGE 142 =====
+rt = x1,1,# ∧ x1,2,q0 ∧
+ableau as follows.
+La Formula ϕφmove, and φaccept ensure that these symbols actually correspond to an
+x1,3,w1 ∧ x1,4,w2 ∧. . . ∧ x1,n+2,wn ∧
+φstart ensures that the first row of the table is the starting configu-
+N on w by explicitly stipulating that the corresponding variables are
+x1,n+3,␣ ∧. . . ∧ x1,nk
+−1,␣ ∧ x1,nk
+,#.
+uarantees that an accepting configuration occurs in the
+φstart = x1,1,# ∧ x1,2,q0 ∧
+hat qaccept, the symbol for the accept state, appears in one
+En la primera fila hay una
+x1,3,w1 ∧ x1,4,w2 ∧. . . ∧ x1,n+2,wn ∧
+leau by stipulating that one of the corresponding variables
+configuración inicial
+x1,n+3,␣ ∧. . . ∧ x1,nk
+−1,␣ ∧ x1,nk
+,#.
+φaccept guarantees that an accepting configuration occurs in the
+φaccept =
+xi,j,qaccept.
+Alguna de las filas contiene
+ensures that qaccept, the symbol for the accept state, appears in one
+un estado de aceptación
+1≤i,j≤nk
+of the tableau by stipulating that one of the corresponding variables
+move guarantees that each row of the tableau corresponds to
+La formula es más complicada, describe los posibles
+ϕmoves
+egally follows the preceding row’s configuration according
+φaccept =
+xi,j,qaccept.
+2 × 3
+movimientos para eso se usa ventanas de celdas
+1≤i,j≤nk
+so by ensuring that each 2 × 3 window of cells is legal.
+window is legal if that window does not violate the actions
+Una ventana es legal si esa configuración puede darse en la
+formula φmove guarantees that each row of the tableau corresponds to
+matriz.ition function. In other words, a window is legal if it might
+tion that legally follows the preceding row’s configuration according
+figuration correctly follows another 3
+I d b i h h 2 3 i d f ll i l l
+
+===== PAGE 143 =====
+Ventanas
+Las ventanas permiten describir el movimiento de
+usando poco espacio (6 celdas)
+N
+Por ejemplo, si tenemos:
+δ(q1, a) = {(q1, b, R)}
+δ(q1, b) = {(q2, c, L), (q2, a, R)}
+Las siguientes ventanas serian validas:
+308 CHAPTER 7 / TIME COMPLEXITY
+(a)
+a q1 b
+q2 a c
+(b)
+a q1 b
+a a q2
+(c)
+a a q1
+a a b
+(d)
+# b a
+# b a
+(e)
+a b a
+a b q2
+(f )
+b b b
+c b b
+FIGURE 7.39
+Examples of legal windows
+
+===== PAGE 144 =====
+Ventanas
+Teorema: si todas las ventanas son validas, entonces la matriz
+describe una rama de la MT.
+Si un símbolo está en el centro de una ventana sin ser
+adyacente a un estado, este se mantiene igual en la próxima
+fila.
+Para aquellas celdas que tienen un estado en el centro, la
+fila de abajo deberá tener la configuración correspondiente.
+Es decir, si todas las ventanas posibles son validas,
+entonces la matriz es una rama de ejecución de la MT no-
+determinista.
+
+===== PAGE 145 =====
+La Formula (cont.) ϕ
+Veamos la formula que identifica los movimientos validos:
+ϕmove
+= ⋀
+la ventana centrada en (i,j) es legal
+0<i,j<nk
+Para describir la ventana centrada en solo necesitamos
+(i, j)
+hablar de celdas.
+6
+Veamos el tamaño de la formula:
+El tamaño total es polinomial
+con respecto a la entrada
+ϕmoves es tamaño O(n2k)
+ϕstart es tamaño O(nk)
+ϕcell es tamaño O(n2k)
+ϕend es tamaño O(n2k)
+
+===== PAGE 146 =====
+3-Sat es NP-Completo
+Para ver que 3-sat es NP-completo tenemos que ver:
+• Que es NP, tenemos que pensar un algoritmo
+no-determinista que lo resuelva.
+• Que cualquier problema NP se puede reducir
+polinomialmente a el.
+➡ Si reducimos SAT a 3SAT entonces por
+transitividad de la reducción polinomial
+obtenemos el resultado.
+
+===== PAGE 147 =====
+Reduciendo SAT a 3SAT
+En realidad solo tenemos que reducir formulas CNF a 3SAT
+Dada una clausula:
+La formula usada para ver
+que SAT es NP se puede
+fácilmente escribir en CNF
+(x0 ∨ x1 ∨… ∨ xn)
+n− 2
+La podemos reescribir con clausulas:
+(x0 ∨ x1 ∨ z1) ∧ ( ¬z1 ∨ x2 ∨ z2) ∧ ( ¬z2 ∨ x3 ∨ z3) ∧…
+Que tiene variables nuevas, y está en
+n− 2 3SAT
+Estas dos fórmulas son equisatisfacibles.
+
+===== PAGE 148 =====
+SAT a 3SAT
+Es decir, dada:
+C0 ∨ C1 ∨ Cm−1
+N N
+De longitud podemos traducirla a 3SAT utilizando
+variables nuevas
+Por cada variable en tenemos una clausula con 3
+C
+variables. Es decir en total tenemos una fórmula de longitud
+O(N)
+Luego chequeamos satisfiabilidad, si la formula
+f(C1 ∨…Cn−1) es SAT entonces es SAT
+C1 ∨… ∨ Cn−1
+
+===== PAGE 149 =====
+Ejercicios:
+1.Cuáles de los siguientes son verdaderos:
+1.
+2.
+3n ∈ 2O(n)
+2n ∈ o(3n)
+1
+)
+3.
+1 ∈ o(
+n
+2.Mostrar que P es cerrado bajo unión, concatenación y complemento
+3.Mostrar que NP es cerrado bajo unión, concatenación.
+4.Un triangulo es un 3-clique. Dado está en P
+Triangle= {⟨G⟩ ∣ G contiene un 3-clique}
+5.Mostrar que está en P
+ALLAFD
+6.Dos grafos son isomorficos si existe un isomorfismo entre ellos. Demostrar que ISO el problema de decir si dos grafos son iso o no
+está en NP
+
+===== PAGE 150 =====
+Problemas
+NP-Completos
+
+===== PAGE 151 =====
+El problema del cubrimiento
+de vertices
+Dado un grafo decir si existen
+G= ⟨V, E⟩ k ≤ | V |
+vertices tal que cubren el grafo: es decir, cada arco de
+toca algunos de esos nodos.
+G
+VERTEX-COVER= {⟨G, k⟩ ∣ G es un grafo no-dirigido que tiene un cubrimiento de k nodos}
+Veamos que este problema es NP-Completo:
+• Tenemos que ver que es NP,
+• Tenemos que ver que si un problema A es NP, entonces se
+reduce polinomialmente a él.
+
+===== PAGE 152 =====
+Cubrimiento de Vertices
+Tiene un cubrimiento con
+dos vertices Tiene un cubrimiento con
+tres vertices
+
+===== PAGE 153 =====
+Idea de la Reducción
+Dada la formula: en 3-CNF
+C1 ∨… ∨ Cn
+7.5 ADDITIONAL NP-COMPLETE PROBLEMS
+• Creamos un clique con cada cláusula, en donde
+tenemos un nodo por variable,
+The gadgets for the clauses are a bit more complex. Each clause gad
+triple of nodes that are labeled with the three literals of the clause. Thes
+nodes are connected to each other and to the nodes in the variable gadg
+• Por cada variable creamos un subgrafo con dos
+have the identical labels. Thus, the total number of nodes that appear
+2m + 3l, where φ has m variables and l clauses. Let k be m + 2l.
+x ¬x
+nodos y unidos con un arco y unidos con los
+For example, if φ = (x1 ∨ x1 ∨ x2) ∧ (x1 ∨ x2 ∨ x2) ∧ (x1 ∨ x2 ∨ x
+reduction produces ⟨G, k⟩ from φ, where k = 8 and G takes the form sh
+nodos con el mismo label.
+the following figure.
+(x1 ∨ x1 ∨ x2) ∧ ( ¬x1 ∨ ¬x2 ∨ ¬x2) ∧ ( ¬x1 ∨ x2 ∨ x2)
+FIGURE 7.45
+The graph that the red ction prod ces from
+
+===== PAGE 154 =====
+Corrección de la Reducción
+• El grafo tiene nodos, en donde tiene variables y
+2m + 3ℓ ϕ m ℓ
+cláusulas.
+m + 2ℓ
+• Buscamos un cubrimiento con nodos (es decir, de las
+variables tomamos uno, y de las cláusulas tomamos dos).
+• Si es una asignación entonces podemos encontrar un cubrimiento.
+v
+Dada una asignación, elegimos una variable verdadera de cada
+cláusula, y los nodos identificados con las dos restantes la ponemos
+en cubrimiento
+• Si tenemos un cubrimiento podemos obtener una asignación que
+satisface la fórmula. Dado un cubrimiento, este debe tener dos nodos
+de cada cláusula y uno de cada variable, sino no seria un cubrimiento
+valido. Se seleccionan las variables correspondientes a las
+conexiones de variables.
+
+===== PAGE 155 =====
+Caminos Hamiltoneanos
+Veamos que es NP-completo:
+• Ya vimos que está en NP.
+• Para ver que es NP-completo reducimos polinomialmente
+un problema NP-completo a HAMPATH
+Vamos a reducir 3-SAT a HAMPATH. La idea es dada una
+formula en 3CNF, construir un grafo que tenga un camino
+Hamiltoneano sii la formula es SAT.
+
+===== PAGE 156 =====
+Ejercicios
+G F G
+1. Dos grafos y son isomorfos si los nodos de pueden ser reordenados tal que
+G F
+y son identicos. Mostrar que este problema está en NP.
+2. Mostrar que
+está en P.
+MODEXP = {⟨a, b, c, p⟩ ∣ a, b, c, p son enteros positivos y ab ≡p c}
+3. Mostrar que NP es cerrado bajo *.
+A ∈ P A= ∅
+4.Mostrar que si NP=P entonces cualquier lenguaje (excepto y
+A= Σ*
+) es NP-completo.
+5. Mostrar que
+es NP-Completo
+LPATH = {⟨G, a, b, k⟩ ∣ G contiene un camino simple de longitud mas grande que k de a a b}
+6. Mostrar que es NP-
+3COLOR = {⟨G⟩ ∣ G is coloreable con tres colores }
+completo.
+KCOLOR7. Qué sucede con ?
+
+===== PAGE 157 =====
+Complejidad Espacial
+Cuando analizamos algoritmos hay dos dimensiones
+importantes:
+Tiempo: cantidad de instrucciones básicas que se
+realizan cuando se ejecuta un algoritmo.
+Espacio: cantidad de memoria que necesita un
+algoritmo para resolver un problema.
+Siempre utilizaremos el modelo de máquinas de Turing. En
+el caso de la memoria mediremos cuantas celdas de la
+cinta necesita la MT durante su ejecución.
+
