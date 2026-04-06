@@ -146,6 +146,35 @@ while IFS= read -r section; do
     pos=$((pos + 1))
   done < <(find "$section" -maxdepth 1 -type f -name 'README-*.md' | sort -V)
 
+  # Importar README de subdirectorios (por ejemplo: ejercicio-1/README.md).
+  while IFS= read -r src; do
+    [ -z "$src" ] && continue
+
+    rel="${src#$section/}"
+    dir="${rel%/README.md}"
+    [ -z "$dir" ] && continue
+
+    key="$(basename "$dir")"
+    title="$(label_from_key "$key")"
+    dest="docs/$section/$dir/index.md"
+    slug="/$section/$dir/"
+
+    mkdir -p "$(dirname "$dest")"
+
+    {
+      echo "---"
+      echo "title: \"$title\""
+      echo "sidebar_position: $pos"
+      echo "slug: \"$slug\""
+      echo "description: \"Contenido importado desde $src\""
+      echo "---"
+      echo
+      rewrite_links < "$src" | normalize_math_delimiters
+    } > "$dest"
+
+    pos=$((pos + 1))
+  done < <(find "$section" -mindepth 2 -type f -name 'README.md' | sort -V)
+
   subdocs="$(find "docs/$section" -type f -name 'index.md' ! -path "$section_index" | sort -V || true)"
   if [ -n "$subdocs" ] && ! grep -q '^## Navegacion interna$' "$section_index"; then
     {
