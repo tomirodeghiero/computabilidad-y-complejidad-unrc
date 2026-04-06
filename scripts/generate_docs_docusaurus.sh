@@ -147,7 +147,7 @@ while IFS= read -r section; do
   done < <(find "$section" -maxdepth 1 -type f -name 'README-*.md' | sort -V)
 
   subdocs="$(find "docs/$section" -type f -name 'index.md' ! -path "$section_index" | sort -V || true)"
-  if [ -n "$subdocs" ] && ! rg -q '^## Navegacion interna$' "$section_index"; then
+  if [ -n "$subdocs" ] && ! grep -q '^## Navegacion interna$' "$section_index"; then
     {
       echo
       echo "## Navegacion interna"

@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "docusaurus start",
-    "build": "docusaurus build",
+    "start": "npm run docs:generate && docusaurus start",
+    "build": "npm run docs:generate && docusaurus build",
     "serve": "docusaurus serve",
     "clear": "docusaurus clear",
     "docs:generate": "bash scripts/generate_docs_docusaurus.sh"
