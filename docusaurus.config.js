@@ -4,8 +4,8 @@ const rehypeKatex = require('rehype-katex').default;
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'Computabilidad y Complejidad - Documentacion',
-  tagline: 'Trabajos practicos y teoria',
+  title: 'Computabilidad y Complejidad - Documentación',
+  tagline: 'Trabajos prácticos y teoría',
   url: 'http://localhost',
   baseUrl: '/',
   onBrokenLinks: 'warn',
@@ -44,7 +44,7 @@ const config = {
           type: 'docSidebar',
           sidebarId: 'tutorialSidebar',
           position: 'left',
-          label: 'Documentacion'
+          label: 'Documentación'
         }
       ]
     }

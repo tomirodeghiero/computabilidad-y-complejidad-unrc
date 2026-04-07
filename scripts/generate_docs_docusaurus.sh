@@ -34,13 +34,28 @@ label_from_section() {
   local base
   base="$(basename "$section")"
 
+  if [[ "$base" == "practicos" ]]; then
+    echo "Prácticos"
+    return
+  fi
+
+  if [[ "$base" == "practica-repaso" ]]; then
+    echo "Práctica de Repaso"
+    return
+  fi
+
   if [[ "$base" =~ ^practico-([0-9]+)$ ]]; then
-    echo "Practico ${BASH_REMATCH[1]}"
+    echo "Práctico ${BASH_REMATCH[1]}"
     return
   fi
 
   if [[ "$base" =~ ^teoria-([0-9]+)$ ]]; then
-    echo "Teoria ${BASH_REMATCH[1]}"
+    echo "Teoría ${BASH_REMATCH[1]}"
+    return
+  fi
+
+  if [[ "$base" == "oficiales" ]]; then
+    echo "Oficiales"
     return
   fi
 
@@ -91,6 +106,16 @@ fi
 rm -rf docs
 rm -rf static/pdfs
 mkdir -p docs static/pdfs
+mkdir -p docs/practicos
+
+cat > docs/practicos/_category_.json <<'CATEGORY'
+{
+  "label": "Prácticos",
+  "position": 2,
+  "collapsed": true,
+  "collapsible": true
+}
+CATEGORY
 
 while IFS= read -r section; do
   [ -z "$section" ] && continue
@@ -100,6 +125,15 @@ while IFS= read -r section; do
   section_slug="/$section/"
 
   mkdir -p "$(dirname "$section_index")"
+
+  cat > "docs/$section/_category_.json" <<CATEGORY
+{
+  "label": "$section_label",
+  "position": 1,
+  "collapsed": true,
+  "collapsible": true
+}
+CATEGORY
 
   {
     echo "---"
@@ -212,15 +246,15 @@ done < "$sections_file"
 
 cat > docs/intro.md <<'INTRO'
 ---
-title: "Documentacion"
+title: "Documentación"
 sidebar_position: 1
 slug: "/"
-description: "Indice principal de documentacion"
+description: "Índice principal de documentación"
 ---
 
-# Documentacion
+# Documentación
 
-Documentacion consolidada de computabilidad y complejidad.
+Documentación consolidada de computabilidad y complejidad.
 
 ## Secciones
 INTRO

@@ -9,7 +9,7 @@ Para la MT `M2` (Sipser, capitulo 3, ejemplo 3.7), dar la secuencia de configura
 3. `000`
 4. `000000`
 
-## Convenciones
+### Convenciones
 
 - Simbolo blanco: `!`
 - Configuracion: `u q v`
@@ -17,7 +17,7 @@ Para la MT `M2` (Sipser, capitulo 3, ejemplo 3.7), dar la secuencia de configura
   - `q`: estado actual
   - `v`: contenido desde la celda bajo el cabezal hacia la derecha (incluye siempre el simbolo leido)
 
-## Definicion de la maquina M2 usada
+### Definicion de la maquina M2 usada
 
 - `Q = {q1, q2, q3, q4, q5, qaccept, qreject}`
 - `Sigma = {0}`
@@ -45,9 +45,9 @@ Transiciones `delta`:
 - `delta(q5,x)=(q5,x,L)`
 - `delta(q5,!)=(q2,!,R)`
 
-## Secuencias de configuraciones
+### Secuencias de configuraciones
 
-### a) Entrada `0`
+#### a) Entrada 0
 
 - `C0 = q1 0`
 - `C1 = ! q2 !`
@@ -55,7 +55,7 @@ Transiciones `delta`:
 
 Resultado: **acepta**.
 
-### b) Entrada `00`
+#### b) Entrada 00
 
 - `C0 = q1 00`
 - `C1 = ! q2 0`
@@ -68,7 +68,7 @@ Resultado: **acepta**.
 
 Resultado: **acepta**.
 
-### c) Entrada `000`
+#### c) Entrada 000
 
 - `C0 = q1 000`
 - `C1 = ! q2 00`
@@ -78,7 +78,7 @@ Resultado: **acepta**.
 
 Resultado: **rechaza**.
 
-### d) Entrada `000000`
+#### d) Entrada 000000
 
 - `C0  = q1 000000`
 - `C1  = ! q2 00000`
@@ -103,25 +103,29 @@ Resultado: **rechaza**.
 
 Resultado: **rechaza**.
 
-## Verificacion final rapida
+### Verificacion final rapida
 
 - `0` y `00` son longitudes potencia de 2 -> acepta.
 - `000` y `000000` no son potencias de 2 -> rechaza.
 
-Esto coincide con el lenguaje decidido por `M2`: `A = {0^(2^n) | n >= 0}`.
+Esto coincide con el lenguaje decidido por $M_2$:
+
+$$
+A=\{0^{2^n}\mid n\ge 0\}.
+$$
 
 ---
 
-## Ejercicio 3 - Definiciones de MT para decidir lenguajes
+## Ejercicio 3 - Definiciones de MT
 
 Definir maquinas de Turing que decidan:
 
-1. `L1 = { w in {0,1}* | #0(w) = #1(w) }`
-2. `L2 = { w in {0,1}* | #0(w) = 2*#1(w) }`
+1. $L_1=\{\,w\in\{0,1\}^*\mid \#_0(w)=\#_1(w)\,\}$
+2. $L_2=\{\,w\in\{0,1\}^*\mid \#_0(w)=2\cdot \#_1(w)\,\}$
 
-donde `#a(w)` denota la cantidad de apariciones del simbolo `a` en `w`.
+donde $\#_a(w)$ denota la cantidad de apariciones del simbolo $a$ en $w$.
 
-## Convenciones
+### Convenciones
 
 - Usamos `!` como blanco.
 - Usamos marcas auxiliares:
@@ -130,9 +134,13 @@ donde `#a(w)` denota la cantidad de apariciones del simbolo `a` en `w`.
 
 ---
 
-## (a) MT decider para `L1 = { w | #0(w)=#1(w) }`
+### (a) MT decider para $L_1$
 
-### Definicion (nivel implementacion, estilo Sipser)
+$$
+L_1=\{\,w\in\{0,1\}^*\mid \#_0(w)=\#_1(w)\,\}.
+$$
+
+#### Definicion (nivel implementacion, estilo Sipser)
 
 Sea `M_eq` la MT:
 
@@ -150,7 +158,7 @@ Sea `M_eq` la MT:
 
 `"`
 
-### Forma matematica (7-tupla)
+#### Forma matematica (7-tupla)
 
 Definimos:
 
@@ -213,20 +221,24 @@ Funcion de transicion $$\delta:Q\times\Gamma\to Q\times\Gamma\times\{L,R\}$$:
    \delta(q_{back},!)=(q_{seek},!,R)
    $$
 
-### Correctitud
+#### Correctitud
 
-- Si `M_eq` acepta, se marcaron parejas `0`-`1` hasta agotar todos los simbolos: entonces `#0(w)=#1(w)`.
-- Si `#0(w)=#1(w)`, siempre que se toma un simbolo no marcado existe su pareja del otro tipo, por lo que la maquina nunca falla y termina aceptando.
+- Si `M_eq` acepta, se marcaron parejas `0`-`1` hasta agotar todos los simbolos: entonces $\#_0(w)=\#_1(w)$.
+- Si $\#_0(w)=\#_1(w)$, siempre que se toma un simbolo no marcado existe su pareja del otro tipo, por lo que la maquina nunca falla y termina aceptando.
 
-### Terminacion
+#### Terminacion
 
 Cada vuelta completa marca al menos dos simbolos nuevos. Como la entrada es finita, tras una cantidad finita de iteraciones la maquina acepta o rechaza.
 
 ---
 
-## (b) MT decider para `L2 = { w | #0(w)=2*#1(w) }`
+### (b) MT decider para $L_2$
 
-### Definicion (nivel implementacion, estilo Sipser)
+$$
+L_2=\{\,w\in\{0,1\}^*\mid \#_0(w)=2\cdot \#_1(w)\,\}.
+$$
+
+#### Definicion (nivel implementacion, estilo Sipser)
 
 Sea `M_2to1` la MT:
 
@@ -247,7 +259,7 @@ Sea `M_2to1` la MT:
 
 `"`
 
-### Forma matematica (7-tupla)
+#### Forma matematica (7-tupla)
 
 Definimos:
 
@@ -346,20 +358,20 @@ Funcion de transicion $$\delta:Q\times\Gamma\to Q\times\Gamma\times\{L,R\}$$:
    \delta(q_{check0},!)=(q_{accept},!,R)
    $$
 
-### Correctitud
+#### Correctitud
 
 - Cada iteracion empareja exactamente `1` simbolo `1` con exactamente `2` simbolos `0`.
-- Si la maquina acepta, no quedan `1` ni `0` sin marcar y todas las marcas se hicieron en bloques `2:1`, luego `#0(w)=2*#1(w)`.
-- Si `#0(w)=2*#1(w)`, cada vez que se toma un `1` quedan disponibles dos `0` para marcar; al finalizar no quedaran `0` sueltos, por lo que acepta.
+- Si la maquina acepta, no quedan `1` ni `0` sin marcar y todas las marcas se hicieron en bloques `2:1`, luego $\#_0(w)=2\cdot\#_1(w)$.
+- Si $\#_0(w)=2\cdot\#_1(w)$, cada vez que se toma un `1` quedan disponibles dos `0` para marcar; al finalizar no quedaran `0` sueltos, por lo que acepta.
 - Si la relacion no se cumple, en algun punto faltara un `0` para completar un bloque o sobraran `0` al final; en ambos casos rechaza.
 
-### Terminacion
+#### Terminacion
 
 Cada ciclo marca al menos un `1` (y hasta dos `0`), o rechaza. Como la cinta de entrada es finita, el proceso termina en tiempo finito.
 
 ---
 
-## Conclusiones
+### Conclusiones
 
 - `M_eq` decide `L1`.
 - `M_2to1` decide `L2`.
@@ -377,24 +389,24 @@ $$
 \mathcal{L}(TM_{2\text{-}way})=\mathcal{L}(TM_{std}).
 $$
 
-## Modelos
+### Modelos
 
 - `TM_std`: cinta infinita hacia la derecha, con extremo izquierdo.
 - `TM_{2-way}`: cinta infinita en ambas direcciones, indices en `\mathbb{Z}`.
 
 ---
 
-## Teorema
+### Teorema
 
 $$
 \mathcal{L}(TM_{std})=\mathcal{L}(TM_{2\text{-}way}).
 $$
 
-## Demostracion
+### Demostracion
 
 Probamos ambas inclusiones.
 
-### 1) `\mathcal{L}(TM_{std}) \subseteq \mathcal{L}(TM_{2-way})`
+#### 1) Inclusion TM_std ⊆ TM_2-way
 
 Sea `M` una MT estandar. Construimos una MT doblemente infinita `N` que simula `M`.
 
@@ -405,7 +417,7 @@ Por lo tanto, todo lenguaje reconocible por una MT estandar tambien es reconocib
 
 ---
 
-### 2) `\mathcal{L}(TM_{2-way}) \subseteq \mathcal{L}(TM_{std})`
+#### 2) Inclusion TM_2-way ⊆ TM_std
 
 Sea
 
@@ -536,7 +548,7 @@ Queda demostrado que ambos modelos reconocen exactamente los mismos lenguajes.
 
 Demostrar que todo lenguaje infinito reconocible por MT tiene un subconjunto infinito que es decidible.
 
-## Proposicion
+### Proposicion
 
 Sea `A \subseteq \Sigma^*` un lenguaje infinito y Turing-reconocible.  
 Entonces existe `B \subseteq A` tal que:
@@ -544,14 +556,14 @@ Entonces existe `B \subseteq A` tal que:
 1. `B` es infinito.
 2. `B` es decidible.
 
-## Demostracion
+### Demostracion
 
 Como `A` es Turing-reconocible, por el Teorema 3.21 de Sipser existe un enumerador `E` que enumera `A`.
 
 Fijamos un orden total efectivo sobre `\Sigma^*`; tomamos `shortlex` (primero por longitud, luego lexicografico).  
 Denotamos este orden por `<`.
 
-### 1) Construccion de una sucesion creciente en `A`
+#### 1) Construccion de una sucesion creciente en A
 
 Definimos inductivamente una sucesion `(b_i)_{i\ge 1}`:
 
@@ -586,7 +598,7 @@ $$
 
 Ademas, la sucesion es estrictamente creciente e infinita, por lo que `B` es infinito.
 
-### 2) Decidibilidad de `B`
+#### 2) Decidibilidad de B
 
 Construimos un decider `D_B` para `B`.
 
@@ -617,7 +629,7 @@ Por lo tanto, todo lenguaje infinito Turing-reconocible contiene un subconjunto 
 
 Mostrar que una MT de una sola cinta que no puede escribir sobre la parte que contiene el input solo puede reconocer lenguajes regulares.
 
-## Aclaracion de modelo (hipotesis usada)
+### Aclaracion de modelo (hipotesis usada)
 
 Tomamos la version estandar del ejercicio en teoria de automatas:
 
@@ -627,11 +639,11 @@ Tomamos la version estandar del ejercicio en teoria de automatas:
 
 Bajo esta interpretacion, la maquina es esencialmente un automata finito de dos vias.
 
-## Proposicion
+### Proposicion
 
 Todo lenguaje reconocido por una maquina de ese tipo es regular.
 
-## Demostracion
+### Demostracion
 
 Sea
 
@@ -691,9 +703,9 @@ Concluimos que toda MT de una cinta de ese tipo reconoce solo lenguajes regulare
 
 ---
 
-# Parte de programacion
+## Parte de programacion
 
-## Modelos implementados (items 1, 2 y 3)
+### Modelos implementados (items 1, 2 y 3)
 
 Se implementaron los tres modelos pedidos:
 
@@ -707,7 +719,7 @@ Ademas se agregaron demos:
 - `ejercicio2_programar_mt_doble.py`: demo con posiciones negativas reales.
 - `ejercicio3_programar_mt_multicinta.py`: demo multicinta (copiadora de 2 cintas).
 
-## Ejercicio 4 (programacion): implementar MT vistas en el teorico
+### Ejercicio 4 (programacion): implementar MT vistas en el teorico
 
 Se implementaron, en codigo ejecutable, las MT definidas en la parte teorica:
 
@@ -727,7 +739,7 @@ Archivo:
   - ejecuta casos de prueba;
   - verifica automaticamente el resultado contra el predicado matematico de cada lenguaje.
 
-## Ejercicio 5 (programacion): algoritmos de traduccion entre 3 versiones de MT
+### Ejercicio 5 (programacion): algoritmos de traduccion entre 3 versiones de MT
 
 Sea:
 
@@ -737,7 +749,7 @@ Sea:
 
 Se piden algoritmos efectivos de traduccion. Los siguientes son correctos:
 
-### A) Traduccion `TM_1 -> TM_2`
+#### A) Traduccion TM_1 -> TM_2
 
 Entrada: `M in TM_1`.
 
@@ -749,7 +761,7 @@ Entrada: `M in TM_1`.
 
 Resultado: una `N in TM_2` tal que `L(N)=L(M)`.
 
-### B) Traduccion `TM_2 -> TM_1`
+#### B) Traduccion TM_2 -> TM_1
 
 Entrada: `B in TM_2`.
 
@@ -769,7 +781,7 @@ Entrada: `B in TM_2`.
 
 Resultado: `S in TM_1` con `L(S)=L(B)`.
 
-### C) Traduccion `TM_1 -> TM_k`
+#### C) Traduccion TM_1 -> TM_k
 
 Entrada: `M in TM_1`, `k>=1`.
 
@@ -779,7 +791,7 @@ Entrada: `M in TM_1`, `k>=1`.
 
 Resultado: `N in TM_k` con `L(N)=L(M)`.
 
-### D) Traduccion `TM_k -> TM_1`
+#### D) Traduccion TM_k -> TM_1
 
 Entrada: `K in TM_k`.
 
@@ -796,7 +808,7 @@ Entrada: `K in TM_k`.
 
 Resultado: `U in TM_1` con `L(U)=L(K)`.
 
-### E) Traducciones restantes
+#### E) Traducciones restantes
 
 Se obtienen por composicion:
 
@@ -805,7 +817,7 @@ Se obtienen por composicion:
 
 Por lo tanto, las tres variantes son equivalentes en poder de reconocimiento/decision.
 
-## Ejecucion
+### Ejecucion
 
 Desde la raiz del repo:
 
