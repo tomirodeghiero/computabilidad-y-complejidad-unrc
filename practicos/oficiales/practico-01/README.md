@@ -1,6 +1,6 @@
 # Practica 1 - Maquinas de Turing (M2)
 
-## Enunciado resuelto
+## Ejercicio 2
 
 Para la MT `M2` (Sipser, capitulo 3, ejemplo 3.7), dar la secuencia de configuraciones para:
 
@@ -112,9 +112,7 @@ Esto coincide con el lenguaje decidido por `M2`: `A = {0^(2^n) | n >= 0}`.
 
 ---
 
-# Ejercicio 3 - Definiciones de MT para decidir lenguajes
-
-## Enunciado
+## Ejercicio 3 - Definiciones de MT para decidir lenguajes
 
 Definir maquinas de Turing que decidan:
 
@@ -169,45 +167,51 @@ con:
 Funcion de transicion $$\delta:Q\times\Gamma\to Q\times\Gamma\times\{L,R\}$$:
 
 1. Estado de busqueda inicial:
-$$
-\delta(q_{seek},x)=(q_{seek},x,R),\quad
-\delta(q_{seek},y)=(q_{seek},y,R)
-$$
-$$
-\delta(q_{seek},0)=(q_{find1},x,R),\quad
-\delta(q_{seek},1)=(q_{find0},y,R),\quad
-\delta(q_{seek},!)=(q_{accept},!,R)
-$$
+
+   $$
+   \delta(q_{seek},x)=(q_{seek},x,R),\quad
+   \delta(q_{seek},y)=(q_{seek},y,R)
+   $$
+
+   $$
+   \delta(q_{seek},0)=(q_{find1},x,R),\quad
+   \delta(q_{seek},1)=(q_{find0},y,R),\quad
+   \delta(q_{seek},!)=(q_{accept},!,R)
+   $$
 
 2. Buscar un `1` que empareje al `0` marcado:
-$$
-\delta(q_{find1},0)=(q_{find1},0,R),\;
-\delta(q_{find1},x)=(q_{find1},x,R),\;
-\delta(q_{find1},y)=(q_{find1},y,R)
-$$
-$$
-\delta(q_{find1},1)=(q_{back},y,L),\quad
-\delta(q_{find1},!)=(q_{reject},!,R)
-$$
+
+   $$
+   \delta(q_{find1},0)=(q_{find1},0,R),\;
+   \delta(q_{find1},x)=(q_{find1},x,R),\;
+   \delta(q_{find1},y)=(q_{find1},y,R)
+   $$
+
+   $$
+   \delta(q_{find1},1)=(q_{back},y,L),\quad
+   \delta(q_{find1},!)=(q_{reject},!,R)
+   $$
 
 3. Buscar un `0` que empareje al `1` marcado:
-$$
-\delta(q_{find0},1)=(q_{find0},1,R),\;
-\delta(q_{find0},x)=(q_{find0},x,R),\;
-\delta(q_{find0},y)=(q_{find0},y,R)
-$$
-$$
-\delta(q_{find0},0)=(q_{back},x,L),\quad
-\delta(q_{find0},!)=(q_{reject},!,R)
-$$
+
+   $$
+   \delta(q_{find0},1)=(q_{find0},1,R),\;
+   \delta(q_{find0},x)=(q_{find0},x,R),\;
+   \delta(q_{find0},y)=(q_{find0},y,R)
+   $$
+
+   $$
+   \delta(q_{find0},0)=(q_{back},x,L),\quad
+   \delta(q_{find0},!)=(q_{reject},!,R)
+   $$
 
 4. Volver al inicio:
-$$
-\delta(q_{back},a)=(q_{back},a,L)\ \text{para todo }a\in\{0,1,x,y\}
-$$
-$$
-\delta(q_{back},!)=(q_{seek},!,R)
-$$
+   $$
+   \delta(q_{back},a)=(q_{back},a,L)\ \text{para todo }a\in\{0,1,x,y\}
+   $$
+   $$
+   \delta(q_{back},!)=(q_{seek},!,R)
+   $$
 
 ### Correctitud
 
@@ -267,70 +271,80 @@ Intuicion de estados:
 Funcion de transicion $$\delta:Q\times\Gamma\to Q\times\Gamma\times\{L,R\}$$:
 
 1. Buscar `1` no marcado:
-$$
-\delta(q_{scan1},0)=(q_{scan1},0,R),\;
-\delta(q_{scan1},x)=(q_{scan1},x,R),\;
-\delta(q_{scan1},y)=(q_{scan1},y,R)
-$$
-$$
-\delta(q_{scan1},1)=(q_{back1},y,L),\quad
-\delta(q_{scan1},!)=(q_{backf},!,L)
-$$
+
+   $$
+   \delta(q_{scan1},0)=(q_{scan1},0,R),\;
+   \delta(q_{scan1},x)=(q_{scan1},x,R),\;
+   \delta(q_{scan1},y)=(q_{scan1},y,R)
+   $$
+
+   $$
+   \delta(q_{scan1},1)=(q_{back1},y,L),\quad
+   \delta(q_{scan1},!)=(q_{backf},!,L)
+   $$
 
 2. Volver al inicio despues de marcar un `1`:
-$$
-\delta(q_{back1},a)=(q_{back1},a,L)\ \text{para todo }a\in\{0,1,x,y\}
-$$
-$$
-\delta(q_{back1},!)=(q_{find0a},!,R)
-$$
+
+   $$
+   \delta(q_{back1},a)=(q_{back1},a,L)\ \text{para todo }a\in\{0,1,x,y\}
+   $$
+
+   $$
+   \delta(q_{back1},!)=(q_{find0a},!,R)
+   $$
 
 3. Buscar el primer `0` no marcado:
-$$
-\delta(q_{find0a},1)=(q_{find0a},1,R),\;
-\delta(q_{find0a},x)=(q_{find0a},x,R),\;
-\delta(q_{find0a},y)=(q_{find0a},y,R)
-$$
-$$
-\delta(q_{find0a},0)=(q_{find0b},x,R),\quad
-\delta(q_{find0a},!)=(q_{reject},!,R)
-$$
+
+   $$
+   \delta(q_{find0a},1)=(q_{find0a},1,R),\;
+   \delta(q_{find0a},x)=(q_{find0a},x,R),\;
+   \delta(q_{find0a},y)=(q_{find0a},y,R)
+   $$
+
+   $$
+   \delta(q_{find0a},0)=(q_{find0b},x,R),\quad
+   \delta(q_{find0a},!)=(q_{reject},!,R)
+   $$
 
 4. Buscar el segundo `0` no marcado:
-$$
-\delta(q_{find0b},1)=(q_{find0b},1,R),\;
-\delta(q_{find0b},x)=(q_{find0b},x,R),\;
-\delta(q_{find0b},y)=(q_{find0b},y,R)
-$$
-$$
-\delta(q_{find0b},0)=(q_{back},x,L),\quad
-\delta(q_{find0b},!)=(q_{reject},!,R)
-$$
+
+   $$
+   \delta(q_{find0b},1)=(q_{find0b},1,R),\;
+   \delta(q_{find0b},x)=(q_{find0b},x,R),\;
+   \delta(q_{find0b},y)=(q_{find0b},y,R)
+   $$
+
+   $$
+   \delta(q_{find0b},0)=(q_{back},x,L),\quad
+   \delta(q_{find0b},!)=(q_{reject},!,R)
+   $$
 
 5. Volver al inicio para repetir ciclo:
-$$
-\delta(q_{back},a)=(q_{back},a,L)\ \text{para todo }a\in\{0,1,x,y\}
-$$
-$$
-\delta(q_{back},!)=(q_{scan1},!,R)
-$$
+
+   $$
+   \delta(q_{back},a)=(q_{back},a,L)\ \text{para todo }a\in\{0,1,x,y\}
+   $$
+
+   $$
+   \delta(q_{back},!)=(q_{scan1},!,R)
+   $$
 
 6. Fase final (ya no quedan `1`):
-$$
-\delta(q_{backf},a)=(q_{backf},a,L)\ \text{para todo }a\in\{0,1,x,y\}
-$$
-$$
-\delta(q_{backf},!)=(q_{check0},!,R)
-$$
-$$
-\delta(q_{check0},x)=(q_{check0},x,R),\;
-\delta(q_{check0},y)=(q_{check0},y,R)
-$$
-$$
-\delta(q_{check0},0)=(q_{reject},0,R),\;
-\delta(q_{check0},1)=(q_{reject},1,R),\;
-\delta(q_{check0},!)=(q_{accept},!,R)
-$$
+   $$
+   \delta(q_{backf},a)=(q_{backf},a,L)\ \text{para todo }a\in\{0,1,x,y\}
+   $$
+   $$
+   \delta(q_{backf},!)=(q_{check0},!,R)
+   $$
+   $$
+   \delta(q_{check0},x)=(q_{check0},x,R),\;
+   \delta(q_{check0},y)=(q_{check0},y,R)
+   $$
+   $$
+   \delta(q_{check0},0)=(q_{reject},0,R),\;
+   \delta(q_{check0},1)=(q_{reject},1,R),\;
+   \delta(q_{check0},!)=(q_{accept},!,R)
+   $$
 
 ### Correctitud
 
@@ -354,9 +368,7 @@ Por lo tanto, ambos lenguajes son decidibles.
 
 ---
 
-# Ejercicio 4 - Cinta doblemente infinita
-
-## Enunciado
+## Ejercicio 4 - Cinta doblemente infinita
 
 Una MT con cinta doblemente infinita (infinita a izquierda y derecha) reconoce los mismos lenguajes que una MT estandar.  
 Demostrar:
@@ -520,9 +532,7 @@ Queda demostrado que ambos modelos reconocen exactamente los mismos lenguajes.
 
 ---
 
-# Ejercicio 5 - Subconjunto infinito decidible
-
-## Enunciado
+## Ejercicio 5 - Subconjunto infinito decidible
 
 Demostrar que todo lenguaje infinito reconocible por MT tiene un subconjunto infinito que es decidible.
 
@@ -603,9 +613,7 @@ Por lo tanto, todo lenguaje infinito Turing-reconocible contiene un subconjunto 
 
 ---
 
-# Ejercicio 6 - MT de una cinta sin escritura sobre el input
-
-## Enunciado
+## Ejercicio 6 - MT de una cinta sin escritura sobre el input
 
 Mostrar que una MT de una sola cinta que no puede escribir sobre la parte que contiene el input solo puede reconocer lenguajes regulares.
 
@@ -680,3 +688,130 @@ $$
 Entonces `L(A)` es regular, y por igualdad `L(M)=L(A)`, tambien `L(M)` es regular.
 
 Concluimos que toda MT de una cinta de ese tipo reconoce solo lenguajes regulares.
+
+---
+
+# Parte de programacion
+
+## Modelos implementados (items 1, 2 y 3)
+
+Se implementaron los tres modelos pedidos:
+
+1. MT de una cinta, infinita solo a derecha (`maquina_turing.py`).
+2. MT de cinta doblemente infinita (`maquina_turing_doble_infinita.py`).
+3. MT multicinta (`maquina_turing_multicinta.py`).
+
+Ademas se agregaron demos:
+
+- `ejercicio1_programar_mt.py`: `M2` de Sipser.
+- `ejercicio2_programar_mt_doble.py`: demo con posiciones negativas reales.
+- `ejercicio3_programar_mt_multicinta.py`: demo multicinta (copiadora de 2 cintas).
+
+## Ejercicio 4 (programacion): implementar MT vistas en el teorico
+
+Se implementaron, en codigo ejecutable, las MT definidas en la parte teorica:
+
+1. `M_eq` que decide
+   $$
+   L_{eq}=\{w\in\{0,1\}^* : \#0(w)=\#1(w)\}.
+   $$
+2. `M_{2:1}` que decide
+   $$
+   L_{2:1}=\{w\in\{0,1\}^* : \#0(w)=2\cdot \#1(w)\}.
+   $$
+
+Archivo:
+
+- `ejercicio4_mt_teorico.py`
+  - construye ambas MT sobre `MaquinaTuringDobleInfinita`;
+  - ejecuta casos de prueba;
+  - verifica automaticamente el resultado contra el predicado matematico de cada lenguaje.
+
+## Ejercicio 5 (programacion): algoritmos de traduccion entre 3 versiones de MT
+
+Sea:
+
+- `TM_1`: una cinta, infinita a derecha;
+- `TM_2`: una cinta, doblemente infinita;
+- `TM_k`: `k` cintas (con `k>=1`), cada una infinita a derecha.
+
+Se piden algoritmos efectivos de traduccion. Los siguientes son correctos:
+
+### A) Traduccion `TM_1 -> TM_2`
+
+Entrada: `M in TM_1`.
+
+1. Reservar un marcador de borde izquierdo `⊢` (nuevo simbolo de cinta).
+2. En la simulacion, ubicar `⊢` a la izquierda del input.
+3. Copiar todas las transiciones de `M` sobre simbolos de trabajo normales.
+4. Agregar transiciones para que nunca se cruce `⊢` hacia la izquierda:
+   - si una transicion simulada intenta ir a la izquierda desde la primera celda util, dejar el cabezal en esa celda (comportamiento de borde de `TM_1`).
+
+Resultado: una `N in TM_2` tal que `L(N)=L(M)`.
+
+### B) Traduccion `TM_2 -> TM_1`
+
+Entrada: `B in TM_2`.
+
+1. Codificar posiciones enteras `i in Z` en naturales con:
+   $$
+   e(i)=
+   \begin{cases}
+   2i & i\ge 0\\
+   -2i-1 & i<0
+   \end{cases}
+   $$
+2. En `TM_1`, la celda `e(i)` guarda el simbolo que `B` tiene en `i`.
+3. Marcar exactamente una celda para indicar el cabezal simulado.
+4. Para cada paso de `B`, actualizar:
+   - simbolo marcado actual;
+   - nueva posicion marcada segun mover `L` o `R` bajo la codificacion `e`.
+
+Resultado: `S in TM_1` con `L(S)=L(B)`.
+
+### C) Traduccion `TM_1 -> TM_k`
+
+Entrada: `M in TM_1`, `k>=1`.
+
+1. Usar cinta 1 para simular exactamente la cinta de `M`.
+2. Ignorar cintas `2..k` (dejarlas en blanco y sin efecto).
+3. Copiar transiciones de `M` a transiciones de `TM_k` que solo cambian cinta 1.
+
+Resultado: `N in TM_k` con `L(N)=L(M)`.
+
+### D) Traduccion `TM_k -> TM_1`
+
+Entrada: `K in TM_k`.
+
+1. Codificar en una sola cinta las `k` cintas usando bloques separados por `#`:
+   $$
+   \#u_1\#u_2\#\cdots\#u_k\#
+   $$
+2. En cada bloque, marcar el simbolo bajo el cabezal de esa cinta (version "punteada" del simbolo).
+3. Simular un paso de `K` en fases:
+   - Fase lectura: recorrer la cinta y leer los `k` simbolos marcados.
+   - Fase transicion: calcular la regla de `K`.
+   - Fase escritura/movimiento: segunda pasada para actualizar simbolos y mover marcas.
+4. Repetir.
+
+Resultado: `U in TM_1` con `L(U)=L(K)`.
+
+### E) Traducciones restantes
+
+Se obtienen por composicion:
+
+- `TM_2 -> TM_k` mediante `TM_2 -> TM_1 -> TM_k`.
+- `TM_k -> TM_2` mediante `TM_k -> TM_1 -> TM_2`.
+
+Por lo tanto, las tres variantes son equivalentes en poder de reconocimiento/decision.
+
+## Ejecucion
+
+Desde la raiz del repo:
+
+```bash
+python3 practicos/oficiales/practico-01/ejercicio1_programar_mt.py
+python3 practicos/oficiales/practico-01/ejercicio2_programar_mt_doble.py
+python3 practicos/oficiales/practico-01/ejercicio3_programar_mt_multicinta.py
+python3 practicos/oficiales/practico-01/ejercicio4_mt_teorico.py
+```
