@@ -1,0 +1,996 @@
+% =============================================================================
+% Practico 02 - Reducciones
+% Computabilidad y Complejidad (Teoria de la Computacion II)
+% FCEFQyN - Universidad Nacional de Rio Cuarto
+% Primer Cuatrimestre de 2026
+% -----------------------------------------------------------------------------
+% Compilacion sugerida: pdflatex practico-02.tex
+% =============================================================================
+
+\documentclass[11pt,a4paper]{article}
+
+% --- Codificacion y idioma --------------------------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-tabla]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+
+% --- Matematica -------------------------------------------------------------
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{stmaryrd}
+
+% --- Layout y tipografia ----------------------------------------------------
+\usepackage[margin=2.7cm]{geometry}
+\usepackage{enumitem}
+\setlist[itemize]{topsep=2pt,itemsep=2pt,parsep=0pt}
+\setlist[enumerate]{topsep=2pt,itemsep=2pt,parsep=0pt}
+\usepackage{parskip}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{array}
+
+% --- Hyperref ---------------------------------------------------------------
+\usepackage[hidelinks]{hyperref}
+\hypersetup{
+  pdftitle={Practico 02 - Reducciones},
+  pdfauthor={Computabilidad y Complejidad - UNRC 2026},
+  pdfsubject={Resolucion del Practico 02},
+  pdfkeywords={reducibilidad, indecibilidad, Turing, Sipser, Rice, Post}
+}
+
+% --- Ambientes de teoremas --------------------------------------------------
+\theoremstyle{plain}
+\newtheorem{teorema}{Teorema}[section]
+\newtheorem{proposicion}[teorema]{Proposicion}
+\newtheorem{lema}[teorema]{Lema}
+\newtheorem{corolario}[teorema]{Corolario}
+
+\theoremstyle{definition}
+\newtheorem{definicion}[teorema]{Definicion}
+\newtheorem{ejemplo}[teorema]{Ejemplo}
+
+\theoremstyle{remark}
+\newtheorem*{observacion}{Observacion}
+\newtheorem*{idea}{Idea}
+
+% --- Comandos de notacion ---------------------------------------------------
+\newcommand{\MT}{\mathrm{MT}}
+\newcommand{\TM}{\mathrm{TM}}
+\newcommand{\enc}[1]{\langle #1\rangle}
+\newcommand{\encMw}{\langle M, w\rangle}
+\newcommand{\rev}[1]{#1^{\mathcal R}}
+\newcommand{\lang}{\mathcal{L}}
+\newcommand{\Sstar}{\Sigma^{*}}
+\newcommand{\redm}{\le_{m}}
+\newcommand{\compl}[1]{\overline{#1}}
+\newcommand{\qaccept}{q_{\text{accept}}}
+\newcommand{\qreject}{q_{\text{reject}}}
+\newcommand{\ATM}{A_{\TM}}
+\newcommand{\HALT}{\mathit{HALT}_{\TM}}
+\newcommand{\ETM}{E_{\TM}}
+\newcommand{\EQTM}{\mathit{EQ}_{\TM}}
+\newcommand{\ALL}{\mathit{All}}
+\newcommand{\PCP}{\mathrm{PCP}}
+\newcommand{\code}[1]{\langle #1\rangle}
+
+% --- Cabecera ---------------------------------------------------------------
+\title{\textbf{Practico 02 -- Reducciones}\\[0.3em]
+       \normalsize Computabilidad y Complejidad (Teor\'ia de la Computaci\'on II)\\
+       \normalsize FCEFQyN -- Universidad Nacional de R\'io Cuarto\\
+       \normalsize Primer Cuatrimestre de 2026}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\thispagestyle{empty}
+
+\hrule
+\vspace{0.4em}
+\begin{center}
+\small
+Resolucion completa del Practico 02. Apoyada en el Cap\'itulo 5 del libro de
+M. Sipser, \emph{Introduction to the Theory of Computation}, y en el material
+te\'orico de la c\'atedra (\texttt{Reducibilidad.pdf}).
+\end{center}
+\vspace{0.4em}
+\hrule
+
+\tableofcontents
+\bigskip
+\hrule
+\bigskip
+
+% =============================================================================
+\section*{Introducci\'on}
+\addcontentsline{toc}{section}{Introducci\'on}
+
+El presente trabajo resuelve la totalidad de los ejercicios del Pr\'actico 02
+de la asignatura, centrado en el m\'etodo de \emph{reducciones} para probar
+indecibilidad y para clasificar problemas de acuerdo a su reconocibilidad.
+La gu\'ia te\'orica utilizada es:
+
+\begin{itemize}
+  \item el Cap\'itulo 5 del libro de Sipser (\texttt{chapter-05.pdf}), que cubre
+        las nociones de \emph{reducibility}, \emph{computation histories},
+        \emph{Post Correspondence Problem} y \emph{mapping reducibility};
+  \item las l\'aminas de la c\'atedra (\texttt{Reducibilidad.pdf}), que
+        sintetizan la estrategia general de reducci\'on, el Teorema de Rice
+        y la noci\'on formal de funci\'on computable.
+\end{itemize}
+
+\paragraph{Convenciones de notaci\'on.}
+A lo largo del documento adoptamos las siguientes convenciones, en l\'inea
+con Sipser:
+\begin{itemize}
+  \item $\Sigma$ es un alfabeto y $\Sstar$ el conjunto de cadenas finitas
+        sobre $\Sigma$.
+  \item $\enc{M}$ denota una codificaci\'on de la M\'aquina de Turing $M$,
+        y $\encMw$ una codificaci\'on del par $(M,w)$.
+  \item $\lang(M)$ es el lenguaje reconocido por $M$.
+  \item $\compl{A} = \Sstar \setminus A$ es el complemento de $A$.
+  \item $A \redm B$ significa que existe una funci\'on computable $f:\Sstar\to\Sstar$
+        con $x\in A \iff f(x)\in B$ (reducibilidad many-one).
+  \item ``Decidible'' = Turing-decidible; ``reconocible'' = Turing-reconocible.
+\end{itemize}
+
+\paragraph{Lenguajes de referencia.}
+Los siguientes lenguajes se asumen \emph{indecidibles} (resultados de Sipser
+4.11, 5.1 y 5.2):
+\begin{align*}
+  \ATM  &= \{\encMw \mid M \text{ es una MT que acepta } w\},\\
+  \HALT &= \{\encMw \mid M \text{ se detiene con entrada } w\},\\
+  \ETM  &= \{\enc{M} \mid \lang(M)=\emptyset\}.
+\end{align*}
+
+Adem\'as, la herramienta b\'asica que utilizaremos repetidamente es el
+\emph{Corolario 5.23} de Sipser: \emph{si $A\redm B$ y $A$ es indecidible,
+entonces $B$ es indecidible}, y la versi\'on an\'aloga para reconocibilidad
+(\emph{Teorema 5.28}). Y, para el Ejercicio~10, el \emph{Teorema de Rice}.
+
+\bigskip\hrule\bigskip
+
+% =============================================================================
+\section{Ejercicio 1: lectura del Cap\'itulo 5}
+\label{sec:ej1}
+
+El primer \'item del pr\'actico consiste en \emph{leer el Cap\'itulo 5 del
+libro de Sipser}. Se asume realizado como prerrequisito te\'orico para el
+resto de los ejercicios. Las nociones que se utilizan a partir del
+Ejercicio~2 incluyen, entre otras:
+\begin{itemize}
+  \item la indecibilidad de $\ATM$ (Teorema 4.11);
+  \item la reducibilidad informal usada para probar la indecibilidad de
+        $\HALT$, $\ETM$, $\mathit{REGULAR}_{\TM}$ y $\EQTM$
+        (Teoremas 5.1--5.4);
+  \item la t\'ecnica de \emph{computation histories} usada para los aut\'omatas
+        linealmente acotados (Secci\'on 5.1, Teorema 5.10);
+  \item el Problema de Correspondencia de Post y su indecibilidad
+        (Secci\'on 5.2, Teorema 5.15);
+  \item la noci\'on formal de \emph{mapping reducibility} (Secci\'on 5.3,
+        Definici\'on 5.20) y los Teoremas 5.22, 5.28 y el Corolario 5.23;
+  \item el \emph{Teorema de Rice} (Problema 5.28).
+\end{itemize}
+Cada ejercicio que sigue cita expl\'icitamente las definiciones y resultados
+del cap\'itulo que invoca.
+
+\bigskip\hrule\bigskip
+
+% =============================================================================
+\section{Ejercicio 2: movimiento del cabezal en el extremo izquierdo}
+\label{sec:ej2}
+
+\subsection*{Enunciado}
+
+Considere el problema de determinar si una MT, con la entrada $w$, alguna
+vez intenta mover el cabezal a la izquierda estando en la posici\'on m\'as a la
+izquierda de la cinta. Demostrar que este problema es indecidible.
+
+\subsection*{Formalizaci\'on}
+
+\begin{definicion}
+\label{def:LM}
+Definimos el lenguaje
+\[
+  LM \;=\; \{\encMw \mid M \text{ intenta, durante su ejecuci\'on con
+  entrada } w, \text{ mover el cabezal a la izquierda desde la celda
+  m\'as a la izquierda}\}.
+\]
+\end{definicion}
+
+\begin{teorema}
+\label{teo:ej2}
+$LM$ es indecidible.
+\end{teorema}
+
+\subsection*{Idea de la demostraci\'on}
+
+Reducimos $\ATM$ a $LM$. La estrategia es construir, a partir de $\encMw$,
+una MT $M'$ que se comporta como $M$ pero con dos modificaciones:
+
+\begin{enumerate}
+  \item antes de simular a $M$, $M'$ marca la celda m\'as a la izquierda
+        con un s\'imbolo especial \$, de modo de poder distinguirla
+        siempre, y trabaja a partir de la celda inmediatamente a la derecha;
+  \item durante la simulaci\'on, $M'$ \emph{nunca} cruza el marcador hacia
+        la izquierda; pero \emph{si y solo si} la simulaci\'on alcanza el
+        estado de aceptaci\'on de $M$, $M'$ se desplaza al s\'imbolo \$ y
+        ejecuta una transici\'on que mueve el cabezal a la izquierda
+        estando sobre el extremo.
+\end{enumerate}
+
+As\'i, $M'$ intenta mover el cabezal a la izquierda desde el extremo
+izquierdo si y solo si $M$ acepta $w$.
+
+\subsection*{Construcci\'on formal}
+
+La reducci\'on $f$ env\'ia $\encMw$ a $\enc{M', w}$, donde $M'$ es la
+MT que sigue:
+
+\medskip\noindent\textbf{$M'=$ ``Con entrada $x$:}
+\begin{enumerate}
+  \item Correr una posici\'on a la derecha el contenido de la cinta y
+        escribir el s\'imbolo especial \$ en la celda $0$.
+  \item Posicionar el cabezal en la celda $1$ (la primera celda a la
+        derecha de \$).
+  \item Simular a $M$ sobre $w$ (la cadena fija cableada en la
+        descripci\'on de $M'$). En cada paso, si la transici\'on de $M$
+        indicar\'ia mover el cabezal a la izquierda y la celda actual
+        contiene \$, $M'$ se queda en su lugar (no cruza el marcador).
+  \item Si la simulaci\'on entra en $\qaccept$ de $M$, $M'$ se
+        desplaza a la izquierda hasta encontrar \$ y, desde all\'i,
+        ejecuta una transici\'on que indica mover el cabezal a la
+        izquierda.
+  \item Si la simulaci\'on entra en $\qreject$ de $M$, $M'$ se detiene
+        sin haber intentado nunca cruzar el extremo izquierdo.''
+\end{enumerate}
+\medskip
+
+Notar que $M'$ ignora $x$: siempre simula a $M$ con la cadena fija $w$,
+cableada en la descripci\'on.
+
+\subsection*{Computabilidad de la reducci\'on}
+
+La funci\'on $f(\encMw) = \enc{M', w}$ es computable. En efecto, una
+MT puede mec\'anicamente:
+\begin{itemize}
+  \item agregar a $\enc{M}$ los estados que implementan los pasos~1 y~2;
+  \item modificar las transiciones de $\enc{M}$ que mueven a la
+        izquierda para que respeten el marcador \$;
+  \item agregar las transiciones que implementan los pasos~4 y~5.
+\end{itemize}
+Esto encaja en la Definici\'on 5.17 de Sipser.
+
+\subsection*{Correctitud}
+
+\begin{proof}
+Mostramos $\encMw \in \ATM \iff \enc{M',w}\in LM$.
+
+\textbf{($\Rightarrow$)} Si $M$ acepta $w$, la simulaci\'on del paso~3
+eventualmente entra en $\qaccept$ de $M$. El paso~4 entonces lleva el
+cabezal hasta \$ y desde all\'i intenta moverse a la izquierda. Por
+construcci\'on, ese intento ocurre estando $M'$ en la celda m\'as a la
+izquierda. Luego $\enc{M',w}\in LM$.
+
+\textbf{($\Leftarrow$)} Supongamos $\enc{M',w}\in LM$. Por construcci\'on,
+los \'unicos puntos en los que $M'$ podr\'ia intentar moverse a la
+izquierda desde el extremo son:
+\begin{itemize}
+  \item dentro de la simulaci\'on del paso~3, lo cual fue \emph{descartado}
+        por la modificaci\'on que reemplaza esos movimientos por
+        ``quedarse en el lugar'';
+  \item luego del paso~4, que solo se ejecuta si la simulaci\'on alcanz\'o
+        $\qaccept$.
+\end{itemize}
+Entonces, si $M'$ intent\'o mover el cabezal a la izquierda desde el
+extremo, la simulaci\'on alcanz\'o $\qaccept$, es decir, $M$ acepta $w$.
+Luego $\encMw \in \ATM$.
+
+Tenemos $\ATM \redm LM$. Como $\ATM$ es indecidible, por el
+Corolario~5.23 de Sipser, $LM$ es indecidible.
+\end{proof}
+
+\bigskip\hrule\bigskip
+
+% =============================================================================
+\section{Ejercicio 3: lenguajes cerrados bajo reverso}
+\label{sec:ej3}
+
+\subsection*{Enunciado}
+
+Sea $T = \{\enc{M} \mid M \text{ es una MT que acepta } \rev{w}
+\text{ si esta acepta } w\}$. Mostrar que $T$ es indecidible.
+
+\subsection*{Interpretaci\'on}
+
+La condici\'on ``$M$ acepta $\rev{w}$ si acepta $w$'' se entiende para
+\emph{toda} cadena $w$. As\'i $T$ es el conjunto de descripciones de MT cuyo
+lenguaje es \emph{cerrado bajo reverso}:
+\[
+  T = \{\enc{M} \mid \forall w\in\Sstar : w\in\lang(M)\Rightarrow \rev{w}\in\lang(M)\}.
+\]
+Es importante notar que $T$ depende solo de $\lang(M)$ y no de la sintaxis o
+estructura interna de $M$. Esto convierte a $T$ en una propiedad
+\emph{sem\'antica} de lenguajes, lo que permitir\'a tambi\'en una
+demostraci\'on alternativa por Rice (v\'ease al final de la secci\'on).
+
+\subsection*{Estrategia}
+
+Daremos una reducci\'on directa $\ATM \redm T$. La idea: a partir de
+$\encMw$ construimos una MT $M_w$ cuyo lenguaje es
+\begin{itemize}
+  \item $\{01,10\}$ si $M$ acepta $w$ (cerrado bajo reverso);
+  \item $\{01\}$ si $M$ no acepta $w$ (\emph{no} cerrado bajo reverso, pues
+        $10=01^{\mathcal R}\notin\{01\}$).
+\end{itemize}
+
+\subsection*{Construcci\'on de $M_w$}
+
+\medskip\noindent\textbf{$M_w=$ ``Con entrada $x$:}
+\begin{enumerate}
+  \item Si $x = 01$, aceptar.
+  \item Si $x = 10$, simular a $M$ sobre $w$. Si $M$ acepta, aceptar;
+        si $M$ rechaza, rechazar.
+  \item Si $x$ es cualquier otra cadena, rechazar.''
+\end{enumerate}
+\medskip
+
+La descripci\'on $\enc{M_w}$ se construye algor\'itmicamente a partir de
+$\encMw$: alcanza con agregar a $M$ unos pocos estados de comparaci\'on
+con las cadenas $01$ y $10$ y un selector que en el caso $10$ deriva al
+subprograma que simula a $M$ con $w$. Por lo tanto la funci\'on
+$f(\encMw) = \enc{M_w}$ es computable.
+
+\subsection*{Correctitud}
+
+\begin{proof}
+Verifiquemos que $\encMw \in \ATM \iff \enc{M_w}\in T$.
+
+\textbf{($\Rightarrow$)} Si $M$ acepta $w$, entonces:
+\begin{itemize}
+  \item $M_w$ acepta $01$ por el paso~1.
+  \item $M_w$ acepta $10$ por el paso~2 (la simulaci\'on de $M$ sobre $w$ acepta).
+  \item $M_w$ rechaza cualquier otra cadena por el paso~3.
+\end{itemize}
+As\'i $\lang(M_w) = \{01,10\}$, que es cerrado bajo reverso pues
+$01^{\mathcal R}=10\in\lang(M_w)$ y $10^{\mathcal R}=01\in\lang(M_w)$. Luego
+$\enc{M_w}\in T$.
+
+\textbf{($\Leftarrow$)} Si $M$ no acepta $w$ (rechaza o cicla), entonces:
+\begin{itemize}
+  \item $M_w$ acepta $01$ por el paso~1.
+  \item $M_w$ no acepta $10$: la simulaci\'on de $M$ sobre $w$ no acepta,
+        y por lo tanto $M_w$ no entra en $\qaccept$ con entrada $10$
+        (rechaza si $M$ rechaza, cicla si $M$ cicla).
+  \item Cualquier otra cadena se rechaza por el paso~3.
+\end{itemize}
+Entonces $\lang(M_w)=\{01\}$, que \emph{no} es cerrado bajo reverso, ya
+que requerir\'ia $01^{\mathcal R}=10\in\lang(M_w)$ y no se cumple. Luego
+$\enc{M_w}\notin T$.
+
+Tenemos $\ATM \redm T$, y por el Corolario~5.23 de Sipser, $T$ es
+indecidible.
+\end{proof}
+
+\subsection*{Demostraci\'on alternativa por el Teorema de Rice}
+
+\begin{observacion}
+Una v\'ia m\'as breve es invocar el Teorema de Rice. La propiedad
+``$\lang(M)$ es cerrado bajo reverso'' es:
+\begin{itemize}
+  \item \emph{sem\'antica}: depende solo de $\lang(M)$;
+  \item \emph{no trivial}: la satisface la MT con $\lang(M)=\emptyset$
+        (cerrado vacuamente bajo reverso) y no la satisface una MT con
+        $\lang(M)=\{01\}$.
+\end{itemize}
+Por Rice, $T$ es indecidible.
+\end{observacion}
+
+\bigskip\hrule\bigskip
+
+% =============================================================================
+\section{Ejercicio 4: estados inalcanzables (c\'odigo muerto)}
+\label{sec:ej4}
+
+\subsection*{Enunciado}
+
+Un estado de una MT se dice \emph{inalcanzable} cuando no se puede llegar a
+\'el con ning\'un input. Demostrar que el problema de ver si una MT tiene
+un estado inalcanzable es indecidible. (En la pr\'actica, la detecci\'on
+de \emph{c\'odigo muerto}.)
+
+\subsection*{Formalizaci\'on}
+
+\begin{definicion}
+\label{def:UNREACH}
+Un estado $q$ de la MT $M$ es \emph{inalcanzable} si no existe entrada
+$x\in\Sstar$ tal que la ejecuci\'on de $M$ sobre $x$ pase por $q$.
+Definimos
+\[
+  UNREACH = \{\enc{M} \mid M \text{ tiene al menos un estado inalcanzable}\}.
+\]
+\end{definicion}
+
+\begin{teorema}
+\label{teo:ej4}
+$UNREACH$ es indecidible.
+\end{teorema}
+
+\subsection*{Estrategia}
+
+Reduciremos $\compl{\ATM}$ a $UNREACH$. Equivalentemente, daremos una
+reducci\'on tal que ``$M$ acepta $w$'' se corresponde con ``todos los
+estados de $M'$ son alcanzables''. Como $\ATM$ es indecidible y la
+decidibilidad se preserva bajo complemento, esto basta para concluir que
+$UNREACH$ es indecidible.
+
+A partir de $\encMw$ construimos una MT $M'$ con un estado distinguido
+$q_*$ (\emph{testigo}) que ser\'a alcanzable solamente si $M$ acepta $w$.
+El resto de los estados de $M'$ ser\'a alcanzable en cualquier caso, por
+medio de un \emph{tour inicial} sobre todos esos estados desencadenado
+por una entrada auxiliar.
+
+\subsection*{Construcci\'on de $M'$}
+
+Los estados de $M'$ son: el inicial $q_0$; un rechazo $q_R$; un aceptaci\'on
+$q_A$; el testigo $q_*$; y los estados auxiliares $q_{\text{sim}}$ usados
+para simular a $M$ sobre $w$.
+
+\medskip\noindent\textbf{$M'=$ ``Con entrada $x$:}
+\begin{enumerate}
+  \item Caso $x=0$: ejecutar una secuencia finita de movimientos triviales
+        que recorre todos los estados de $M'$ \emph{salvo} $q_*$. Al
+        terminar, ir a $q_R$ y rechazar.
+  \item Caso $x=1$: simular a $M$ sobre $w$:
+        \begin{itemize}
+          \item si $M$ acepta, transitar a $q_*$ y luego a $q_A$;
+          \item si $M$ rechaza, ir a $q_R$.
+        \end{itemize}
+  \item Cualquier otra entrada: ir a $q_R$.''
+\end{enumerate}
+\medskip
+
+El \emph{tour} del paso~1 es siempre realizable: en una MT cualquiera se
+puede agregar una rutina inicial finita que recorre cada uno de sus estados
+una sola vez antes de continuar con el comportamiento principal.
+La funci\'on $f(\encMw)=\enc{M'}$ es computable, ya que toda esta
+transformaci\'on se realiza algor\'itmicamente sobre $\enc{M}$ y $w$.
+
+\subsection*{Correctitud}
+
+\begin{proof}
+Mostramos $\encMw \in \ATM \iff \enc{M'} \notin UNREACH$.
+
+\textbf{($\Rightarrow$)} Si $M$ acepta $w$:
+\begin{itemize}
+  \item Sobre la entrada $0$, $M'$ recorre todos los estados salvo $q_*$
+        gracias al tour del paso~1.
+  \item Sobre la entrada $1$, la simulaci\'on llega a $\qaccept$ de $M$,
+        por lo que $M'$ transita a $q_*$. Luego $q_*$ es alcanzable.
+\end{itemize}
+Concluimos que todos los estados de $M'$ son alcanzables y por lo tanto
+$\enc{M'}\notin UNREACH$.
+
+\textbf{($\Leftarrow$)} Si $M$ no acepta $w$ (rechaza o cicla):
+\begin{itemize}
+  \item En cualquier entrada distinta de $1$, $M'$ no entra en la rama
+        del paso~2 y no pasa por $q_*$.
+  \item En la entrada $1$, la simulaci\'on de $M$ no alcanza $\qaccept$,
+        por lo que $M'$ no transita a $q_*$.
+\end{itemize}
+$q_*$ resulta inalcanzable, as\'i que $\enc{M'}\in UNREACH$.
+
+Hemos exhibido $\compl{\ATM} \redm UNREACH$. Como $\compl{\ATM}$ es
+indecidible (un lenguaje es decidible si y solo si lo es su complemento),
+por el Corolario~5.23 de Sipser, $UNREACH$ es indecidible.
+\end{proof}
+
+\subsection*{Interpretaci\'on}
+
+\begin{observacion}
+El resultado se lee, en la pr\'actica del software, como: \emph{el problema
+de detectar c\'odigo muerto en una MT (estados a los que ning\'un flujo
+de entrada llega) es indecidible}. Por eso las herramientas reales de
+an\'alisis est\'atico utilizan aproximaciones conservadoras: sobre el modelo
+general de c\'omputo, la pregunta exacta no admite algoritmo.
+\end{observacion}
+
+\bigskip\hrule\bigskip
+
+% =============================================================================
+\section{Ejercicio 5: Problema de Correspondencia de Post}
+\label{sec:ej5}
+
+\subsection*{Enunciado}
+
+Encontrar un \emph{matching} para la siguiente instancia del Problema de
+Post:
+\[
+  \left\{\frac{ab}{abab},\ \frac{b}{a},\ \frac{aba}{b},\ \frac{aa}{a}\right\}.
+\]
+
+\subsection*{Recordatorio te\'orico}
+
+Una instancia del Problema de Correspondencia de Post (PCP) es una
+colecci\'on finita de fichas
+\[
+  P=\Big\{\Big[\tfrac{t_1}{b_1}\Big],\Big[\tfrac{t_2}{b_2}\Big],\dots,
+  \Big[\tfrac{t_k}{b_k}\Big]\Big\}.
+\]
+Un \emph{matching} es una secuencia de \'indices $i_1, i_2, \dots, i_l$
+(con repeticiones permitidas) tal que
+\[
+  t_{i_1}t_{i_2}\cdots t_{i_l} \;=\; b_{i_1}b_{i_2}\cdots b_{i_l}.
+\]
+
+\subsection*{Numeraci\'on}
+
+Numeramos las fichas dadas:
+
+\begin{center}
+\begin{tabular}{c|c|c}
+\toprule
+\'Indice $i$ & Arriba ($t_i$) & Abajo ($b_i$)\\
+\midrule
+1 & $ab$  & $abab$\\
+2 & $b$   & $a$\\
+3 & $aba$ & $b$\\
+4 & $aa$  & $a$\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection*{An\'alisis preliminar}
+
+\begin{itemize}
+  \item La ficha~1 contribuye dos s\'imbolos arriba y cuatro abajo: deja
+        un ``d\'eficit'' de longitud arriba que debe compensarse con fichas
+        donde haya \emph{m\'as} s\'imbolos arriba que abajo.
+  \item Las candidatas para compensar son la ficha~3 ($|t_3|=3>|b_3|=1$)
+        y la ficha~4 ($|t_4|=2>|b_4|=1$).
+  \item En cualquier matching, la \'ultima ficha debe terminar en el mismo
+        s\'imbolo arriba y abajo.
+\end{itemize}
+
+\subsection*{Soluci\'on}
+
+Probamos la secuencia de \'indices $(4,4,2,1)$.
+
+\paragraph{Verificaci\'on.} Concatenando arriba:
+\[
+  t_4\, t_4\, t_2\, t_1 \;=\; aa\cdot aa \cdot b \cdot ab \;=\; aaaabab.
+\]
+Concatenando abajo:
+\[
+  b_4\, b_4\, b_2\, b_1 \;=\; a\cdot a \cdot a \cdot abab \;=\; aaaabab.
+\]
+Ambas cadenas coinciden:
+\[
+  aaaabab = aaaabab.
+\]
+
+Por lo tanto $(4,4,2,1)$ es un matching v\'alido para la instancia.
+
+\paragraph{Visualizaci\'on.} Las fichas se acomodan as\'i:
+\[
+  \Big[\tfrac{aa}{a}\Big]\;\Big[\tfrac{aa}{a}\Big]\;\Big[\tfrac{b}{a}\Big]\;\Big[\tfrac{ab}{abab}\Big]
+\]
+y produce, leyendo arriba y abajo,
+\[
+  \begin{array}{c|c|c|c|c|c|c}
+    a & a & a & a & b & a & b\\
+    \hline
+    a & a & a & a & b & a & b
+  \end{array}
+\]
+
+\begin{center}\fbox{$(4,4,2,1)$ es un matching de la instancia, con cadena com\'un $aaaabab$.}\end{center}
+
+\bigskip\hrule\bigskip
+
+% =============================================================================
+\section{Ejercicio 6: transitividad de $\redm$}
+\label{sec:ej6}
+
+\subsection*{Enunciado}
+
+Demostrar que $\redm$ es transitiva.
+
+\begin{proposicion}
+\label{prop:transit}
+Si $A\redm B$ y $B\redm C$, entonces $A\redm C$.
+\end{proposicion}
+
+\begin{proof}
+Por hip\'otesis disponemos de:
+\begin{enumerate}
+  \item $f:\Sstar\to\Sstar$ computable, con $x\in A \iff f(x)\in B$ para todo $x$;
+  \item $g:\Sstar\to\Sstar$ computable, con $y\in B \iff g(y)\in C$ para todo $y$.
+\end{enumerate}
+
+Definimos $h:\Sstar\to\Sstar$ como la composici\'on:
+\[
+  h(x) = g(f(x)).
+\]
+
+\paragraph{$h$ es computable.}
+Sean $M_f$ y $M_g$ MT que computan $f$ y $g$ respectivamente. Construimos
+$M_h$:
+
+\medskip\noindent\textbf{$M_h=$ ``Con entrada $x$:}
+\begin{enumerate}
+  \item Simular $M_f$ sobre $x$ hasta que termine. La cinta queda con $f(x)$.
+  \item Simular $M_g$ sobre el contenido actual de la cinta. Al terminar
+        contiene $g(f(x))=h(x)$.
+  \item Detenerse.''
+\end{enumerate}
+\medskip
+
+Como $M_f$ y $M_g$ terminan en cualquier entrada (Definici\'on 5.17 de
+Sipser), $M_h$ tambi\'en termina y deja $h(x)$ en la cinta. Luego $h$
+es computable.
+
+\paragraph{$h$ es una reducci\'on.}
+Para todo $x\in\Sstar$:
+\[
+  x\in A
+  \stackrel{(1)}{\iff} f(x)\in B
+  \stackrel{(2)}{\iff} g(f(x))\in C
+  \iff h(x)\in C.
+\]
+La equivalencia $(1)$ es la hip\'otesis sobre $f$ aplicada a $x$;
+la $(2)$ es la hip\'otesis sobre $g$ aplicada a $f(x)$.
+
+Concluimos $A\redm C$.
+\end{proof}
+
+\begin{observacion}
+Esta propiedad es un atajo poderoso: una vez probado por ejemplo
+$\ATM \redm \HALT$ y $\HALT \redm \ETM$, la transitividad da
+$\ATM \redm \ETM$ sin construir una nueva reducci\'on. La cadena
+$\ATM \redm MPCP \redm PCP$ del Cap\'itulo~5 de Sipser
+implica entonces $\ATM \redm PCP$, y por ende la indecibilidad de PCP.
+\end{observacion}
+
+\bigskip\hrule\bigskip
+
+% =============================================================================
+\section{Ejercicio 7: $\redm$ y regularidad}
+\label{sec:ej7}
+
+\subsection*{Enunciado}
+
+Decir si se cumple o no la siguiente afirmaci\'on: si $A\redm B$ y $B$ es
+un lenguaje regular, esto implica que $A$ es regular. Fundamentar.
+
+\subsection*{Respuesta}
+
+\textbf{La afirmaci\'on es falsa en general.}
+
+La intuici\'on: la relaci\'on $\redm$ preserva \emph{decidibilidad} y
+\emph{reconocibilidad} (Teoremas 5.22 y 5.28 de Sipser), pero no preserva
+propiedades m\'as finas como la regularidad. La raz\'on es que la potencia
+de c\'omputo disponible para definir la reducci\'on $f$ es la de una MT
+general, no la de un aut\'omata finito. Esa MT puede ocultar tareas no
+regulares dentro de una clasificaci\'on binaria de cadenas.
+
+\subsection*{Contraejemplo}
+
+Consideremos
+\[
+  A = \{0^{n}1^{n} \mid n \ge 0\},\qquad B = \{1\}.
+\]
+
+\begin{itemize}
+  \item $B$ es regular: es un singleton, reconocido por un AFD trivial.
+  \item $A$ no es regular: cl\'asico, por el lema de bombeo.
+\end{itemize}
+
+\paragraph{Construcci\'on de $f$.}
+Como $A$ es decidible, existe un algoritmo que decide pertenencia a $A$.
+Definimos
+\[
+  f(x) = \begin{cases} 1 & \text{si } x\in A,\\ 0 & \text{si } x\notin A.\end{cases}
+\]
+$f$ es computable: una MT simula el decisor de $A$, borra la cinta y
+escribe $1$ o $0$ seg\'un la respuesta.
+
+\paragraph{$f$ es una reducci\'on.} Para todo $x$:
+\[
+  x\in A \iff f(x)=1 \iff f(x)\in B.
+\]
+Por lo tanto $A\redm B$. Pero $B$ es regular y $A$ no lo es.
+
+\subsection*{Por qu\'e falla la afirmaci\'on}
+
+La regularidad es una propiedad estructural de los lenguajes (caracterizada
+por aut\'omatas finitos, expresiones regulares, gram\'aticas regulares,
+etc.). La relaci\'on $\redm$ usa funciones computables arbitrarias y solo
+controla la \emph{pertenencia} mediante una funci\'on potencialmente
+compleja, sin imponer restricciones de complejidad o estructura sobre el
+lenguaje origen.
+
+\begin{observacion}
+Las propiedades que s\'i se preservan bajo $\redm$ son las que se
+``comportan bien'' frente a m\'aquinas potentes:
+\begin{itemize}
+  \item Decidibilidad (Teorema 5.22): si $A\redm B$ y $B$ es decidible,
+        entonces $A$ es decidible.
+  \item Reconocibilidad (Teorema 5.28): si $A\redm B$ y $B$ es reconocible,
+        entonces $A$ es reconocible.
+\end{itemize}
+\end{observacion}
+
+\bigskip\hrule\bigskip
+
+% =============================================================================
+\section{Ejercicio 8: $A$ reconocible y $A\redm \compl{A}$ implican $A$ decidible}
+\label{sec:ej8}
+
+\subsection*{Enunciado}
+
+Demostrar que si $A$ es reconocible y $A\redm \compl{A}$, entonces $A$
+es decidible.
+
+\begin{proposicion}
+\label{prop:ej8}
+Si $A$ es Turing-reconocible y $A\redm \compl{A}$, entonces $A$ es
+decidible.
+\end{proposicion}
+
+\subsection*{Idea}
+
+Combinaremos dos resultados de Sipser:
+\begin{itemize}
+  \item Teorema 4.22: $A$ es decidible si y solo si $A$ y $\compl{A}$ son
+        ambos reconocibles.
+  \item Teorema 5.28: si $X\redm Y$ y $Y$ es reconocible, entonces $X$ es
+        reconocible.
+\end{itemize}
+
+Como $A$ ya es reconocible por hip\'otesis, basta mostrar que tambi\'en
+$\compl{A}$ es reconocible. Para ello observamos que la reducci\'on
+$A\redm \compl{A}$ implica la sim\'etrica $\compl{A}\redm A$ con la
+\emph{misma} funci\'on $f$.
+
+\subsection*{Demostraci\'on}
+
+\begin{proof}
+\textbf{Paso 1: $A\redm \compl{A}$ implica $\compl{A}\redm A$ con la misma $f$.}
+
+Sea $f$ computable con $x\in A \iff f(x)\in\compl{A}$ para todo $x$.
+Negando ambos lados de la equivalencia:
+\[
+  x\notin A \iff f(x)\notin\compl{A}.
+\]
+Equivalentemente, $x\in\compl{A} \iff f(x)\in A$. As\'i la misma $f$
+reduce $\compl{A}$ a $A$, esto es, $\compl{A}\redm A$.
+
+\textbf{Paso 2: $\compl{A}$ es reconocible.}
+
+Como $A$ es reconocible y $\compl{A}\redm A$, el Teorema 5.28 implica que
+$\compl{A}$ es reconocible.
+
+Concretamente, si $M_A$ reconoce $A$, un reconocedor de $\compl{A}$ es:
+
+\medskip\noindent\textbf{$R_{\compl{A}}=$ ``Con entrada $x$:}
+\begin{enumerate}
+  \item Computar $f(x)$.
+  \item Simular $M_A$ sobre $f(x)$. Si acepta, aceptar.''
+\end{enumerate}
+\medskip
+
+\textbf{Paso 3: $A$ es decidible.}
+
+Tenemos que $A$ y $\compl{A}$ son ambos reconocibles. Por el Teorema 4.22
+de Sipser, $A$ es decidible.
+\end{proof}
+
+\begin{observacion}
+El \emph{contrapositivo} es informativo: si $A$ es reconocible pero no
+decidible (por ejemplo, $A=\ATM$), entonces necesariamente
+$A \not\redm \compl{A}$. Esto muestra (Sipser, Ejercicio 5.5) que
+$\ATM \not\redm \compl{\ATM}$.
+\end{observacion}
+
+\bigskip\hrule\bigskip
+
+% =============================================================================
+\section{Ejercicio 9: $A$ es reconocible $\iff$ $A\redm \ATM$}
+\label{sec:ej9}
+
+\subsection*{Enunciado}
+
+Demostrar que $A$ es reconocible si y solo si $A\redm \ATM$.
+
+\begin{proposicion}
+\label{prop:ej9}
+Para todo $A\subseteq\Sstar$,
+\[
+  A \text{ es Turing-reconocible} \iff A\redm \ATM.
+\]
+\end{proposicion}
+
+\begin{proof}
+Probamos las dos direcciones.
+
+\textbf{($\Rightarrow$)} Sea $A$ reconocible y $M_A$ una MT con
+$\lang(M_A)=A$. Definimos
+\[
+  f:\Sstar\to\Sstar,\qquad f(x) = \enc{M_A, x}.
+\]
+
+\paragraph{$f$ es computable.}
+Una MT puede:
+\begin{enumerate}
+  \item leer $x$ de la cinta;
+  \item generar la descripci\'on fija $\enc{M_A}$ (cableada en la propia
+        descripci\'on de la MT que computa $f$);
+  \item construir la concatenaci\'on $\enc{M_A,x}$ con un separador.
+\end{enumerate}
+La operaci\'on es algor\'itmica y termina siempre, por lo que $f$ es
+computable (Definici\'on 5.17 de Sipser).
+
+\paragraph{$f$ es una reducci\'on de $A$ a $\ATM$.}
+Para todo $x$:
+\[
+  x\in A
+  \iff M_A \text{ acepta } x
+  \iff \enc{M_A,x}\in \ATM
+  \iff f(x)\in \ATM.
+\]
+Concluimos $A\redm \ATM$.
+
+\textbf{($\Leftarrow$)} Supongamos $A\redm \ATM$ con reducci\'on $f$.
+$\ATM$ es reconocible: la m\'aquina universal $U$ acepta $\enc{M,w}$ ssi
+$M$ acepta $w$ (Teorema 4.11 y la noci\'on cl\'asica de UTM en Sipser).
+
+Construimos un reconocedor $R$ para $A$:
+
+\medskip\noindent\textbf{$R=$ ``Con entrada $x$:}
+\begin{enumerate}
+  \item Computar $f(x)$.
+  \item Simular $U$ sobre $f(x)$. Si acepta, aceptar.''
+\end{enumerate}
+\medskip
+
+\paragraph{Correctitud.}
+\begin{itemize}
+  \item Si $x\in A$, entonces $f(x)\in\ATM$ y $U$ acepta $f(x)$. Luego $R$
+        acepta.
+  \item Si $x\notin A$, entonces $f(x)\notin\ATM$ y $U$ no acepta
+        $f(x)$ (rechaza o cicla). Luego $R$ no acepta.
+\end{itemize}
+As\'i $\lang(R)=A$, y $A$ es reconocible.
+\end{proof}
+
+\begin{observacion}
+Este resultado dice que $\ATM$ es \emph{completo} para la clase de
+lenguajes Turing-reconocibles bajo $\redm$: todo lenguaje reconocible se
+reduce a \'el. En particular, cualquier problema reconocible al cual
+$\ATM$ se reduce hereda su indecibilidad.
+\end{observacion}
+
+\bigskip\hrule\bigskip
+
+% =============================================================================
+\section{Ejercicio 10: indecibilidad de $\ALL$ por Rice}
+\label{sec:ej10}
+
+\subsection*{Enunciado}
+
+Usar el Teorema de Rice para demostrar la indecibilidad de
+\[
+  \ALL = \{\enc{M} \mid \lang(M)=\Sstar\}.
+\]
+
+(El enunciado del pr\'actico contiene una errata menor: escribe
+$\mathcal M=\Sstar$, donde claramente se quiere decir $\lang(M)=\Sstar$.)
+
+\subsection*{Recordatorio: Teorema de Rice}
+
+\begin{teorema}[Rice]
+\label{teo:rice}
+Sea $P\subseteq\{\enc{M} \mid M \text{ es una MT}\}$. Si $P$ cumple:
+\begin{enumerate}
+  \item \emph{Es una propiedad sem\'antica}: si $\lang(M_1)=\lang(M_2)$,
+        entonces $\enc{M_1}\in P \iff \enc{M_2}\in P$.
+  \item \emph{Es no trivial}: $P\neq\emptyset$ y $P\neq\{\enc{M}\mid M
+        \text{ es MT}\}$.
+\end{enumerate}
+Entonces $P$ es indecidible.
+\end{teorema}
+
+La idea de la demostraci\'on (Sipser, Problema 5.28; tambi\'en en
+\texttt{Reducibilidad.pdf}) es construir, dado un decisor hipot\'etico
+$M_P$, un decisor de $\ATM$ usando un \emph{testigo} $T\in P$ y la MT
+$M_w$ asociada a la entrada $\encMw$.
+
+\subsection*{Aplicaci\'on a $\ALL$}
+
+Asociamos a $\ALL$ la propiedad
+\[
+  P(L) \iff L = \Sstar.
+\]
+Es decir, $\enc{M}\in\ALL$ si y solo si $\lang(M)=\Sstar$.
+
+\paragraph{1. $\ALL$ es una propiedad sem\'antica.}
+Si $\lang(M_1)=\lang(M_2)$, entonces
+\[
+  \enc{M_1}\in\ALL
+  \iff \lang(M_1)=\Sstar
+  \iff \lang(M_2)=\Sstar
+  \iff \enc{M_2}\in\ALL.
+\]
+
+\paragraph{2. $\ALL$ es no trivial.}
+\begin{itemize}
+  \item Sea $M_{\Sstar}$ la MT que en cualquier entrada va inmediatamente
+        a $\qaccept$. Entonces $\lang(M_{\Sstar})=\Sstar$ y
+        $\enc{M_{\Sstar}}\in\ALL$. Luego $\ALL\neq\emptyset$.
+  \item Sea $M_{\emptyset}$ la MT que rechaza inmediatamente toda entrada.
+        Entonces $\lang(M_{\emptyset})=\emptyset\neq\Sstar$ y
+        $\enc{M_{\emptyset}}\notin\ALL$. Luego $\ALL$ no contiene a todas las
+        descripciones de MT.
+\end{itemize}
+
+\paragraph{Conclusi\'on.}
+$\ALL$ cumple las dos hip\'otesis del Teorema de Rice, por lo que es
+indecidible.
+
+\begin{center}\fbox{$\ALL = \{\enc{M}\mid \lang(M)=\Sstar\}$ es indecidible.}\end{center}
+
+\subsection*{Conexi\'on con el cap\'itulo y demostraci\'on alternativa}
+
+\begin{observacion}
+$\ALL$ y $\ETM$ son ``opuestos'' en cierto sentido: $\ETM$ pregunta si
+$\lang(M)=\emptyset$ y $\ALL$ si $\lang(M)=\Sstar$. Sipser prueba la
+indecibilidad de $\ETM$ directamente por reducci\'on desde $\ATM$
+(Teorema 5.2). Aqu\'i el Teorema de Rice nos ahorra la construcci\'on
+expl\'icita.
+
+Una demostraci\'on directa por reducci\'on tambi\'en es posible. Dado
+$\encMw$, constru\'imos $M_w$ que ignora su entrada y simula $M$ sobre
+$w$, aceptando cuando $M$ acepta. Si $M$ acepta $w$, $\lang(M_w)=\Sstar$
+y $\enc{M_w}\in\ALL$; en otro caso $\lang(M_w)\neq\Sstar$ y
+$\enc{M_w}\notin\ALL$. As\'i $\ATM\redm\ALL$, lo cual implica la
+indecibilidad de $\ALL$ sin invocar Rice. Pero la v\'ia por Rice, como
+ped\'ia el enunciado, es mucho m\'as concisa.
+\end{observacion}
+
+\bigskip\hrule\bigskip
+
+% =============================================================================
+\section*{Conclusiones}
+\addcontentsline{toc}{section}{Conclusiones}
+
+A lo largo del pr\'actico hemos puesto en pr\'actica la t\'ecnica central
+del Cap\'itulo~5 de Sipser y de la teor\'ia de la c\'atedra: la
+\emph{reducci\'on de problemas}.
+
+\begin{itemize}
+  \item Los Ejercicios~2,~3 y~4 ilustran el uso de reducciones desde
+        $\ATM$ (o su complemento) para probar indecibilidad de
+        propiedades concretas de las MT.
+  \item El Ejercicio~5 muestra c\'omo, a pesar de que el PCP es
+        indecidible en general, instancias particulares pueden resolverse
+        ``a mano''.
+  \item El Ejercicio~6 establece la transitividad de $\redm$, propiedad
+        fundamental que permite encadenar reducciones.
+  \item El Ejercicio~7 evidencia los l\'imites de $\redm$: preserva
+        decidibilidad y reconocibilidad pero no propiedades m\'as
+        estructurales como la regularidad.
+  \item Los Ejercicios~8 y~9 muestran que $\redm$ se comporta de manera
+        natural respecto del complemento y caracteriza la
+        Turing-reconocibilidad mediante $\ATM$.
+  \item El Ejercicio~10 aplica el Teorema de Rice como herramienta
+        ``meta'' para concluir indecibilidad sin construir una reducci\'on
+        expl\'icita.
+\end{itemize}
+
+En conjunto, los resultados consolidan la imagen de $\ATM$ como problema
+\emph{paradigm\'atico} de la indecibilidad y de $\redm$ como la herramienta
+b\'asica para clasificar problemas en torno a \'el.
+
+\end{document}

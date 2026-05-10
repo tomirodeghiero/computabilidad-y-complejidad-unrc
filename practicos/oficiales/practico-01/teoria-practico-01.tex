@@ -1,0 +1,941 @@
+% =============================================================================
+% Resumen teorico - Practico 01 (Maquinas de Turing)
+% Computabilidad y Complejidad (Teoria de la Computacion II)
+% FCEFQyN - Universidad Nacional de Rio Cuarto
+% Primer Cuatrimestre de 2026
+% -----------------------------------------------------------------------------
+% Fuentes principales:
+%   - chapter-03.pdf   (Sipser, Cap. 3: The Church-Turing Thesis)
+%   - MaqTuring.pdf    (laminas de la catedra: Maquinas de Turing)
+%   - Diag.pdf         (laminas de la catedra: Indecidibilidad / Cantor)
+%
+% Compilacion sugerida: pdflatex teoria-practico-01.tex
+% =============================================================================
+
+\documentclass[11pt,a4paper]{article}
+
+% --- Codificacion y idioma --------------------------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-tabla]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+
+% --- Matematica -------------------------------------------------------------
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{stmaryrd}
+
+% --- Layout y tipografia ----------------------------------------------------
+\usepackage[margin=2.7cm]{geometry}
+\usepackage{enumitem}
+\setlist[itemize]{topsep=2pt,itemsep=2pt,parsep=0pt}
+\setlist[enumerate]{topsep=2pt,itemsep=2pt,parsep=0pt}
+\usepackage{parskip}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{array}
+
+% --- Hyperref ---------------------------------------------------------------
+\usepackage[hidelinks]{hyperref}
+\hypersetup{
+  pdftitle={Resumen teorico - Practico 01},
+  pdfauthor={Computabilidad y Complejidad - UNRC 2026},
+  pdfsubject={Maquinas de Turing - Resumen teorico},
+  pdfkeywords={Maquina de Turing, Sipser, Church-Turing, decidibilidad, reconocibilidad}
+}
+
+% --- Ambientes de teoremas --------------------------------------------------
+\theoremstyle{plain}
+\newtheorem{teorema}{Teorema}[section]
+\newtheorem{proposicion}[teorema]{Proposicion}
+\newtheorem{lema}[teorema]{Lema}
+\newtheorem{corolario}[teorema]{Corolario}
+
+\theoremstyle{definition}
+\newtheorem{definicion}[teorema]{Definicion}
+\newtheorem{ejemplo}[teorema]{Ejemplo}
+
+\theoremstyle{remark}
+\newtheorem*{observacion}{Observacion}
+\newtheorem*{intuicion}{Intuicion}
+\newtheorem*{idea}{Idea}
+
+% --- Comandos de notacion ---------------------------------------------------
+\newcommand{\MT}{\mathrm{MT}}
+\newcommand{\TM}{\mathrm{TM}}
+\newcommand{\enc}[1]{\langle #1\rangle}
+\newcommand{\lang}{\mathcal{L}}
+\newcommand{\Sstar}{\Sigma^{*}}
+\newcommand{\qaccept}{q_{\text{accept}}}
+\newcommand{\qreject}{q_{\text{reject}}}
+\newcommand{\blank}{\sqcup}
+\newcommand{\TMstd}{\TM_{\text{std}}}
+\newcommand{\TMtwo}{\TM_{2}}
+\newcommand{\TMone}{\TM_{1}}
+\newcommand{\TMk}{\TM_{k}}
+\newcommand{\NTM}{\mathrm{NTM}}
+\newcommand{\rec}{\mathrm{REC}}
+\newcommand{\dec}{\mathrm{DEC}}
+\newcommand{\ATM}{A_{\TM}}
+\newcommand{\HALT}{\mathit{HALT}_{\TM}}
+\newcommand{\Pow}{\mathcal{P}}
+
+% --- Cabecera ---------------------------------------------------------------
+\title{\textbf{Resumen Te\'orico -- Pr\'actico 01}\\[0.3em]
+       \large M\'aquinas de Turing\\[0.4em]
+       \normalsize Computabilidad y Complejidad (Teor\'ia de la Computaci\'on II)\\
+       \normalsize FCEFQyN -- Universidad Nacional de R\'io Cuarto\\
+       \normalsize Primer Cuatrimestre de 2026}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\thispagestyle{empty}
+
+\hrule
+\vspace{0.4em}
+\begin{center}
+\small
+S\'intesis de la teor\'ia necesaria para resolver el Pr\'actico 01.
+Apoyada en el Cap\'itulo 3 del libro de M.~Sipser,
+\emph{Introduction to the Theory of Computation}, y en las l\'aminas
+de la c\'atedra (\texttt{MaqTuring.pdf}, \texttt{Diag.pdf}).
+\end{center}
+\vspace{0.4em}
+\hrule
+
+\tableofcontents
+\bigskip
+\hrule
+\bigskip
+
+% =============================================================================
+\section{Introducci\'on y motivaci\'on hist\'orica}
+\label{sec:intro}
+
+Las m\'aquinas de Turing (MT) son la formalizaci\'on cl\'asica de la noci\'on
+intuitiva de \emph{algoritmo}. Aparecieron en el art\'iculo de Alan~Turing
+de 1936, \emph{On Computable Numbers, with an Application to the
+Entscheidungsproblem}, motivado por el d\'ecimo problema de la lista que
+Hilbert hab\'ia planteado en 1900.
+
+\paragraph{El d\'ecimo problema de Hilbert.} El problema preguntaba si
+\emph{existe un procedimiento finito} para determinar si un polinomio con
+coeficientes enteros tiene una ra\'iz integral. Por ejemplo, si se da el
+polinomio $6x^3yz^2 + 3xz^2$, decidir si existen $x,y,z\in\mathbb Z$ tales
+que el polinomio se anula. El problema en s\'i mismo es matem\'atico, pero
+exhibe una dificultad meta-l\'ogica: para responder ``no existe tal
+procedimiento'' necesitamos primero \emph{definir formalmente} qu\'e es un
+``procedimiento''. Es decir, hace falta una definici\'on precisa de la
+noci\'on intuitiva de algoritmo.
+
+\paragraph{La respuesta de Turing.} Turing propuso definir un algoritmo
+como una m\'aquina abstracta sumamente simple --- la que hoy llamamos
+\emph{m\'aquina de Turing} --- y demostr\'o que ya con esa formalizaci\'on
+hay problemas que ning\'un procedimiento finito puede resolver. El d\'ecimo
+problema de Hilbert resulta ser uno de ellos (Matij\'asevich, 1970).
+
+\begin{intuicion}
+Antes de Turing, el concepto de ``algoritmo'' era informal: la criba de
+Erat\'ostenes o el algoritmo de Euclides eran procedimientos descriptos en
+lenguaje natural. Esta informalidad bastaba para \emph{exhibir} algoritmos,
+pero era in\'util para \emph{demostrar que un problema no admite ninguno}.
+Para probar la imposibilidad de un algoritmo hace falta una definici\'on
+matem\'atica de lo que es un algoritmo. La MT cumple ese rol.
+\end{intuicion}
+
+\paragraph{Por qu\'e este Pr\'actico.} El Pr\'actico 01 introduce todas las
+piezas necesarias para hablar de algoritmos formalmente: la definici\'on de
+MT, sus configuraciones y c\'omputos, sus variantes principales (cinta
+doblemente infinita, multicinta, no determinista, enumeradores), y los
+conceptos de \emph{decidibilidad} y \emph{reconocibilidad}. Este resumen
+recorre cada uno de esos temas con suficiente profundidad para resolver y
+entender los ejercicios.
+
+\bigskip\hrule\bigskip
+
+% =============================================================================
+\section{Definici\'on formal de m\'aquina de Turing}
+\label{sec:formal}
+
+\subsection{Componentes de una MT}
+
+Intuitivamente, una m\'aquina de Turing consiste en:
+
+\begin{itemize}
+  \item una \emph{cinta} infinita dividida en celdas, cada una conteniendo
+        un s\'imbolo;
+  \item un \emph{cabezal} que apunta a una celda y puede leer y escribir;
+  \item un \emph{control finito} que, en funci\'on del estado actual y del
+        s\'imbolo le\'ido, decide qu\'e escribir, hacia d\'onde mover el
+        cabezal y a qu\'e estado pasar.
+\end{itemize}
+
+A diferencia de un aut\'omata finito, la MT \emph{escribe} en su cinta y
+\emph{recorre} la cinta en ambos sentidos; a diferencia de un aut\'omata
+con pila, su memoria es \emph{ilimitada y de acceso libre}.
+
+\begin{definicion}[7-tupla, Sipser 3.3]
+\label{def:mt}
+Una m\'aquina de Turing es una 7-tupla
+\[
+  M = (Q, \Sigma, \Gamma, \delta, q_0, \qaccept, \qreject),
+\]
+donde $Q,\Sigma,\Gamma$ son conjuntos finitos y:
+\begin{enumerate}
+  \item $Q$ es el conjunto de \emph{estados};
+  \item $\Sigma$ es el \emph{alfabeto de entrada}, con $\blank\notin\Sigma$;
+  \item $\Gamma$ es el \emph{alfabeto de cinta}, con $\Sigma\cup\{\blank\}\subseteq\Gamma$;
+  \item $\delta : Q\times\Gamma \to Q\times\Gamma\times\{L,R\}$ es la
+        \emph{funci\'on de transici\'on};
+  \item $q_0\in Q$ es el \emph{estado inicial};
+  \item $\qaccept\in Q$ es el \emph{estado de aceptaci\'on};
+  \item $\qreject\in Q$ es el \emph{estado de rechazo}, con $\qaccept\neq\qreject$.
+\end{enumerate}
+\end{definicion}
+
+El s\'imbolo $\blank$ se llama \emph{blanco} y representa una celda vac\'ia
+de la cinta. Los s\'imbolos en $\Gamma\setminus\Sigma$ son auxiliares y
+suelen usarse para marcar celdas durante la computaci\'on (cruces, marcas,
+delimitadores).
+
+\begin{intuicion}
+Pensar a $\delta(q,a)=(p,b,D)$ como la regla \emph{``si estoy en $q$ y leo
+$a$, entonces escribo $b$, me muevo en direcci\'on $D$ y paso al estado
+$p$''}. La direcci\'on $D\in\{L,R\}$ es izquierda o derecha.
+\end{intuicion}
+
+\subsection{Configuraciones}
+
+Para describir el estado din\'amico de la m\'aquina (qu\'e tiene en la cinta,
+en qu\'e estado est\'a, donde apunta el cabezal) se usa el concepto de
+\emph{configuraci\'on}.
+
+\begin{definicion}[Configuraci\'on]
+\label{def:configuracion}
+Una \emph{configuraci\'on} de $M$ es una cadena de la forma
+\[
+  u\,q\,v,\qquad u,v\in\Gamma^*,\ q\in Q,
+\]
+con la siguiente interpretaci\'on:
+\begin{itemize}
+  \item el contenido de la cinta es $uv$ seguido de blancos;
+  \item el cabezal est\'a sobre el primer s\'imbolo de $v$;
+  \item el estado actual es $q$.
+\end{itemize}
+\end{definicion}
+
+\begin{ejemplo}
+La configuraci\'on $1011 q_7 01111$ significa: el contenido de la cinta es
+$1011\,01111$, el cabezal est\'a sobre el primer $0$ de $01111$, y el estado
+actual es $q_7$. Esquem\'aticamente:
+\[
+  \boxed{1}\,\boxed{0}\,\boxed{1}\,\boxed{1}\,\boxed{\underset{\uparrow q_7}{0}}\,\boxed{1}\,\boxed{1}\,\boxed{1}\,\boxed{1}\,\blank\,\blank\,\cdots
+\]
+\end{ejemplo}
+
+\subsection{La relaci\'on ``cede a''}
+
+Las configuraciones se relacionan por la regla de transici\'on:
+
+\begin{definicion}[Yields, $\to_M$]
+\label{def:yields}
+Sean $C$ y $C'$ dos configuraciones de $M$. Decimos que $C$ \emph{cede a}
+$C'$ en $M$, notado $C\to_M C'$, si $C'$ se obtiene de $C$ aplicando una
+transici\'on de $\delta$. Mas formalmente, sea $a,b,c\in\Gamma$,
+$u,v\in\Gamma^*$ y $q_i,q_j\in Q$.
+\begin{itemize}
+  \item Si $\delta(q_i,b)=(q_j,c,L)$, entonces
+        \(u a q_i b v \;\to_M\; u q_j a c v.\)
+  \item Si $\delta(q_i,b)=(q_j,c,R)$, entonces
+        \(u q_i b v \;\to_M\; u c q_j v.\)
+  \item En el extremo izquierdo, $q_i b v \to_M q_j c v$ si la transici\'on
+        es a la izquierda (el cabezal no se mueve, queda en su lugar).
+  \item En el extremo derecho, $u q_i$ es equivalente a $u q_i \blank$ y se
+        trata como en los casos anteriores.
+\end{itemize}
+\end{definicion}
+
+\subsection{Configuraci\'on inicial, final, c\'omputo}
+
+\begin{definicion}[Configuraci\'on inicial]
+La configuraci\'on inicial de $M$ con entrada $w=w_1w_2\cdots w_n$ es
+$q_0w$, es decir: la cinta contiene $w$ en sus primeras $n$ celdas, el
+cabezal apunta al primer s\'imbolo, el estado es $q_0$.
+\end{definicion}
+
+\begin{definicion}[Configuraci\'on de aceptaci\'on / rechazo]
+Una configuraci\'on $u\,q\,v$ es de \emph{aceptaci\'on} si $q=\qaccept$ y de
+\emph{rechazo} si $q=\qreject$. Ambas son \emph{configuraciones de
+detenci\'on} ($M$ no ejecuta m\'as transiciones).
+\end{definicion}
+
+\begin{definicion}[$M$ acepta $w$]
+\label{def:acepta}
+$M$ \emph{acepta} la cadena $w$ si existe una sucesi\'on finita de
+configuraciones $C_0,C_1,\dots,C_k$ tal que:
+\begin{enumerate}
+  \item $C_0 = q_0 w$ (configuraci\'on inicial);
+  \item $C_i \to_M C_{i+1}$ para todo $0\le i < k$;
+  \item $C_k$ es una configuraci\'on de aceptaci\'on.
+\end{enumerate}
+La sucesi\'on $C_0,\dots,C_k$ se llama \emph{c\'omputo} (o \emph{run})
+\emph{aceptante} de $M$ sobre $w$.
+\end{definicion}
+
+\subsection{Lenguaje reconocido por una MT}
+
+\begin{definicion}[Lenguaje de $M$]
+El \emph{lenguaje reconocido} por $M$ es
+\[
+  \lang(M) \;=\; \{\,w\in\Sstar : M \text{ acepta } w\,\}.
+\]
+\end{definicion}
+
+\bigskip\hrule\bigskip
+
+% =============================================================================
+\section{Reconocibilidad y decidibilidad}
+\label{sec:rec-dec}
+
+Las MT no siempre se detienen: pueden caer en un bucle. Distinguimos dos
+clases fundamentales de lenguajes seg\'un el comportamiento de la MT que los
+caracteriza.
+
+\subsection{Tres resultados posibles}
+
+Cuando $M$ se ejecuta sobre una entrada $w$, hay exactamente \emph{tres}
+desenlaces posibles:
+
+\begin{itemize}
+  \item $M$ \emph{acepta} $w$ (alcanza $\qaccept$).
+  \item $M$ \emph{rechaza} $w$ (alcanza $\qreject$).
+  \item $M$ \emph{cicla} (no alcanza ning\'un estado de detenci\'on, su
+        c\'omputo es infinito). Tambi\'en se dice que $M$ \emph{no termina}
+        sobre $w$.
+\end{itemize}
+
+\begin{definicion}[Turing-reconocible]
+\label{def:reconocible}
+Un lenguaje $L\subseteq\Sstar$ es \emph{Turing-reconocible} (o,
+equivalentemente, \emph{recursivamente enumerable}, o simplemente
+\emph{reconocible}) si existe una MT $M$ tal que $\lang(M)=L$.
+\end{definicion}
+
+\begin{definicion}[Decidible]
+\label{def:decidible}
+Una MT es un \emph{decidor} si \emph{halta} en toda entrada (nunca cicla).
+Un lenguaje $L\subseteq\Sstar$ es \emph{Turing-decidible} (o simplemente
+\emph{decidible}, o \emph{recursivo}) si existe un decidor $M$ tal que
+$\lang(M)=L$.
+\end{definicion}
+
+\begin{intuicion}
+Reconocer un lenguaje es ``poder responder s\'i con certeza'' cuando la
+respuesta es s\'i; pero, si la respuesta es no, podemos no obtener nunca esa
+respuesta (la m\'aquina cicla). Decidir un lenguaje es algo m\'as fuerte:
+``poder responder s\'i o no, siempre, en tiempo finito''.
+\end{intuicion}
+
+\subsection{Relaciones entre las clases}
+
+\begin{proposicion}[Inclusi\'on]
+Todo lenguaje decidible es reconocible: si $M$ es un decidor para $L$, en
+particular $\lang(M)=L$.
+\end{proposicion}
+
+La inclusi\'on inversa es \emph{falsa}: existen lenguajes reconocibles pero
+no decidibles. El ejemplo paradigm\'atico es $\ATM=\{\enc{M,w}\mid M
+\text{ es MT y } M \text{ acepta }w\}$, que estudiaremos en el Pr\'actico 02.
+
+\begin{ejemplo}[Reconocible no decidible: validez de primer orden]
+Sea $L=\{\varphi : \,\vdash\varphi\}$, el conjunto de las formulas
+v\'alidas (teoremas) de la l\'ogica de primer orden. Existe una MT que
+reconoce $L$:
+\begin{enumerate}
+  \item En la cinta empieza una f\'ormula $\varphi$ codificada.
+  \item La MT genera, una a una, todas las posibles demostraciones formales.
+  \item Cuando aparece una demostraci\'on de $\varphi$, acepta.
+\end{enumerate}
+Si $\varphi$ es demostrable, eventualmente aparecer\'a; si no lo es, la
+m\'aquina nunca termina. Se demuestra (cl\'asico, G\"odel/Turing) que $L$
+\emph{no} es decidible: no existe un algoritmo que termine siempre con la
+respuesta correcta sobre la validez.
+\end{ejemplo}
+
+\begin{observacion}
+La diferencia entre reconocer y decidir es \emph{exactamente} la diferencia
+entre ``s\'i o no, eventualmente'' y ``s\'i o no, en tiempo finito
+garantizado''. Esa diferencia es responsable de fen\'omenos como el
+problema de la detenci\'on (Halting Problem).
+\end{observacion}
+
+\subsection{Reconocibilidad por enumeradores}
+
+Los \emph{enumeradores} dan una caracterizaci\'on alternativa muy \'util de
+los lenguajes reconocibles. Un enumerador es una MT con dos cintas: una de
+trabajo y otra (\emph{impresora}) en la que va \emph{imprimiendo} cadenas.
+
+\begin{definicion}[Enumerador]
+\label{def:enumerador}
+Un \emph{enumerador} es una MT con dos cintas
+$E=(Q,\Sigma,\Gamma_0,\Gamma_1,q_0,q_{\text{init}},\qaccept,\qreject,q_{\text{print}})$,
+donde $\Gamma_0$ es el alfabeto de la cinta de trabajo, $\Gamma_1$ el de la
+cinta de impresi\'on, y $q_{\text{print}}$ un estado distinguido tal que,
+al alcanzarlo, $E$ ``imprime'' el contenido actual de la cinta de
+impresi\'on (lo emite como salida) y la limpia para empezar a imprimir la
+siguiente cadena.
+
+El \emph{lenguaje enumerado} por $E$ es
+\(L(E) = \{\,s : E \text{ imprime } s \text{ en alg\'un momento}\,\}.\)
+\end{definicion}
+
+\begin{teorema}[Enumeradores caracterizan reconocibilidad, Sipser 3.21]
+\label{teo:enumerador}
+Un lenguaje $L$ es Turing-reconocible si y solo si existe un enumerador $E$
+con $L(E)=L$.
+\end{teorema}
+
+\begin{proof}[Idea de la prueba]
+\textbf{($\Leftarrow$)} Si $E$ enumera $L$, construimos una MT $M$ que
+reconoce $L$ as\'i: con entrada $w$, simula $E$ paso a paso; cada vez que
+$E$ imprime una cadena $s$, $M$ compara $s$ con $w$; si son iguales, $M$
+acepta. Si $w\in L$, eventualmente $E$ imprime $w$ y $M$ lo detecta.
+
+\textbf{($\Rightarrow$)} Si $M$ reconoce $L$, se construye un enumerador
+$E$ as\'i: enumera todas las cadenas $s_1,s_2,\dots$ de $\Sstar$ y, en la
+iteraci\'on $i$, simula $M$ por $i$ pasos sobre cada $s_j$ con $j\le i$.
+Cuando $M$ acepta alguna $s_j$, $E$ la imprime. Esto evita ciclar en una
+$s_j$ que cicla en $M$: usa una estrategia de \emph{dovetailing}.
+\end{proof}
+
+\begin{intuicion}
+Un enumerador puede imprimir las cadenas en cualquier orden y con
+repeticiones. La caracterizaci\'on dice que ``poder reconocer'' (responder
+s\'i a las cadenas del lenguaje) es lo mismo que ``poder enumerarlas''.
+\end{intuicion}
+
+\bigskip\hrule\bigskip
+
+% =============================================================================
+\section{Niveles de descripci\'on de una MT}
+\label{sec:niveles}
+
+Sipser (Secci\'on 3.3) distingue \textbf{tres niveles} para describir
+m\'aquinas de Turing. La elecci\'on del nivel depende de qu\'e tan
+detallado deba ser el an\'alisis.
+
+\begin{enumerate}
+  \item \textbf{Descripci\'on formal:} se especifican expl\'icitamente los
+        siete componentes de la 7-tupla, en particular la funci\'on $\delta$
+        como tabla o diagrama de estados. Es el nivel m\'as detallado y
+        riguroso, pero impr\'actico para m\'aquinas grandes.
+  \item \textbf{Descripci\'on a nivel implementaci\'on:} se da en lenguaje
+        natural, indicando c\'omo la m\'aquina mueve el cabezal y modifica
+        la cinta paso a paso (escribe, marca, recorre, vuelve, etc.), sin
+        listar los estados ni la $\delta$. Es el nivel preferido para los
+        ejercicios.
+  \item \textbf{Descripci\'on de alto nivel:} se da el algoritmo a nivel
+        l\'ogico, ignorando c\'omo se gestionan la cinta y el cabezal. Es
+        el nivel del ``pseudoc\'odigo'' y se justifica por la
+        \emph{tesis de Church-Turing}.
+\end{enumerate}
+
+\begin{intuicion}
+Es como programar: el nivel formal es ensamblador, el de implementaci\'on es
+C, y el de alto nivel es Python o pseudoc\'odigo. Todos describen el mismo
+algoritmo, pero a distinto detalle.
+\end{intuicion}
+
+\bigskip\hrule\bigskip
+
+% =============================================================================
+\section{Ejemplos cl\'asicos}
+\label{sec:ejemplos}
+
+Repasamos algunas MT de referencia que aparecen en Sipser y en las l\'aminas
+de la c\'atedra. Estos ejemplos ilustran t\'ecnicas que se aplican
+directamente en los ejercicios.
+
+\subsection{$M_1$ y el lenguaje $\{w\#w\}$ (Sipser 3.9)}
+
+Sea $A=\{w\#w \mid w\in\{0,1\}^*\}$. La MT $M_1$ que decide $A$ funciona en
+``zigzag'': para cada s\'imbolo a la izquierda del \texttt{\#}, marca el
+correspondiente a su derecha. Si encuentra discrepancia, rechaza; si los
+consume todos sin discrepancias, acepta.
+
+T\'ecnica clave: \textbf{marcar celdas} con simbolos auxiliares
+($x,y\in\Gamma\setminus\Sigma$) para recordar qu\'e ya se proces\'o.
+
+\subsection{$M_2$ y el lenguaje $\{0^{2^n}\mid n\ge 0\}$ (Sipser 3.7)}
+
+$M_2$ decide $A=\{0^{2^n}\}$, las cadenas de ceros cuya longitud es
+potencia de $2$. La estrategia:
+\begin{enumerate}
+  \item recorrer la cinta tachando uno de cada dos $0$s (con $x$);
+  \item si tras la pasada queda un \'unico $0$, aceptar;
+  \item si la cantidad de $0$s sin tachar es impar y mayor que $1$, rechazar;
+  \item si es par, volver al inicio y repetir.
+\end{enumerate}
+Cada iteraci\'on divide a la mitad la cantidad de $0$s; si la longitud no
+es potencia de $2$, en alguna iteraci\'on aparecer\'a paridad impar.
+
+T\'ecnica clave: \textbf{contador de paridad implementado en estados}
+($q_3,q_4$ alternan).
+
+\subsection{$M_3$ y el lenguaje $\{a^ib^jc^k : i\cdot j = k\}$ (Sipser 3.11)}
+
+$M_3$ usa la estrategia: por cada $a$, ``shuttlea'' entre los $b$ y los $c$
+tachando uno de cada para emparejarlos en cantidad $j$, y as\'i descontar
+$j$ veces de los $c$ por cada $a$. Si al consumir todas las $a$ los $c$
+quedaron exactamente vac\'ios, acepta. Esta es la t\'ecnica que extenderemos
+en el Ejercicio 3 del pr\'actico.
+
+\bigskip\hrule\bigskip
+
+% =============================================================================
+\section{Variantes del modelo y robustez}
+\label{sec:variantes}
+
+Una caracter\'istica notable de las MT es su \textbf{robustez}: muchas
+modificaciones ``naturales'' del modelo no cambian la clase de lenguajes
+reconocibles. Esto justifica la tesis de Church-Turing y nos permite
+elegir, en cada situaci\'on, la variante m\'as conveniente.
+
+\subsection{Cinta doblemente infinita}
+
+\begin{definicion}[MT con cinta doblemente infinita]
+Una MT con cinta doblemente infinita es id\'entica al modelo est\'andar,
+salvo que su cinta es infinita en \emph{ambos} sentidos (las celdas est\'an
+indexadas por $\mathbb Z$ en lugar de $\mathbb N$). Inicialmente la entrada
+$w_0\cdots w_{n-1}$ ocupa las celdas $0,1,\dots,n-1$ y el resto contiene
+blancos.
+\end{definicion}
+
+\begin{teorema}[Equivalencia, Problema 3.11 de Sipser]
+\label{teo:doblemente-infinita}
+Las MT con cinta doblemente infinita reconocen exactamente los mismos
+lenguajes que las MT est\'andar.
+\end{teorema}
+
+\begin{proof}[Idea de la prueba]
+La inclusi\'on est\'andar $\subseteq$ doblemente-infinita es trivial (basta
+no usar la zona de la izquierda). La rec\'iproca usa la t\'ecnica de
+``doblar la cinta'': se codifican las celdas $i\in\mathbb Z$ en celdas
+$e(i)\in\mathbb N$ con
+\[
+  e(i) = \begin{cases} 2i & i\ge 0,\\ -2i-1 & i<0,\end{cases}
+\]
+de modo que las posiciones no negativas van a celdas pares y las negativas
+a impares. Una marca distinguida indica la posici\'on simulada del cabezal.
+\end{proof}
+
+Este teorema corresponde directamente al Ejercicio~4 del pr\'actico.
+
+\subsection{Stay put en lugar de Left}
+
+Sipser (Problema 3.13) considera una variante donde el cabezal puede
+moverse a la derecha o quedarse en su lugar (pero no ir a la izquierda).
+\textbf{Esta variante no es equivalente} a la MT est\'andar: es estrictamente
+m\'as d\'ebil. Es un buen contraste para entender que no toda variaci\'on
+del modelo preserva el poder.
+
+\subsection{MT con muchas cintas (multicinta)}
+
+\begin{definicion}[Multicinta]
+Una MT con $k$ cintas es una tupla
+\[
+  M = (Q, \Sigma, \{\Gamma_i\}_{0\le i<k}, \delta, q_0, \qaccept, \qreject),
+\]
+donde cada cinta $i$ tiene su propio alfabeto $\Gamma_i$ y su propio cabezal,
+y la funci\'on de transici\'on es
+\[
+  \delta : Q \times \Gamma_0 \times \cdots \times \Gamma_{k-1}
+        \to Q \times \Gamma_0 \times \cdots \times \Gamma_{k-1} \times \{L,R\}^k.
+\]
+La entrada se ubica en la cinta $1$; el resto comienzan en blanco.
+\end{definicion}
+
+\begin{teorema}[Multicinta $\equiv$ una cinta, Sipser 3.13]
+\label{teo:multi-equiv}
+Toda MT con $k$ cintas tiene una MT equivalente con una sola cinta.
+\end{teorema}
+
+\begin{proof}[Idea de la prueba]
+Sea $M$ con $k$ cintas. Construimos $S$ con una sola cinta que codifica las
+$k$ cintas en bloques separados por un nuevo s\'imbolo \texttt{\#}:
+\[
+  \texttt{\#}\,u_1\,\texttt{\#}\,u_2\,\texttt{\#}\,\cdots\,\texttt{\#}\,u_k\,\texttt{\#}.
+\]
+Para indicar las posiciones de los $k$ cabezales, $S$ marca un s\'imbolo de
+cada bloque con un punto (\emph{dotted}). Para simular un paso de $M$:
+\begin{enumerate}
+  \item $S$ recorre toda la cinta y memoriza en su control finito los $k$
+        s\'imbolos marcados.
+  \item Calcula $\delta_M$ con esos s\'imbolos.
+  \item Vuelve a recorrer la cinta y, en cada bloque, escribe el nuevo
+        s\'imbolo y mueve la marca.
+  \item Si una marca debe avanzar m\'as all\'a del fin de su bloque, $S$
+        ``expande'' el bloque desplazando todo a la derecha.
+\end{enumerate}
+\end{proof}
+
+\begin{corolario}
+$L$ es Turing-reconocible si y s\'olo si lo reconoce alguna MT multicinta.
+\end{corolario}
+
+\subsection{No determinismo}
+
+\begin{definicion}[MT no determinista, NTM]
+Una NTM se obtiene cambiando la signatura de $\delta$:
+\[
+  \delta : Q\times\Gamma \to \Pow(Q\times\Gamma\times\{L,R\}).
+\]
+En cada configuraci\'on, hay un conjunto finito de transiciones posibles.
+La m\'aquina \emph{acepta} $w$ si \emph{alguna} rama de su \'arbol de
+ejecuci\'on alcanza $\qaccept$.
+\end{definicion}
+
+\begin{teorema}[Determinismo $\equiv$ no determinismo, Sipser 3.16]
+Para toda NTM existe una MT determinista equivalente.
+\end{teorema}
+
+\begin{proof}[Idea de la prueba]
+Se simula la NTM con un \textbf{BFS por capas} sobre el \'arbol de
+configuraciones: la MT determinista visita las configuraciones de
+profundidad $1$, luego de profundidad $2$, etc. Si alguna rama acepta, el
+BFS la encontrar\'a en tiempo finito. Si ninguna acepta, el BFS contin\'ua
+indefinidamente (esto refleja que la NTM puede tener ejecuciones que no
+terminan).
+\end{proof}
+
+\begin{observacion}
+El no determinismo no agrega poder de reconocimiento, pero a veces
+\emph{simplifica} el dise\~no de una MT (especialmente en la teor\'ia de
+complejidad).
+\end{observacion}
+
+\subsection{Restricciones que s\'i cambian el poder}
+
+No todas las variaciones preservan poder. Por ejemplo, una MT que
+\textbf{no puede escribir sobre el input} (Problema 3.20 de Sipser, y
+Ejercicio~6 del pr\'actico) reconoce \textbf{solo lenguajes regulares}: el
+modelo se reduce a un aut\'omata finito de dos v\'ias (2DFA), que es
+equivalente a un DFA por el cl\'asico teorema de Rabin--Scott /
+Shepherdson.
+
+\bigskip\hrule\bigskip
+
+% =============================================================================
+\section{La tesis de Church-Turing}
+\label{sec:church-turing}
+
+\begin{teorema}[Tesis de Church-Turing]
+La noci\'on intuitiva de \emph{algoritmo} coincide con la noci\'on formal
+de \emph{computable por una MT}.
+\end{teorema}
+
+No es un teorema en sentido estricto (la noci\'on intuitiva no es
+formalizable); es una \emph{tesis cient\'ifica} sostenida por evidencia
+acumulativa: todas las formalizaciones razonables propuestas (MT,
+$\lambda$-c\'alculo de Church, funciones recursivas de G\"odel-Kleene,
+m\'aquinas de Post, RAM, etc.) resultan \textbf{equivalentes en poder}.
+
+\begin{intuicion}
+La tesis es la que justifica que, en niveles altos de descripci\'on, podamos
+``hablar de algoritmos'' sin referirnos expl\'icitamente a una MT: si algo
+se puede describir como un procedimiento finito y bien definido, entonces
+existe una MT que lo computa. Esto es lo que permite que el Ejercicio~3 del
+pr\'actico se resuelva con descripciones tipo Sipser sin escribir 100
+l\'ineas de $\delta$.
+\end{intuicion}
+
+\bigskip\hrule\bigskip
+
+% =============================================================================
+\section{Cardinalidad y existencia de lenguajes no computables}
+\label{sec:cardinalidad}
+
+Esta secci\'on resume el contenido de \texttt{Diag.pdf} y motiva la
+existencia de lenguajes no reconocibles --- y por ende, no decidibles --- por
+argumentos de cardinalidad.
+
+\subsection{Cardinalidad y conjuntos contables}
+
+\begin{definicion}[Igualdad de cardinalidad]
+Dos conjuntos $A$ y $B$ tienen la misma cardinalidad, $A\cong B$, si existe
+una funci\'on biyectiva $f:A\to B$.
+\end{definicion}
+
+\begin{definicion}[Conjunto contable]
+$A$ es \emph{contable} si $A\cong\mathbb N$. Equivalentemente, los elementos
+de $A$ pueden listarse en una sucesi\'on $a_1,a_2,a_3,\dots$
+\end{definicion}
+
+\begin{ejemplo}
+$\mathbb Z$ es contable, v\'ia
+$f(n)=\lceil n/2\rceil$ si $n$ impar, $f(n)=-n/2$ si $n$ par.
+\end{ejemplo}
+
+\begin{ejemplo}
+$\mathbb Q$ es contable: la enumeraci\'on diagonal de $(p,q)\in\mathbb N\times\mathbb N^+$ recorre todos los pares y, eliminando los no
+reducidos, lista todos los racionales positivos. Combinando con los
+negativos y el cero se obtiene una enumeraci\'on de $\mathbb Q$.
+\end{ejemplo}
+
+\subsection{$\mathbb R$ no es contable: el m\'etodo de la diagonal}
+
+\begin{teorema}[Cantor]
+$\mathbb R$ no es contable.
+\end{teorema}
+
+\begin{proof}
+Basta mostrar que $[0,1)$ no es contable. Supongamos por absurdo que
+$[0,1)\cong\mathbb N$ y enumeremos los elementos de $[0,1)$ por su expansi\'on
+decimal:
+\[
+  r_1 = 0.d_1^1 d_2^1 d_3^1 \cdots
+  \quad
+  r_2 = 0.d_1^2 d_2^2 d_3^2 \cdots
+  \quad
+  r_3 = 0.d_1^3 d_2^3 d_3^3 \cdots
+  \quad \cdots
+\]
+Construimos un n\'umero $r=0.\bar d^1 \bar d^2 \bar d^3 \cdots$ con
+\[
+  \bar d^i = \begin{cases} 1 & d_i^i \neq 1,\\ 0 & d_i^i = 1.\end{cases}
+\]
+Por construcci\'on $r$ difiere de $r_i$ en la $i$-\'esima cifra decimal,
+para todo $i$. Por lo tanto $r\notin\{r_1,r_2,\dots\}$, contradiciendo que
+la enumeraci\'on era completa.
+\end{proof}
+
+Este es el \textbf{m\'etodo de la diagonal de Cantor}, una herramienta clave
+para probar resultados de no computabilidad.
+
+\subsection{Existen lenguajes no computables}
+
+\begin{teorema}
+Existen lenguajes $L\subseteq\{0,1\}^*$ que no son reconocibles por
+ninguna MT.
+\end{teorema}
+
+\begin{proof}
+\begin{itemize}
+  \item El conjunto de descripciones de MT $\{\enc{M}: M\text{ es MT}\}$
+        es un subconjunto contable de $\{0,1\}^*$. Como $\{0,1\}^*$ es
+        contable, su cardinalidad es $\aleph_0$.
+  \item El conjunto de \emph{lenguajes} sobre $\{0,1\}^*$ es
+        $\Pow(\{0,1\}^*)$. Por el teorema de Cantor, $\Pow(\{0,1\}^*)$
+        tiene cardinalidad $2^{\aleph_0}>\aleph_0$.
+\end{itemize}
+Cada MT reconoce un lenguaje, as\'i que la cantidad de lenguajes
+reconocibles es a lo sumo $\aleph_0$. Como hay $2^{\aleph_0}$ lenguajes en
+total, debe haber lenguajes no reconocibles (de hecho, ``casi todos'' lo
+son).
+\end{proof}
+
+\begin{intuicion}
+El argumento es \emph{no constructivo}: dice que existen lenguajes no
+reconocibles pero no exhibe ninguno. La construcci\'on de un ejemplo
+expl\'icito (como $\overline{\ATM}$, Cap\'itulo 4 de Sipser) requiere
+diagonalizaci\'on como en la prueba de Cantor.
+\end{intuicion}
+
+\bigskip\hrule\bigskip
+
+% =============================================================================
+\section{El problema de la detenci\'on (preview)}
+\label{sec:halting}
+
+Aunque pertenece propiamente al Pr\'actico 02, es \'util introducir el
+problema de la detenci\'on para entender por qu\'e existe la distinci\'on
+entre reconocible y decidible.
+
+\begin{definicion}
+\(\ATM = \{\enc{M,w} \mid M \text{ es una MT que acepta } w\}.\)
+\end{definicion}
+
+\begin{teorema}[Indecibilidad de $\ATM$, Turing 1936]
+$\ATM$ no es decidible.
+\end{teorema}
+
+\begin{proof}[Idea (diagonalizaci\'on)]
+Supongamos que existe $H$ que decide $\ATM$. Construimos una nueva MT $D$
+que, con entrada $\enc{M}$:
+\begin{enumerate}
+  \item simula $H$ sobre $\enc{M,\enc{M}}$;
+  \item si $H$ acepta, $D$ rechaza; si $H$ rechaza, $D$ acepta.
+\end{enumerate}
+Ahora corremos $D$ con entrada $\enc{D}$:
+\begin{itemize}
+  \item Si $D$ acepta $\enc{D}$, entonces $H$ rechaz\'o $\enc{D,\enc{D}}$,
+        es decir $D$ no acepta $\enc{D}$. Contradicci\'on.
+  \item Si $D$ rechaza $\enc{D}$, entonces $H$ acept\'o $\enc{D,\enc{D}}$,
+        es decir $D$ acepta $\enc{D}$. Contradicci\'on.
+\end{itemize}
+Por lo tanto, $H$ no existe.
+\end{proof}
+
+\begin{observacion}
+$\ATM$ \emph{s\'i} es reconocible: la m\'aquina universal $U$ que simula
+$M$ con entrada $w$ y acepta si $M$ acepta es un reconocedor para $\ATM$.
+Por lo tanto $\ATM$ es un lenguaje \textbf{reconocible pero no decidible},
+ejemplo concreto de la diferencia entre las dos clases.
+\end{observacion}
+
+\bigskip\hrule\bigskip
+
+% =============================================================================
+\section{Subconjuntos infinitos decidibles}
+\label{sec:subconjunto}
+
+Este resultado conecta directamente con el Ejercicio~5 del pr\'actico.
+
+\begin{teorema}[Sipser, Problema 3.19]
+\label{teo:sub-decidible}
+Todo lenguaje infinito Turing-reconocible tiene un subconjunto infinito
+decidible.
+\end{teorema}
+
+\begin{proof}[Esquema]
+Sea $A$ infinito y reconocible. Por el Teorema~\ref{teo:enumerador} existe
+un enumerador $E$ para $A$. Fijamos el orden \emph{shortlex} sobre $\Sstar$
+(longitud, luego lexicogr\'afico). Construimos inductivamente:
+\begin{itemize}
+  \item $b_1$: primera cadena que imprime $E$.
+  \item $b_{i+1}$: primera cadena que imprime $E$ con $b_{i+1}>b_i$ en
+        shortlex.
+\end{itemize}
+Como $A$ es infinito, siempre existe alguna cadena de $A$ mayor que $b_i$,
+y como $E$ enumera $A$, eventualmente la imprime. La sucesi\'on
+$b_1<b_2<\cdots$ es estrictamente creciente, infinita, y est\'a contenida
+en $A$.
+
+Sea $B=\{b_1,b_2,\dots\}$. Para decidir $B$, dada $x$, generamos $b_1,b_2,\dots$ hasta encontrar el primer $b_k\ge x$:
+\begin{itemize}
+  \item si $b_k=x$, aceptamos;
+  \item si $b_k>x$, rechazamos.
+\end{itemize}
+Bajo shortlex, hay finitas cadenas $\le x$, as\'i que en finitos pasos
+encontramos $b_k\ge x$. Luego $B$ es decidible.
+\end{proof}
+
+\bigskip\hrule\bigskip
+
+% =============================================================================
+\section{T\'ecnicas para resolver el Pr\'actico 01}
+\label{sec:tecnicas}
+
+Resumimos las herramientas conceptuales y t\'ecnicas que aparecen una y
+otra vez en los ejercicios.
+
+\subsection*{T1. Convencion para escribir configuraciones}
+
+Para el Ejercicio~2 (configuraciones de $M_2$), basta aplicar paso a paso
+la regla $C\to_M C'$ usando la tabla de $\delta$. Una configuraci\'on
+$u\,q\,v$ codifica simult\'aneamente cinta, posici\'on del cabezal y estado.
+El blanco $\blank$ s\'olo aparece a la derecha del segmento ``activo'' de la
+cinta o como sentinela del extremo izquierdo.
+
+\subsection*{T2. Marcado y emparejamiento}
+
+Es la t\'ecnica central del Ejercicio~3 (deciders para
+$\{w:\#_0(w)=\#_1(w)\}$ y $\{w:\#_0(w)=2\#_1(w)\}$). Se usan s\'imbolos
+auxiliares (cl\'asicamente $x$ para ``$0$ usado'' e $y$ para ``$1$ usado'')
+para emparejar simbolos del input. Cada iteraci\'on toma un simbolo no
+marcado y busca su(s) contraparte(s); termina cuando ya no hay simbolos
+sin marcar.
+
+Plantilla:
+\begin{itemize}
+  \item Volver al inicio.
+  \item Buscar el primer simbolo no marcado.
+  \item Si no hay, aceptar (o pasar a una fase final de verificaci\'on).
+  \item Si hay, marcarlo y buscar la contraparte. Si no existe, rechazar.
+  \item Reiniciar.
+\end{itemize}
+
+\subsection*{T3. Simulaci\'on de variantes}
+
+Para el Ejercicio~4 (cinta doblemente infinita) y para los algoritmos de
+traducci\'on entre modelos:
+
+\begin{itemize}
+  \item \textbf{Doblemente infinita $\to$ est\'andar:} usar la codificaci\'on
+        $e:\mathbb Z\to\mathbb N$, $e(i)=2i$ si $i\ge 0$, $e(i)=-2i-1$ si
+        $i<0$.
+  \item \textbf{Est\'andar $\to$ doblemente infinita:} reservar un marcador
+        de extremo izquierdo $\vdash$ y nunca cruzarlo.
+  \item \textbf{Multicinta $\to$ una cinta:} codificar las $k$ cintas en
+        bloques separados por \texttt{\#}, con marcas para los $k$
+        cabezales.
+  \item \textbf{Una cinta $\to$ multicinta:} usar s\'olo la cinta 1 y dejar
+        las restantes en blanco.
+\end{itemize}
+
+\subsection*{T4. Enumeraci\'on en orden creciente}
+
+Para el Ejercicio~5: dado un enumerador $E$ de $A$, extraer la sucesi\'on
+estrictamente creciente $b_1<b_2<\cdots$ tomando, sucesivamente, la primera
+cadena impresa que sea mayor que la anterior. Decidir el subconjunto $B$
+generado por esa sucesi\'on usando la finitud de $\{y\le x\}$ bajo
+shortlex.
+
+\subsection*{T5. Reducci\'on a un modelo m\'as d\'ebil}
+
+Para el Ejercicio~6: si una MT no puede escribir sobre el input, su
+comportamiento sobre la zona del input se reduce a movimientos del cabezal
+sin alterar la cinta. Esto la convierte en un \textbf{2DFA}, y por
+Rabin--Scott / Shepherdson los lenguajes reconocidos por 2DFA son los
+regulares.
+
+\bigskip\hrule\bigskip
+
+% =============================================================================
+\section{Resumen final}
+\label{sec:final}
+
+Hemos cubierto los conceptos centrales para abordar el Pr\'actico 01:
+
+\begin{itemize}
+  \item La \textbf{definici\'on formal} de MT como 7-tupla
+        $(Q,\Sigma,\Gamma,\delta,q_0,\qaccept,\qreject)$ y la noci\'on de
+        \emph{configuraci\'on} y \emph{c\'omputo}.
+  \item La distinci\'on entre \textbf{lenguajes reconocibles} (existe MT
+        que los acepta) y \textbf{decidibles} (existe decidor, MT que halta
+        siempre). La inclusi\'on $\dec\subsetneq\rec$ es estricta.
+  \item Las \textbf{descripciones} de MT en tres niveles (formal,
+        implementaci\'on, alto nivel), justificadas por la tesis de
+        Church-Turing.
+  \item Las \textbf{variantes} principales del modelo: cinta doblemente
+        infinita, multicinta, no determinista, enumeradores. Todas
+        \emph{equivalentes} en poder; pero peque\~nas restricciones (como
+        ``no escribir sobre el input'') s\'i pueden reducir el poder a la
+        clase regular.
+  \item La \textbf{tesis de Church-Turing}, que identifica algoritmo con
+        c\'omputo por MT.
+  \item La \textbf{existencia de lenguajes no computables} (Cantor) y un
+        \textbf{ejemplo concreto} indecidible reconocible: $\ATM$.
+  \item El \textbf{teorema sobre subconjuntos infinitos decidibles} y las
+        \textbf{t\'ecnicas} para los ejercicios.
+\end{itemize}
+
+\paragraph{Hilo conductor.} La idea general detr\'as del Pr\'actico 01 es:
+\emph{construir intuici\'on operativa con las MT, observar que peque\~nas
+modificaciones del modelo no cambian su poder (robustez) salvo cuando
+removemos alguna capacidad clave (como escribir), y entender por qu\'e existe
+la distinci\'on fundamental entre reconocer y decidir, distinci\'on que
+ser\'a el motor del Pr\'actico 02 sobre indecibilidad y reducciones.}
+
+\bigskip
+\hrule
+\medskip
+\begin{center}
+\small
+\emph{Fin del resumen te\'orico.} Para profundizar, leer el Cap\'itulo 3
+completo de Sipser y revisar los ejercicios del Pr\'actico 01.
+\end{center}
+
+\end{document}

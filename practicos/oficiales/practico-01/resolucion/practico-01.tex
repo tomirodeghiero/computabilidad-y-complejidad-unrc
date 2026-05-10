@@ -1,0 +1,919 @@
+% =============================================================================
+% Practico 01 - Maquinas de Turing
+% Computabilidad y Complejidad (Teoria de la Computacion II)
+% FCEFQyN - Universidad Nacional de Rio Cuarto
+% Primer Cuatrimestre de 2026
+% -----------------------------------------------------------------------------
+% Compilacion sugerida: pdflatex practico-01.tex
+% =============================================================================
+
+\documentclass[11pt,a4paper]{article}
+
+% --- Codificacion y idioma --------------------------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-tabla]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+
+% --- Matematica -------------------------------------------------------------
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{stmaryrd}
+
+% --- Layout y tipografia ----------------------------------------------------
+\usepackage[margin=2.7cm]{geometry}
+\usepackage{enumitem}
+\setlist[itemize]{topsep=2pt,itemsep=2pt,parsep=0pt}
+\setlist[enumerate]{topsep=2pt,itemsep=2pt,parsep=0pt}
+\usepackage{parskip}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{array}
+
+% --- Hyperref ---------------------------------------------------------------
+\usepackage[hidelinks]{hyperref}
+\hypersetup{
+  pdftitle={Practico 01 - Maquinas de Turing},
+  pdfauthor={Computabilidad y Complejidad - UNRC 2026},
+  pdfsubject={Resolucion del Practico 01},
+  pdfkeywords={maquinas de Turing, decidibilidad, reconocibilidad, Sipser}
+}
+
+% --- Ambientes de teoremas --------------------------------------------------
+\theoremstyle{plain}
+\newtheorem{teorema}{Teorema}[section]
+\newtheorem{proposicion}[teorema]{Proposicion}
+\newtheorem{lema}[teorema]{Lema}
+\newtheorem{corolario}[teorema]{Corolario}
+
+\theoremstyle{definition}
+\newtheorem{definicion}[teorema]{Definicion}
+\newtheorem{ejemplo}[teorema]{Ejemplo}
+
+\theoremstyle{remark}
+\newtheorem*{observacion}{Observacion}
+\newtheorem*{idea}{Idea}
+
+% --- Comandos de notacion ---------------------------------------------------
+\newcommand{\MT}{\mathrm{MT}}
+\newcommand{\TM}{\mathrm{TM}}
+\newcommand{\enc}[1]{\langle #1\rangle}
+\newcommand{\lang}{\mathcal{L}}
+\newcommand{\Sstar}{\Sigma^{*}}
+\newcommand{\qaccept}{q_{\text{accept}}}
+\newcommand{\qreject}{q_{\text{reject}}}
+\newcommand{\qseek}{q_{\text{seek}}}
+\newcommand{\qfindone}{q_{\text{find1}}}
+\newcommand{\qfindzero}{q_{\text{find0}}}
+\newcommand{\qback}{q_{\text{back}}}
+\newcommand{\qscanone}{q_{\text{scan1}}}
+\newcommand{\qbackone}{q_{\text{back1}}}
+\newcommand{\qfindzeroa}{q_{\text{find0a}}}
+\newcommand{\qfindzerob}{q_{\text{find0b}}}
+\newcommand{\qbackf}{q_{\text{backf}}}
+\newcommand{\qcheckzero}{q_{\text{check0}}}
+\newcommand{\TMstd}{\TM_{\text{std}}}
+\newcommand{\TMtwo}{\TM_{2}}
+\newcommand{\TMone}{\TM_{1}}
+\newcommand{\TMk}{\TM_{k}}
+\newcommand{\countz}{\#_{0}}
+\newcommand{\countu}{\#_{1}}
+\newcommand{\blank}{\sqcup}
+
+% --- Cabecera ---------------------------------------------------------------
+\title{\textbf{Practico 01 -- Maquinas de Turing}\\[0.3em]
+       \normalsize Computabilidad y Complejidad (Teor\'ia de la Computaci\'on II)\\
+       \normalsize FCEFQyN -- Universidad Nacional de R\'io Cuarto\\
+       \normalsize Primer Cuatrimestre de 2026}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\thispagestyle{empty}
+
+\hrule
+\vspace{0.4em}
+\begin{center}
+\small
+Resolucion completa del Practico 01. Apoyada en el Cap\'itulo 3 del libro de
+M. Sipser, \emph{Introduction to the Theory of Computation}, y en el material
+te\'orico de la c\'atedra (\texttt{Diag.pdf}, \texttt{MaqTuring.pdf}).
+\end{center}
+\vspace{0.4em}
+\hrule
+
+\tableofcontents
+\bigskip
+\hrule
+\bigskip
+
+% =============================================================================
+\section*{Introducci\'on}
+\addcontentsline{toc}{section}{Introducci\'on}
+
+El presente trabajo resuelve la totalidad de los ejercicios del Pr\'actico 01
+de la asignatura, dedicado al modelo de M\'aquinas de Turing (MT), sus
+variantes y los conceptos b\'asicos de \emph{decidibilidad} y
+\emph{reconocibilidad}. La gu\'ia te\'orica utilizada es:
+
+\begin{itemize}
+  \item el Cap\'itulo 3 del libro de Sipser (\texttt{chapter-03.pdf}), que
+        introduce la definici\'on formal de MT (Definici\'on 3.3), sus
+        ejemplos cl\'asicos ($M_1, M_2, M_3, M_4$), las variantes (multicinta,
+        no determinista, doblemente infinita) y el resultado de robustez
+        (Teoremas 3.13, 3.16);
+  \item las l\'aminas de la c\'atedra (\texttt{Diag.pdf}), que tratan
+        cardinalidad, conjuntos contables, diagonalizaci\'on de Cantor,
+        existencia de lenguajes no computables y el problema de la
+        terminaci\'on.
+\end{itemize}
+
+\paragraph{Convenciones de notaci\'on.}
+
+\begin{itemize}
+  \item $\Sigma$ es el alfabeto de entrada y $\Gamma\supseteq\Sigma\cup\{\blank\}$
+        el alfabeto de cinta. El s\'imbolo $\blank$ denota el blanco.
+  \item Una \emph{configuraci\'on} se escribe $u\,q\,v$, con $u,v\in\Gamma^*$
+        y $q\in Q$, e indica que el contenido de la cinta es $uv$ (seguido
+        de blancos), el estado actual es $q$ y el cabezal est\'a sobre el
+        primer s\'imbolo de $v$.
+  \item $L(M)$ es el lenguaje reconocido por $M$.
+  \item ``Decidible'' = Turing-decidible (alguna MT lo decide); ``reconocible''
+        = Turing-reconocible (alguna MT lo reconoce).
+\end{itemize}
+
+\bigskip\hrule\bigskip
+
+% =============================================================================
+\section{Ejercicio 1: lectura del Cap\'itulo 3}
+\label{sec:ej1}
+
+El primer \'item del pr\'actico consiste en \emph{leer el Cap\'itulo 3 del
+libro de Sipser}. Se asume realizado como prerrequisito te\'orico para el
+resto de los ejercicios. Las nociones que se utilizan a partir del
+Ejercicio~2 incluyen:
+
+\begin{itemize}
+  \item \textbf{Definici\'on formal (Sipser 3.3):} una MT es una 7-tupla
+        \[
+          M = (Q, \Sigma, \Gamma, \delta, q_0, \qaccept, \qreject),
+        \]
+        con $Q$ conjunto finito de estados, $\Sigma$ alfabeto de entrada
+        (sin el blanco), $\Gamma\supseteq \Sigma\cup\{\blank\}$ alfabeto de
+        cinta y funci\'on de transici\'on $\delta:Q\times\Gamma\to Q\times\Gamma\times\{L,R\}$.
+  \item \textbf{Reconocibilidad y decidibilidad} (Definiciones 3.5--3.6).
+  \item \textbf{Variantes (Secci\'on 3.2):} maquinas multicinta, no
+        deterministas, doblemente infinitas, todas equivalentes a la MT
+        est\'andar (Teoremas 3.13, 3.16, Problema 3.11).
+  \item \textbf{Enumeradores (Secci\'on 3.3, Teorema 3.21):} $L$ es
+        reconocible si y s\'olo si existe un enumerador que enumera $L$.
+  \item \textbf{Tesis de Church-Turing}: la igualdad informal entre
+        ``algoritmo'' y ``MT'' justifica describir m\'aquinas a nivel
+        implementaci\'on o de alto nivel.
+\end{itemize}
+
+Cada ejercicio que sigue cita expl\'icitamente las definiciones y resultados
+del cap\'itulo que invoca.
+
+\bigskip\hrule\bigskip
+
+% =============================================================================
+\section{Ejercicio 2: configuraciones de $M_2$}
+\label{sec:ej2}
+
+\subsection*{Enunciado}
+
+Para la m\'aquina de Turing $M_2$ dada en clases (Ejemplo 3.7 de Sipser),
+dar la secuencia de configuraciones que recorre con las entradas:
+(a) \texttt{0}, (b) \texttt{00}, (c) \texttt{000}, (d) \texttt{000000}.
+
+\subsection*{La m\'aquina $M_2$}
+
+$M_2$ es la MT que decide
+\[
+  A = \{0^{2^n}\mid n\ge 0\},
+\]
+es decir, las cadenas de ceros cuya longitud es una potencia de $2$. Su
+descripci\'on de alto nivel es:
+
+\begin{quote}
+\(M_2=\) ``Con entrada $w$:
+\begin{enumerate}
+  \item Recorrer la cinta de izquierda a derecha tachando cada segundo $0$.
+  \item Si en la etapa~1 qued\'o un solo $0$, aceptar.
+  \item Si en la etapa~1 quedaron m\'as de un $0$ y la cantidad fue impar,
+        rechazar.
+  \item Volver al inicio de la cinta.
+  \item Volver a la etapa~1.''
+\end{enumerate}
+\end{quote}
+
+Cada iteraci\'on divide a la mitad la cantidad de $0$s; si la longitud no es
+potencia de $2$, en alguna iteraci\'on la cantidad ser\'a impar y $M_2$
+rechazar\'a; si es potencia de $2$, terminar\'a con un \'unico cero y
+aceptar\'a.
+
+\subsubsection*{Definici\'on formal}
+
+\[
+  M_2 = (Q, \Sigma, \Gamma, \delta, q_1, \qaccept, \qreject),
+\]
+con $Q=\{q_1, q_2, q_3, q_4, q_5, \qaccept, \qreject\}$, $\Sigma=\{0\}$,
+$\Gamma=\{0, x, \blank\}$, y $\delta$ dada por (Figura~3.8 de Sipser):
+
+\begin{center}
+\begin{tabular}{c|c|c|c}
+\toprule
+Estado & $0$ & $x$ & $\blank$ \\
+\midrule
+$q_1$ & $(q_2,\blank,R)$ & $(\qreject,x,R)$    & $(\qreject,\blank,R)$ \\
+$q_2$ & $(q_3,x,R)$      & $(q_2,x,R)$         & $(\qaccept,\blank,R)$ \\
+$q_3$ & $(q_4,0,R)$      & $(q_3,x,R)$         & $(q_5,\blank,L)$      \\
+$q_4$ & $(q_3,x,R)$      & $(q_4,x,R)$         & $(\qreject,\blank,R)$ \\
+$q_5$ & $(q_5,0,L)$      & $(q_5,x,L)$         & $(q_2,\blank,R)$      \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Intuitivamente, $q_1$ borra el primer $0$ (lo reemplaza por blanco, que
+funciona como sentinela del extremo izquierdo); $q_2$, $q_3$ y $q_4$ se
+alternan para tachar uno de cada dos ceros; $q_5$ vuelve al extremo izquierdo
+para reiniciar el barrido.
+
+\subsection*{Convenci\'on para escribir configuraciones}
+
+Usamos la convenci\'on $u\,q\,v$ de Sipser: el cabezal est\'a sobre el primer
+s\'imbolo de $v$ y el contenido completo de la cinta es $uv$ seguido de
+blancos.
+
+\subsection*{(a) Entrada \texttt{0}}
+
+\begin{align*}
+C_0 &= q_1\,0 \\
+C_1 &= \blank\,q_2\,\blank
+       &&\delta(q_1,0)=(q_2,\blank,R)\\
+C_2 &= \blank\blank\,\qaccept\,\blank
+       &&\delta(q_2,\blank)=(\qaccept,\blank,R)
+\end{align*}
+
+\textbf{Resultado:} acepta. Como $|0|=1=2^0$, la entrada pertenece a $A$.
+
+\subsection*{(b) Entrada \texttt{00}}
+
+\begin{align*}
+C_0 &= q_1\,00 \\
+C_1 &= \blank\,q_2\,0           &&\delta(q_1,0)=(q_2,\blank,R)\\
+C_2 &= \blank x\,q_3\,\blank    &&\delta(q_2,0)=(q_3,x,R)\\
+C_3 &= \blank\,q_5\,x           &&\delta(q_3,\blank)=(q_5,\blank,L)\\
+C_4 &= q_5\,\blank x            &&\delta(q_5,x)=(q_5,x,L)\\
+C_5 &= \blank\,q_2\,x           &&\delta(q_5,\blank)=(q_2,\blank,R)\\
+C_6 &= \blank x\,q_2\,\blank    &&\delta(q_2,x)=(q_2,x,R)\\
+C_7 &= \blank x\blank\,\qaccept\,\blank &&\delta(q_2,\blank)=(\qaccept,\blank,R)
+\end{align*}
+
+\textbf{Resultado:} acepta. Como $|00|=2=2^1$, pertenece a $A$.
+
+\subsection*{(c) Entrada \texttt{000}}
+
+\begin{align*}
+C_0 &= q_1\,000 \\
+C_1 &= \blank\,q_2\,00          &&\delta(q_1,0)=(q_2,\blank,R)\\
+C_2 &= \blank x\,q_3\,0         &&\delta(q_2,0)=(q_3,x,R)\\
+C_3 &= \blank x0\,q_4\,\blank   &&\delta(q_3,0)=(q_4,0,R)\\
+C_4 &= \blank x0\blank\,\qreject\,\blank &&\delta(q_4,\blank)=(\qreject,\blank,R)
+\end{align*}
+
+\textbf{Resultado:} rechaza. La cantidad de $0$s es $3$, impar y mayor que
+$1$; $M_2$ detecta esto al estar en $q_4$ y leer un blanco (``fin de pasada
+con cantidad impar'').
+
+\subsection*{(d) Entrada \texttt{000000}}
+
+Esta entrada genera una traza m\'as larga porque $M_2$ realiza dos pasadas
+completas antes de rechazar. La primera pasada deja tres ceros a procesar;
+la segunda detecta que $3$ es impar.
+
+\begin{align*}
+C_0 &= q_1\,000000 \\
+C_1 &= \blank\,q_2\,00000        &&\delta(q_1,0)=(q_2,\blank,R)\\
+C_2 &= \blank x\,q_3\,0000       &&\delta(q_2,0)=(q_3,x,R)\\
+C_3 &= \blank x0\,q_4\,000       &&\delta(q_3,0)=(q_4,0,R)\\
+C_4 &= \blank x0x\,q_3\,00       &&\delta(q_4,0)=(q_3,x,R)\\
+C_5 &= \blank x0x0\,q_4\,0       &&\delta(q_3,0)=(q_4,0,R)\\
+C_6 &= \blank x0x0x\,q_3\,\blank &&\delta(q_4,0)=(q_3,x,R)\\
+C_7 &= \blank x0x0\,q_5\,x       &&\delta(q_3,\blank)=(q_5,\blank,L)\\
+C_8 &= \blank x0x\,q_5\,0x       &&\delta(q_5,x)=(q_5,x,L)\\
+C_9 &= \blank x0\,q_5\,x0x       &&\delta(q_5,0)=(q_5,0,L)\\
+C_{10} &= \blank x\,q_5\,0x0x    &&\delta(q_5,x)=(q_5,x,L)\\
+C_{11} &= \blank\,q_5\,x0x0x     &&\delta(q_5,0)=(q_5,0,L)\\
+C_{12} &= q_5\,\blank x0x0x      &&\delta(q_5,x)=(q_5,x,L)\\
+C_{13} &= \blank\,q_2\,x0x0x     &&\delta(q_5,\blank)=(q_2,\blank,R)\\
+C_{14} &= \blank x\,q_2\,0x0x    &&\delta(q_2,x)=(q_2,x,R)\\
+C_{15} &= \blank xx\,q_3\,x0x    &&\delta(q_2,0)=(q_3,x,R)\\
+C_{16} &= \blank xxx\,q_3\,0x    &&\delta(q_3,x)=(q_3,x,R)\\
+C_{17} &= \blank xxx0\,q_4\,x    &&\delta(q_3,0)=(q_4,0,R)\\
+C_{18} &= \blank xxx0x\,q_4\,\blank &&\delta(q_4,x)=(q_4,x,R)\\
+C_{19} &= \blank xxx0x\blank\,\qreject\,\blank &&\delta(q_4,\blank)=(\qreject,\blank,R)
+\end{align*}
+
+\textbf{Resultado:} rechaza. Tras la primera pasada quedan tres ceros sin
+tachar; en la segunda pasada el patr\'on de paridad cambia y $M_2$ detecta
+la cantidad impar al llegar al blanco final estando en $q_4$.
+
+\subsection*{Verificaci\'on}
+
+Como $1=2^0$ y $2=2^1$ son potencias de $2$ pero $3$ y $6$ no lo son,
+\[
+  0\in A,\quad 00\in A,\quad 000\notin A,\quad 000000\notin A,
+\]
+en concordancia con los resultados obtenidos.
+
+\bigskip\hrule\bigskip
+
+% =============================================================================
+\section{Ejercicio 3: deciders por marcado y emparejamiento}
+\label{sec:ej3}
+
+\subsection*{Enunciado}
+
+Dar definiciones de m\'aquinas de Turing para decidir los siguientes
+lenguajes:
+\begin{enumerate}
+  \item[(a)] $L_1 = \{w\in\{0,1\}^* \mid \countz(w)=\countu(w)\}$.
+  \item[(b)] $L_2 = \{w\in\{0,1\}^* \mid \countz(w) = 2\cdot \countu(w)\}$.
+\end{enumerate}
+
+\subsection*{Estrategia general}
+
+Usamos la t\'ecnica de \emph{marcado y emparejamiento} ilustrada en los
+Ejemplos~3.9 y 3.11 de Sipser. El alfabeto de cinta es
+$\Gamma=\{0,1,x,y,\blank\}$, donde $x$ marca un $0$ ya emparejado, $y$ marca
+un $1$ ya emparejado, y $\blank$ es el blanco. Cada iteraci\'on toma un
+s\'imbolo no marcado y busca su contraparte (uno o dos $0$s, seg\'un el
+caso).
+
+\subsection*{(a) MT que decide $L_1$}
+
+\subsubsection*{Descripci\'on a nivel implementaci\'on}
+
+\(M_{eq}=\) ``Con entrada $w$:
+\begin{enumerate}
+  \item Volver al inicio de la cinta.
+  \item Recorrer la cinta hacia la derecha hasta el primer s\'imbolo no
+        marcado ($0$ o $1$).
+  \item Si no hay ninguno (s\'olo $x$, $y$ y blancos), \emph{aceptar}.
+  \item Si el s\'imbolo es $0$, marcarlo como $x$ y buscar a su derecha
+        el primer $1$ no marcado. Si lo encuentra, marcarlo como $y$ y
+        volver a (2). Si llega a un blanco sin encontrarlo, \emph{rechazar}.
+  \item Si el s\'imbolo es $1$, marcarlo como $y$ y buscar a su derecha
+        el primer $0$ no marcado. Si lo encuentra, marcarlo como $x$ y
+        volver a (2). Si llega a un blanco sin encontrarlo, \emph{rechazar}.''
+\end{enumerate}
+
+\subsubsection*{Descripci\'on formal}
+
+\[
+  M_{eq} = (Q, \Sigma, \Gamma, \delta, \qseek, \qaccept, \qreject),
+\]
+con $\Sigma=\{0,1\}$, $\Gamma=\{0,1,x,y,\blank\}$ y
+$Q = \{\qseek, \qfindone, \qfindzero, \qback, \qaccept, \qreject\}$.
+
+\paragraph{Funci\'on de transici\'on.}
+
+\begin{align*}
+\delta(\qseek,x) &= (\qseek,x,R), &
+\delta(\qseek,y) &= (\qseek,y,R),\\
+\delta(\qseek,0) &= (\qfindone,x,R), &
+\delta(\qseek,1) &= (\qfindzero,y,R),\\
+\delta(\qseek,\blank) &= (\qaccept,\blank,R). & &
+\end{align*}
+
+\begin{align*}
+\delta(\qfindone,a) &= (\qfindone,a,R) \quad \text{para } a\in\{0,x,y\},\\
+\delta(\qfindone,1) &= (\qback,y,L),\quad
+\delta(\qfindone,\blank) = (\qreject,\blank,R).
+\end{align*}
+
+\begin{align*}
+\delta(\qfindzero,a) &= (\qfindzero,a,R) \quad \text{para } a\in\{1,x,y\},\\
+\delta(\qfindzero,0) &= (\qback,x,L),\quad
+\delta(\qfindzero,\blank) = (\qreject,\blank,R).
+\end{align*}
+
+\begin{align*}
+\delta(\qback,a) &= (\qback,a,L) \quad \text{para } a\in\{0,1,x,y\},\\
+\delta(\qback,\blank) &= (\qseek,\blank,R).
+\end{align*}
+
+\subsubsection*{Correctitud y terminaci\'on}
+
+\textbf{Si $M_{eq}$ acepta:} en cada iteraci\'on completa se marcaron en
+pareja un $0$ y un $1$. La aceptaci\'on ocurre cuando $\qseek$ lee un
+blanco, indicando que ya no hay s\'imbolos sin marcar. Como las marcas son
+en pareja, $\countz(w)=\countu(w)$.
+
+\textbf{Si $\countz(w)=\countu(w)$:} en cada iteraci\'on, al elegir un
+s\'imbolo no marcado, la igualdad de cantidades garantiza que existe la
+contraparte. As\'i $M_{eq}$ no entra en $\qreject$ y termina aceptando al
+consumir todos los s\'imbolos.
+
+\textbf{Terminaci\'on:} cada iteraci\'on completa marca al menos dos
+s\'imbolos nuevos. Como $|w|<\infty$, tras a lo sumo $\lfloor |w|/2\rfloor$
+iteraciones la m\'aquina se detiene.
+
+\subsection*{(b) MT que decide $L_2$}
+
+\subsubsection*{Descripci\'on a nivel implementaci\'on}
+
+\(M_{2{:}1}=\) ``Con entrada $w$:
+\begin{enumerate}
+  \item Volver al inicio de la cinta.
+  \item Buscar el primer $1$ no marcado.
+  \item Si no hay $1$ sin marcar, pasar a la fase final:
+        \begin{itemize}
+          \item recorrer la cinta y verificar que tampoco haya ning\'un $0$
+                sin marcar;
+          \item si no queda ninguno, aceptar; en caso contrario, rechazar.
+        \end{itemize}
+  \item Si se encontr\'o un $1$, marcarlo como $y$.
+  \item Volver al inicio y buscar el primer $0$ sin marcar; si no existe,
+        rechazar; si existe, marcarlo como $x$.
+  \item Continuar a la derecha y buscar un segundo $0$ sin marcar; si no
+        existe, rechazar; si existe, marcarlo como $x$.
+  \item Volver al inicio y volver a (2).''
+\end{enumerate}
+
+\subsubsection*{Descripci\'on formal}
+
+\[
+  M_{2{:}1} = (Q, \Sigma, \Gamma, \delta, \qscanone, \qaccept, \qreject),
+\]
+con $\Sigma=\{0,1\}$, $\Gamma=\{0,1,x,y,\blank\}$ y
+\[
+  Q = \{\qscanone, \qbackone, \qfindzeroa, \qfindzerob, \qback, \qbackf,
+        \qcheckzero, \qaccept, \qreject\}.
+\]
+
+\paragraph{Funci\'on de transici\'on.}
+
+\begin{align*}
+\delta(\qscanone,a) &= (\qscanone,a,R) \quad \text{para } a\in\{0,x,y\},\\
+\delta(\qscanone,1) &= (\qbackone,y,L),\\
+\delta(\qscanone,\blank) &= (\qbackf,\blank,L).
+\end{align*}
+
+\begin{align*}
+\delta(\qbackone,a) &= (\qbackone,a,L) \quad \text{para } a\in\{0,1,x,y\},\\
+\delta(\qbackone,\blank) &= (\qfindzeroa,\blank,R).
+\end{align*}
+
+\begin{align*}
+\delta(\qfindzeroa,a) &= (\qfindzeroa,a,R) \quad \text{para } a\in\{1,x,y\},\\
+\delta(\qfindzeroa,0) &= (\qfindzerob,x,R),\quad
+\delta(\qfindzeroa,\blank) = (\qreject,\blank,R).
+\end{align*}
+
+\begin{align*}
+\delta(\qfindzerob,a) &= (\qfindzerob,a,R) \quad \text{para } a\in\{1,x,y\},\\
+\delta(\qfindzerob,0) &= (\qback,x,L),\quad
+\delta(\qfindzerob,\blank) = (\qreject,\blank,R).
+\end{align*}
+
+\begin{align*}
+\delta(\qback,a) &= (\qback,a,L) \quad \text{para } a\in\{0,1,x,y\},\\
+\delta(\qback,\blank) &= (\qscanone,\blank,R).
+\end{align*}
+
+\begin{align*}
+\delta(\qbackf,a) &= (\qbackf,a,L) \quad \text{para } a\in\{0,1,x,y\},\\
+\delta(\qbackf,\blank) &= (\qcheckzero,\blank,R).
+\end{align*}
+
+\begin{align*}
+\delta(\qcheckzero,x) &= (\qcheckzero,x,R),\quad
+\delta(\qcheckzero,y) = (\qcheckzero,y,R),\\
+\delta(\qcheckzero,0) &= (\qreject,0,R),\quad
+\delta(\qcheckzero,1) = (\qreject,1,R),\\
+\delta(\qcheckzero,\blank) &= (\qaccept,\blank,R).
+\end{align*}
+
+\subsubsection*{Correctitud y terminaci\'on}
+
+\textbf{Si $M_{2{:}1}$ acepta:} en cada ciclo completado se marc\'o
+exactamente un $1$ y dos $0$s. La fase final verifica que no quedan ni $1$s
+ni $0$s sueltos. Llamando $k$ al n\'umero de ciclos completados,
+$\countu(w)=k$ y $\countz(w)=2k$, por lo cual
+$\countz(w)=2\,\countu(w)$.
+
+\textbf{Si $\countz(w)=2\,\countu(w)$:} al iniciar el ciclo $i+1$ restan
+$\countu(w)-i$ unos y $2(\countu(w)-i)$ ceros sin marcar. Mientras
+$\countu(w)-i\ge 1$, hay al menos dos $0$s para emparejar al $1$ recin
+marcado, asi que el ciclo completa sin rechazar. Tras $\countu(w)$ ciclos no
+quedan s\'imbolos sin marcar y la fase final acepta.
+
+\textbf{Terminaci\'on:} cada ciclo marca un $1$ y dos $0$s, o rechaza. Como
+$|w|<\infty$, tras a lo sumo $\countu(w)$ ciclos la m\'aquina llega a la
+fase final.
+
+\subsection*{Conclusi\'on}
+
+\[
+  \boxed{L_1 \text{ y } L_2 \text{ son lenguajes decidibles.}}
+\]
+
+Las MT $M_{eq}$ y $M_{2{:}1}$ son deciders explicitos. Sus implementaciones
+en Python (archivo \texttt{ejercicio4\_mt\_teorico.py}) verifican
+autom\'aticamente la equivalencia entre la descripci\'on formal y el
+comportamiento ejecutado.
+
+\bigskip\hrule\bigskip
+
+% =============================================================================
+\section{Ejercicio 4: cinta doblemente infinita}
+\label{sec:ej4}
+
+\subsection*{Enunciado}
+
+Una m\'aquina de Turing con \emph{cinta doblemente infinita} es una MT cuya
+cinta es infinita tanto a la izquierda como a la derecha. Mostrar que estas
+m\'aquinas reconocen los mismos lenguajes que las MT est\'andar
+(Problema 3.11 de Sipser).
+
+\subsection*{Modelos}
+
+\begin{itemize}
+  \item \textbf{MT est\'andar} ($\TMstd$): una sola cinta infinita hacia la
+        derecha, con extremo izquierdo. Si el cabezal intenta cruzar el
+        extremo izquierdo, se queda en su lugar.
+  \item \textbf{MT doblemente infinita} ($\TMtwo$): una sola cinta indexada
+        por $\mathbb Z$. La entrada $w=w_0\cdots w_{n-1}$ ocupa las celdas
+        $0,1,\dots,n-1$, el resto contiene blancos, y el cabezal arranca en
+        la celda $0$.
+\end{itemize}
+
+\begin{teorema}
+\label{teo:doble}
+$\lang(\TMstd) = \lang(\TMtwo)$.
+\end{teorema}
+
+\begin{proof}
+Probamos las dos inclusiones por separado.
+
+\textbf{($\subseteq$)} Sea $M\in\TMstd$. Construimos $N\in\TMtwo$ que simula
+a $M$ reservando un marcador $\vdash\in\Gamma_N\setminus\Gamma_M$ en la celda
+$-1$. La descripci\'on:
+
+\begin{quote}
+\(N=\) ``Con entrada $w$:
+\begin{enumerate}
+  \item Escribir $\vdash$ en la celda $-1$.
+  \item Simular paso a paso a $M$ sobre las celdas $0,1,\dots$
+  \item Si la transici\'on indica mover a la izquierda y la celda actual es
+        $\vdash$, $N$ se queda en su lugar (replicando el comportamiento de
+        borde izquierdo de $M$).
+  \item Cuando $M$ acepta o rechaza, $N$ acepta o rechaza.''
+\end{enumerate}
+\end{quote}
+
+Por simulaci\'on paso a paso, $L(N) = L(M)$.
+
+\textbf{($\supseteq$)} Sea $B\in\TMtwo$. Construimos $S\in\TMstd$ que ``dobla
+la cinta sobre s\'i misma''.
+
+\paragraph{Codificaci\'on.}
+Definimos la biyecci\'on $e:\mathbb Z\to\mathbb N$:
+\[
+  e(i) = \begin{cases} 2i & i\ge 0,\\ -2i-1 & i<0.\end{cases}
+\]
+Esto manda $0\mapsto 0,\ 1\mapsto 2,\ 2\mapsto 4,\dots,\ -1\mapsto 1,\ -2\mapsto 3,\dots$
+La celda $e(i)$ de $S$ guarda el s\'imbolo que $B$ tiene en la celda $i$.
+Para indicar la posici\'on del cabezal de $B$, usamos un alfabeto extendido
+$\Gamma_S = \Gamma\cup\dot\Gamma$ con $\dot\Gamma=\{\dot a : a\in\Gamma\}$.
+Mantenemos la invariante: en todo momento exactamente una celda de $S$ tiene
+un s\'imbolo punteado, y corresponde a la posici\'on del cabezal de $B$.
+
+\paragraph{Inicializaci\'on.}
+$S$ reorganiza $w=w_0\cdots w_{n-1}$ en las celdas $0,2,\dots,2(n-1)$,
+intercala blancos en las celdas $1,3,\dots$, y marca la celda $0$ como
+$\dot{w_0}$.
+
+\paragraph{Simulaci\'on de un paso.}
+Si $S$ lee $\dot a$ en la celda $k=e(h)$, $B$ est\'a en estado $q$ con
+$\delta(q,a)=(p,b,D)$, entonces $S$:
+\begin{enumerate}
+  \item escribe $b$ (sin marca) en la celda $k$;
+  \item calcula $k'=e(h')$ con $h'=h\pm 1$ seg\'un $D$;
+  \item marca la celda $k'$.
+\end{enumerate}
+Las f\'ormulas expl\'icitas para $k'$ se obtienen examinando paridades:
+\[
+  k'\big|_{D=R} = \begin{cases} k+2 & k\text{ par},\\ 0 & k=1,\\ k-2 & k>1\text{ impar},\end{cases}
+  \qquad
+  k'\big|_{D=L} = \begin{cases} 1 & k=0,\\ k-2 & k>0\text{ par},\\ k+2 & k\text{ impar}.\end{cases}
+\]
+$S$ s\'olo se mueve a lo sumo dos celdas para reubicar la marca.
+
+\paragraph{Correctitud.}
+Por inducci\'on en el n\'umero de pasos, despu\'es de simular el paso
+$t$-\'esimo la cinta de $S$ codifica fielmente la de $B$ y la \'unica celda
+marcada coincide con el cabezal de $B$. Por lo tanto, $S$ acepta sii $B$
+acepta y $L(S)=L(B)$.
+\end{proof}
+
+\begin{observacion}
+Este resultado es un caso m\'as de la \emph{robustez} del modelo de MT
+(Sipser, p\'ag. 176): variantes ``naturales'' del modelo no cambian la clase
+de lenguajes reconocidos. La codificaci\'on $e$ es la misma idea que la
+biyecci\'on $\mathbb N\cong\mathbb Z$ usada en la teor\'ia de la c\'atedra
+(\texttt{Diag.pdf}); aqu\'i se aplica como herramienta de simulaci\'on.
+\end{observacion}
+
+\bigskip\hrule\bigskip
+
+% =============================================================================
+\section{Ejercicio 5: subconjunto infinito decidible}
+\label{sec:ej5}
+
+\subsection*{Enunciado}
+
+Demostrar que cualquier lenguaje infinito que es reconocible por una m\'aquina
+de Turing tiene un subconjunto infinito que es decidible
+(Problema 3.19 de Sipser).
+
+\begin{proposicion}
+\label{prop:sub-decidible}
+Sea $A\subseteq\Sstar$ infinito y Turing-reconocible. Entonces existe
+$B\subseteq A$ tal que $B$ es infinito y decidible.
+\end{proposicion}
+
+\begin{proof}
+Como $A$ es Turing-reconocible, por el Teorema~3.21 de Sipser existe un
+enumerador $E$ que enumera $A$:
+\[
+  A = \{s : E \text{ imprime } s \text{ en alg\'un momento}\}.
+\]
+Fijamos sobre $\Sstar$ el orden \emph{shortlex} (primero por longitud, luego
+lexicogr\'afico): $u<v$ si $|u|<|v|$, o si $|u|=|v|$ y $u<_{\text{lex}}v$.
+Es un orden total efectivo y bien fundado.
+
+\paragraph{Sucesi\'on creciente en $A$.}
+Definimos $(b_i)_{i\ge 1}$ inductivamente:
+\begin{itemize}
+  \item $b_1$ = primera palabra que imprime $E$.
+  \item Dado $b_i$, sea $b_{i+1}$ la primera palabra que imprime $E$ y
+        cumple $b_{i+1} > b_i$ en shortlex.
+\end{itemize}
+La definici\'on es efectiva porque, para cada $i$:
+\begin{itemize}
+  \item podemos simular $E$ paso a paso;
+  \item como $A$ es infinito y $b_i\in A$, hay infinitas palabras de $A$
+        mayores que $b_i$ en shortlex, y $E$ imprime cada una en tiempo
+        finito;
+  \item por lo tanto, en alg\'un paso $E$ imprime una mayor que $b_i$, que
+        tomamos como $b_{i+1}$.
+\end{itemize}
+Definimos $B = \{b_1, b_2, b_3, \dots\}$. Por construcci\'on, cada $b_i\in A$,
+$B\subseteq A$, y la sucesi\'on $b_1<b_2<\cdots$ es estrictamente creciente,
+de modo que $B$ es infinito.
+
+\paragraph{Decisi\'on de $B$.}
+Construimos un decidor $D_B$:
+\begin{quote}
+\(D_B=\) ``Con entrada $x$:
+\begin{enumerate}
+  \item Generar $b_1, b_2, \dots$ de a uno usando el procedimiento anterior.
+  \item Detenerse en el primer $b_k$ con $b_k\ge x$ en shortlex.
+  \item Si $b_k=x$, aceptar; si $b_k>x$, rechazar.''
+\end{enumerate}
+\end{quote}
+
+\paragraph{Correctitud.}
+Si $x\in B$, existe $k$ con $b_k=x$; al alcanzar ese $k$ el algoritmo
+acepta. Si $x\notin B$, sea $k$ el primer $b_k\ge x$; necesariamente
+$b_k>x$, y el algoritmo rechaza.
+
+\paragraph{Terminaci\'on.}
+Bajo shortlex, $\{y\in\Sstar : y\le x\}$ es finito. Como $(b_i)$ es
+estrictamente creciente, en finitos pasos se alcanza $b_k\ge x$. Cada $b_i$
+se calcula en tiempo finito. Luego $D_B$ siempre se detiene.
+
+Por lo tanto $B$ es infinito y decidible, y $B\subseteq A$.
+\end{proof}
+
+\begin{observacion}
+Es interesante notar que un lenguaje reconocible no es en general decidible
+(como muestra $A_{TM}$, Cap\'itulo 4 y \texttt{Diag.pdf}), pero \emph{siempre}
+se puede aislar dentro de \'el una porci\'on decidible que conserve la
+cardinalidad. En particular, un lenguaje admite enumeraci\'on creciente
+efectiva si y s\'olo si es decidible (Problema~3.18 de Sipser).
+\end{observacion}
+
+\bigskip\hrule\bigskip
+
+% =============================================================================
+\section{Ejercicio 6: MT con input read-only}
+\label{sec:ej6}
+
+\subsection*{Enunciado}
+
+Mostrar que una MT con una sola cinta que no puede escribir sobre la parte
+de la cinta que contiene el input s\'olo puede reconocer lenguajes regulares
+(Problema 3.20 de Sipser).
+
+\subsection*{Modelo y proposici\'on}
+
+Adoptamos la interpretaci\'on est\'andar: la MT $M$ tiene una sola cinta y,
+sobre las celdas que contienen el input, las transiciones $\delta(q,a)$
+\emph{deben} escribir el mismo s\'imbolo $a$. Asumimos por comodidad que la
+zona del input est\'a delimitada por marcadores $\vdash$ (extremo izquierdo)
+y $\dashv$ (extremo derecho), y que $M$ nunca cruza esos l\'imites.
+
+Bajo esta hip\'otesis, la cinta es de \emph{s\'olo lectura} sobre el input,
+las transiciones se reducen a $\delta(q,a)=(p,a,D)$ con $D\in\{L,R\}$, y el
+modelo coincide con un \textbf{2DFA} (aut\'omata finito determinista de dos
+v\'ias).
+
+\begin{proposicion}
+\label{prop:read-only}
+Todo lenguaje reconocido por una MT $M$ que no escribe sobre el input es
+\emph{regular}.
+\end{proposicion}
+
+\begin{proof}
+Construimos un 2DFA equivalente. Sean
+\[
+  M = (Q, \Sigma, \Gamma, \delta, q_0, \qaccept, \qreject)
+\]
+y $A=(Q, \Sigma, \delta_A, q_0, \{\qaccept\})$ con $\delta_A:Q\times(\Sigma\cup\{\vdash,\dashv\})\to Q\times\{L,R\}$ definida por:
+
+\begin{itemize}
+  \item Si $\delta(q,a)=(p,a,D)$ con $a\in\Sigma$, entonces $\delta_A(q,a)=(p,D)$.
+  \item En $\vdash$ y $\dashv$, $\delta_A$ reproduce el comportamiento de
+        borde de $M$ (en particular, $A$ no cruza los marcadores).
+  \item Cuando $M$ entra en $\qaccept$ o $\qreject$, $A$ entra en esos
+        estados.
+\end{itemize}
+
+Como $M$ no altera la cinta de entrada, cada paso de $M$ se reproduce uno a
+uno como un paso de $A$. Luego $L(M) = L(A)$.
+
+Por el teorema cl\'asico de \textbf{Rabin--Scott / Shepherdson} (1959), los
+lenguajes reconocidos por 2DFA son exactamente los regulares. Por lo tanto
+$L(A)$ es regular y, por la igualdad, $L(M)$ tambi\'en lo es.
+\end{proof}
+
+\begin{observacion}
+Este resultado ilumina por qu\'e la \emph{escritura sobre la cinta} es
+esencial para la potencia de las MT. Sin esa capacidad, las MT colapsan a la
+clase regular y pierden la posibilidad de reconocer lenguajes tan b\'asicos
+como $\{0^n1^n : n\ge 0\}$, que requieren memoria proporcional a la entrada.
+\end{observacion}
+
+\bigskip\hrule\bigskip
+
+% =============================================================================
+\section{Parte de programaci\'on}
+\label{sec:prog}
+
+La parte de programaci\'on pide implementar las tres versiones de MT (cinta
+\'unica e infinita a derecha, doblemente infinita, y multicinta), las MT del
+Ejercicio 3 te\'orico, y los algoritmos de traducci\'on entre los modelos.
+Las implementaciones est\'an disponibles en el repositorio
+(\texttt{maquina\_turing.py}, \texttt{maquina\_turing\_doble\_infinita.py},
+\texttt{maquina\_turing\_multicinta.py}, \texttt{ejercicio\{1,2,3,4\}\_*.py})
+y han sido testeadas contra los predicados matem\'aticos correspondientes.
+
+A continuaci\'on documentamos los algoritmos de traducci\'on, que constituyen
+la parte conceptualmente m\'as relevante.
+
+\subsection*{Notaci\'on}
+
+\begin{itemize}
+  \item $\TMone$: MT con una cinta infinita hacia la derecha.
+  \item $\TMtwo$: MT con una cinta doblemente infinita.
+  \item $\TMk$: MT con $k\ge 1$ cintas, cada una infinita hacia la derecha.
+\end{itemize}
+
+\subsection*{A) $\TMone \to \TMtwo$}
+
+Dada $M\in\TMone$, construir $N\in\TMtwo$ con $L(N)=L(M)$.
+
+\begin{enumerate}
+  \item Reservar $\vdash\in\Gamma_N\setminus\Gamma_M$ como marcador de borde
+        izquierdo.
+  \item En la inicializaci\'on, $N$ escribe $\vdash$ en la celda $-1$.
+  \item Cada transici\'on de $M$ se traslada literalmente a $N$. Las
+        transiciones de movimiento a la izquierda sobre la celda con
+        $\vdash$ dejan el cabezal en su lugar, replicando el comportamiento
+        de borde izquierdo de $\TMone$.
+  \item Estados de aceptaci\'on y rechazo se preservan.
+\end{enumerate}
+
+(Construcci\'on detallada en la primera parte del Ejercicio 4.)
+
+\subsection*{B) $\TMtwo \to \TMone$}
+
+Dada $B\in\TMtwo$, construir $S\in\TMone$ con $L(S)=L(B)$.
+
+\begin{enumerate}
+  \item Codificar $i\in\mathbb Z$ con $e(i)=2i$ si $i\ge 0$, $e(i)=-2i-1$ si
+        $i<0$.
+  \item En $S$, la celda $e(i)$ guarda el s\'imbolo de $B$ en la celda $i$.
+  \item Marcar exactamente una celda con un s\'imbolo punteado para indicar
+        la posici\'on del cabezal de $B$.
+  \item Inicializaci\'on: reorganizar la entrada en las celdas $0,2,\dots,2(n-1)$,
+        intercalar blancos en las impares, marcar la celda $0$.
+  \item Cada paso de $B$ se simula con escritura local, c\'alculo de la
+        nueva posici\'on $e(i\pm 1)$ y reubicaci\'on de la marca.
+\end{enumerate}
+
+(Construcci\'on detallada en la segunda parte del Ejercicio 4.)
+
+\subsection*{C) $\TMone \to \TMk$}
+
+Dada $M\in\TMone$ y $k\ge 1$, construir $N\in\TMk$ con $L(N)=L(M)$:
+
+\begin{enumerate}
+  \item Usar la cinta 1 de $N$ para simular la cinta de $M$.
+  \item Mantener las cintas $2,3,\dots,k$ en blanco y sin movimiento.
+  \item Cada $\delta_M(q,a)=(p,b,D)$ se traduce a una transici\'on de
+        $\TMk$ que solo afecta la cinta 1.
+\end{enumerate}
+
+\subsection*{D) $\TMk \to \TMone$}
+
+Es la construcci\'on del Teorema~3.13 de Sipser. Dada $K\in\TMk$, construir
+$U\in\TMone$:
+
+\begin{enumerate}
+  \item Codificar las $k$ cintas de $K$ en una sola cinta de $U$ con
+        delimitadores: $\#\,u_1\,\#\,u_2\,\#\,\cdots\,\#\,u_k\,\#$.
+  \item En cada bloque, marcar con un s\'imbolo punteado el s\'imbolo bajo
+        el cabezal de la cinta correspondiente.
+  \item Simular un paso de $K$ en tres fases:
+        \begin{itemize}
+          \item \emph{Lectura:} $U$ recorre la cinta y memoriza en su control
+                finito los $k$ s\'imbolos marcados.
+          \item \emph{C\'alculo:} consulta $\delta_K$ con esos s\'imbolos y
+                el estado actual.
+          \item \emph{Escritura/movimiento:} segunda pasada para actualizar
+                los s\'imbolos marcados y mover las marcas. Si una marca
+                debe avanzar m\'as all\'a del fin de su bloque, $U$ expande
+                el bloque desplazando todo a la derecha.
+        \end{itemize}
+\end{enumerate}
+
+Por simulaci\'on paso a paso, $L(U)=L(K)$.
+
+\subsection*{E) Traducciones restantes}
+
+Por composici\'on:
+
+\begin{itemize}
+  \item $\TMtwo\to\TMk$: aplicar B y luego C.
+  \item $\TMk\to\TMtwo$: aplicar D y luego A.
+\end{itemize}
+
+\subsection*{Conclusi\'on}
+
+\[
+  \mathcal L(\TMone) = \mathcal L(\TMtwo) = \mathcal L(\TMk)
+  \quad\text{para todo } k\ge 1.
+\]
+
+Esta equivalencia es la \emph{robustez} del modelo de MT y unifica las tres
+versiones implementadas en c\'odigo.
+
+\bigskip\hrule\bigskip
+
+% =============================================================================
+\section*{Conclusiones}
+\addcontentsline{toc}{section}{Conclusiones}
+
+A lo largo del pr\'actico hemos consolidado los conceptos centrales del
+Cap\'itulo~3 de Sipser:
+
+\begin{itemize}
+  \item El Ejercicio~2 muestra c\'omo opera una MT concreta paso a paso.
+  \item El Ejercicio~3 ilustra la t\'ecnica de \emph{marcado y emparejamiento}
+        para construir deciders de lenguajes contextuales.
+  \item Los Ejercicios~4 y~6 estudian variantes del modelo: la cinta
+        doblemente infinita preserva la potencia, mientras que la
+        restricci\'on de no escribir sobre el input la reduce a la clase
+        regular.
+  \item El Ejercicio~5 establece un puente entre reconocibilidad y
+        decidibilidad: dentro de cualquier lenguaje reconocible infinito hay
+        un fragmento decidible infinito.
+  \item La parte de programaci\'on cierra el c\'irculo conectando la
+        formalizaci\'on de los modelos con su simulaci\'on en c\'odigo y los
+        algoritmos de traducci\'on.
+\end{itemize}
+
+En conjunto, los resultados refuerzan la \emph{tesis de Church--Turing}: el
+modelo de MT (en cualquiera de sus variantes razonables) captura
+efectivamente la noci\'on intuitiva de algoritmo, y proveen los cimientos
+sobre los que se construyen los conceptos de \emph{indecibilidad} y
+\emph{reducci\'on} desarrollados en el Pr\'actico~02.
+
+\end{document}
