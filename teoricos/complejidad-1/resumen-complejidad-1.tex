@@ -1,0 +1,542 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-tabla,es-noshorthands]{babel}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{tcolorbox}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{parskip}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!60!black,
+    urlcolor=blue!60!black,
+    citecolor=blue!60!black
+}
+
+\newtheoremstyle{definicion}
+    {1em}{1em}{}{}{\bfseries}{.}{.5em}{}
+\theoremstyle{definicion}
+\newtheorem{definicion}{Definición}[section]
+\newtheorem{teorema}[definicion]{Teorema}
+\newtheorem{proposicion}[definicion]{Proposición}
+\newtheorem{ejemplo}[definicion]{Ejemplo}
+\newtheorem{observacion}[definicion]{Observación}
+
+\newtcolorbox{intuicion}{
+    colback=blue!5!white,
+    colframe=blue!60!black,
+    title=Intuición,
+    fonttitle=\bfseries,
+    boxrule=0.5pt,
+    arc=2pt
+}
+
+\newtcolorbox{idea}{
+    colback=green!5!white,
+    colframe=green!40!black,
+    title=Idea clave,
+    fonttitle=\bfseries,
+    boxrule=0.5pt,
+    arc=2pt
+}
+
+\newcommand{\MT}{\textsc{mt}}
+\newcommand{\MTs}{\textsc{mt}s}
+\newcommand{\enc}[1]{\langle #1 \rangle}
+\newcommand{\Lang}{\mathcal{L}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\R}{\mathbb{R}}
+
+\title{\textbf{Resumen Teórico: Complejidad Temporal}\\[0.3em]
+\large Computabilidad y Complejidad --- UNRC}
+\author{Basado en el material de Pablo Castro (UNRC)}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+\vspace{1em}
+\hrule
+\vspace{1em}
+
+\section{Introducción}
+
+Hasta ahora vimos qué problemas se pueden \emph{computar} y cuáles no. El estudio de la \textbf{computabilidad} responde a la pregunta:
+\begin{quote}
+\emph{Dado un problema $P$, ¿es computable?}
+\end{quote}
+
+La \textbf{complejidad computacional} cambia el enfoque: ya trabajamos solo con problemas \emph{computables} y nos preguntamos:
+\begin{quote}
+\emph{¿Hay algoritmos \textbf{eficientes} para resolver $P$?}
+\end{quote}
+
+Este resumen recorre las herramientas básicas para responder esta pregunta:
+\begin{enumerate}
+    \item Cómo medir el tiempo de ejecución de un algoritmo.
+    \item Las notaciones asintóticas $O, o, \Omega, \Theta$.
+    \item Las clases de complejidad $\mathrm{Time}(t(n))$ y, en particular, la clase $P$.
+    \item Cómo se relacionan los distintos modelos de computación bajo la lupa temporal: \MTs\ con una cinta, multicinta y no determinista.
+    \item La \emph{Tesis de Church-Turing extendida}: todos los modelos razonables son equivalentes en tiempo \emph{módulo polinomios}.
+    \item Ejemplos clásicos de problemas en $P$: caminos en grafos, números coprimos y pertenencia a gramáticas libres de contexto.
+\end{enumerate}
+
+\begin{intuicion}
+Una pregunta importante antes de hablar de eficiencia: \emph{¿qué modelo de computación usamos como referencia?} La respuesta es: las máquinas de Turing deterministas. Veremos que los modelos razonables se simulan entre sí con un costo \emph{a lo sumo polinomial}, así que la noción de ``algoritmo eficiente'' es robusta.
+\end{intuicion}
+
+\section{Tiempo de ejecución como función}
+
+Dada una máquina de Turing $M$ que termina en todas sus entradas, su \textbf{tiempo de ejecución} es una función
+\[
+T_M : \N \to \R^{\geq 0},
+\]
+donde $T_M(n)$ representa la cantidad máxima de pasos que realiza $M$ para una entrada de tamaño $n$ (análisis del \textbf{peor caso}).
+
+\textbf{Convenciones habituales:}
+\begin{itemize}
+    \item $T_M$ es \textbf{monótona} (no decrece con $n$).
+    \item Trabajamos con \MTs\ que terminan siempre.
+    \item Se analiza típicamente el \textbf{peor caso}, no el caso promedio.
+    \item Nos interesa el \emph{comportamiento asintótico}: cómo crece $T_M$ cuando $n$ se hace grande.
+\end{itemize}
+
+\begin{intuicion}
+No interesa el valor exacto de $T_M(7)$, sino cómo escala $T_M(n)$ cuando $n \to \infty$. Las constantes multiplicativas y los términos de menor orden no son lo importante: lo que importa es el \emph{orden de crecimiento}.
+\end{intuicion}
+
+\section{Notaciones asintóticas}
+
+Para hablar del orden de crecimiento de las funciones se usan varias notaciones, todas ellas basadas en comparaciones asintóticas.
+
+\subsection{Notación $O$ (big-oh): cota superior}
+
+\begin{definicion}[Big-oh]
+$f(n) \in O(g(n))$ si y solo si existen constantes $c > 0$ y $n_0 > 0$ tales que
+\[
+\forall n \geq n_0 : \quad f(n) \leq c \cdot g(n).
+\]
+\end{definicion}
+
+\textbf{Intuición:} para entradas suficientemente grandes, $g$ crece \emph{al menos tan rápido} como $f$, salvo una constante multiplicativa.
+
+\begin{ejemplo}
+$3n^2 + 5n + 100 \in O(n^2)$. Tomando $c = 4$ y $n_0$ adecuado, $3n^2 + 5n + 100 \leq 4n^2$ a partir de cierto punto.
+\end{ejemplo}
+
+\subsection{Notación $o$ (little-oh): cota superior estricta}
+
+\begin{definicion}[Little-oh]
+$f(n) \in o(g(n))$ si y solo si para \emph{toda} constante $c > 0$ existe $n_0 > 0$ tal que
+\[
+\forall n \geq n_0 : \quad f(n) < c \cdot g(n).
+\]
+\end{definicion}
+
+Una caracterización equivalente, muy útil, es mediante un límite:
+\[
+\lim_{n \to \infty} \frac{f(n)}{g(n)} = 0 \iff f(n) \in o(g(n)).
+\]
+
+\begin{intuicion}
+$o$ es una versión \emph{estricta} de $O$: la función $g$ crece \emph{estrictamente} más rápido que $f$. En particular, $f(n) \notin o(f(n))$ (uno no crece estrictamente más rápido que sí mismo), aunque sí $f(n) \in O(f(n))$.
+\end{intuicion}
+
+\begin{ejemplo}
+$n \in o(n^2)$, $\log n \in o(n)$, $n \in o(n \log n)$.
+\end{ejemplo}
+
+\subsection{Notación $\Omega$: cota inferior}
+
+\begin{definicion}[Omega]
+$f(n) \in \Omega(g(n))$ si y solo si existen constantes $c > 0$ y $n_0 > 0$ tales que
+\[
+\forall n \geq n_0 : \quad f(n) \geq c \cdot g(n).
+\]
+\end{definicion}
+
+\textbf{Intuición:} para entradas grandes, $f$ crece \emph{al menos tan rápido} como $g$ (es la cota \emph{inferior}, opuesta a $O$).
+
+\subsection{Notación $\Theta$: igualdad de orden}
+
+\begin{definicion}[Theta]
+$f(n) \in \Theta(g(n))$ si y solo si $f(n) \in O(g(n))$ \emph{y} $f(n) \in \Omega(g(n))$.
+\end{definicion}
+
+\textbf{Intuición:} $f$ y $g$ crecen ``al mismo ritmo'' --- una está sándwich entre dos múltiplos constantes de la otra.
+
+\begin{ejemplo}
+$3n^2 + 5n + 100 \in \Theta(n^2)$.
+\end{ejemplo}
+
+\begin{idea}
+Resumen de las cuatro notaciones:
+\begin{itemize}
+    \item $O(g)$: ``$f$ no crece más rápido que $g$''.
+    \item $o(g)$: ``$f$ crece \emph{estrictamente} más lento que $g$''.
+    \item $\Omega(g)$: ``$f$ no crece más lento que $g$''.
+    \item $\Theta(g)$: ``$f$ crece exactamente igual que $g$''.
+\end{itemize}
+\end{idea}
+
+\section{Análisis de tiempo de ejecución: un ejemplo}
+
+Estudiemos cuánto tarda una \MT\ en decidir el lenguaje clásico
+\[
+A = \{ 0^k 1^k \mid k \geq 0 \}.
+\]
+
+\subsection{Primera solución: $O(n^2)$}
+
+\textbf{Algoritmo (alto nivel).} Dado el input $w$:
+\begin{enumerate}
+    \item Recorrer la cinta; si se encuentra ``10'', rechazar.
+    \item Volver al principio. Tachar el primer 0, buscar el primer 1 y tacharlo.
+    \item Repetir el paso 2 hasta que:
+    \begin{itemize}
+        \item No queden 0s ni 1s: \emph{aceptar}.
+        \item Queden solo 0s o solo 1s: \emph{rechazar}.
+    \end{itemize}
+\end{enumerate}
+
+\textbf{Análisis paso a paso} para una entrada de longitud $n$:
+\begin{itemize}
+    \item El paso 1 (verificar formato $0^*1^*$): $O(n)$ pasos.
+    \item El paso 2 (tachar un par 0/1): cada iteración requiere recorrer la cinta, es decir $O(n)$ pasos.
+    \item El paso 2 se repite hasta $n/2$ veces, una por cada par a tachar.
+\end{itemize}
+
+Tiempo total:
+\[
+O(n) + O\!\left(\frac{n}{2} \cdot n\right) = O(n) + O(n^2) = O(n^2).
+\]
+
+\textbf{Conclusión:} esta \MT\ decide $A$ en tiempo $O(n^2)$.
+
+\subsection{Una solución mejor: $O(n \log n)$}
+
+\textbf{Idea:} en cada pasada, eliminar la \emph{mitad} de los 0s y la mitad de los 1s. Si en alguna pasada la cantidad de 0s (o 1s) es impar y mayor a 1, rechazar.
+
+\textbf{Algoritmo.}
+\begin{enumerate}
+    \item Recorrer la cinta; si aparece ``10'', rechazar.
+    \item Repetir mientras queden 0s o 1s:
+    \begin{itemize}
+        \item Contar la paridad de 0s y 1s. Si alguno es impar (y mayor que 1), rechazar.
+        \item Tachar uno de cada dos 0s alternadamente, y lo mismo con los 1s.
+    \end{itemize}
+    \item Si al terminar no quedan 0s ni 1s, aceptar; si no, rechazar.
+\end{enumerate}
+
+\textbf{Análisis.}
+\begin{itemize}
+    \item El paso 1: $O(n)$.
+    \item El bucle del paso 2 se ejecuta $O(\log n)$ veces, porque en cada iteración \emph{se divide la cantidad por 2}.
+    \item Cada iteración del bucle realiza $O(n)$ pasos (contar paridad y tachar alternadamente).
+\end{itemize}
+
+Tiempo total:
+\[
+O(n) + O(\log n) \cdot O(n) = O(n \log n).
+\]
+
+\begin{intuicion}
+La mejora ($O(n^2) \to O(n \log n)$) se obtiene aprovechando que cada pasada \emph{divide a la mitad} el trabajo restante, igual que en \emph{binary search}. La idea es: ``cada vez hago la mitad'' produce un factor $\log n$ donde antes había un $n$.
+\end{intuicion}
+
+\begin{ejemplo}[Trazado para $n = 50$, $w = 0^{25} 1^{25}$]
+\begin{itemize}
+    \item Pasada 1: paridad OK; tacho 12 ceros y 12 unos. Quedan 13 ceros y 13 unos. Total tachado: 24+24.
+    \item Pasada 2: paridad OK; tacho 6 ceros y 6 unos.
+    \item Pasada 3: tacho 3 y 3.
+    \item Pasada 4: tacho 2 y 2.
+    \item Pasada 5: tacho 1 y 1. Quedan 0s. Aceptar.
+\end{itemize}
+Cantidad de pasadas: $\Theta(\log n)$.
+\end{ejemplo}
+
+\section{Clases de complejidad}
+
+Habiendo definido cómo medir el tiempo, podemos \emph{clasificar} los problemas según el orden de crecimiento del algoritmo más rápido que los resuelve.
+
+\begin{definicion}[Clase $\mathrm{Time}$]
+\[
+\mathrm{Time}(t(n)) = \{ L \mid L \text{ se puede decidir con una \MT\ en } O(t(n)) \text{ pasos}\}.
+\]
+\end{definicion}
+
+\begin{ejemplo}
+$\mathrm{Time}(O(n^2))$ contiene a todos los problemas que se pueden resolver con un algoritmo que en el peor caso hace $c \cdot n^2$ pasos para alguna constante $c$. Sorting es un ejemplo clásico.
+\end{ejemplo}
+
+\textbf{Preguntas centrales que estudia la complejidad:}
+\begin{itemize}
+    \item Dado un problema, ¿pertenece a $\mathrm{Time}(O(t(n)))$ para algún $t$ específico?
+    \item ¿Hay problemas en $\mathrm{Time}(O(t(n)))$ pero no en $\mathrm{Time}(O(t'(n)))$ para $t' < t$?
+\end{itemize}
+
+\section{La clase $P$: problemas tratables}
+
+Los algoritmos que corren en tiempo \emph{polinomial} reciben un nombre especial: se dicen \textbf{tratables}. La razón es eminentemente práctica.
+
+\subsection{Comparación de órdenes de crecimiento}
+
+La siguiente tabla, asumiendo $10^6$ operaciones por segundo, muestra cuán dramática es la diferencia entre los órdenes polinomial y exponencial:
+
+\begin{center}
+\begin{tabular}{lccccc}
+\toprule
+ & $n=10$ & $n=20$ & $n=30$ & $n=40$ & $n=50$ \\
+\midrule
+$n$    & $0.00001$ s & $0.00002$ s & $0.00003$ s & $0.00004$ s & $0.00005$ s \\
+$n^2$  & $0.0002$ s  & $0.0004$ s  & $0.0009$ s  & $0.0016$ s  & $0.0025$ s \\
+$n^3$  & $0.1$ s     & $3.2$ s     & $24.3$ s    & $1.7$ min   & $15.2$ min \\
+$2^n$  & $0.001$ s   & $1.0$ s     & $17.9$ min  & $12.7$ días & $35.6$ años \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{intuicion}
+Los algoritmos polinomiales escalan bien: pasar de $n = 10$ a $n = 50$ multiplica el tiempo por algo manejable. Los algoritmos exponenciales colapsan: un problema que se resuelve en un segundo para $n = 20$ tarda \emph{décadas} para $n = 50$. Por eso identificamos ``tratable'' con ``polinomial'' a nivel teórico.
+\end{intuicion}
+
+\subsection{Definición de la clase $P$}
+
+\begin{definicion}[Clase $P$]
+\[
+P = \bigcup_{k > 0} \mathrm{Time}(O(n^k)).
+\]
+Es decir, $P$ es la clase de los problemas para los cuales \emph{existe algún $k$} y un algoritmo polinomial de grado $k$ que los decide.
+\end{definicion}
+
+\textbf{Propiedades:}
+\begin{itemize}
+    \item $P$ es \textbf{invariante} respecto a los modelos de computación deterministas razonables (Tesis de Church-Turing Extendida).
+    \item Se considera la clase de los problemas \emph{eficientes}: un avance en el hardware (multiplicar la velocidad por un factor constante) tiene impacto real sobre problemas polinomiales, pero apenas mueve la aguja para problemas exponenciales.
+\end{itemize}
+
+\section{Modelos de computación y simulación polinomial}
+
+Una pregunta importante: ¿depende la clase $P$ del modelo de computación elegido?
+
+Hay varios modelos relevantes:
+\begin{itemize}
+    \item \MTs\ deterministas con una sola cinta.
+    \item \MTs\ deterministas con varias cintas.
+    \item \MTs\ deterministas con cinta doblemente infinita.
+    \item \MTs\ no deterministas.
+\end{itemize}
+
+\textbf{Resultado clave:} los \emph{tres primeros} (todos los modelos deterministas razonables) se simulan entre sí en \emph{tiempo polinomial}. Por lo tanto, definen la \emph{misma} clase $P$.
+
+\subsection{Simulación: multicinta $\Rightarrow$ una sola cinta}
+
+\begin{teorema}\label{teo:multi}
+Si una \MT\ multicinta $M$ decide un problema en $O(t(n))$ pasos, entonces existe una \MT\ con una sola cinta $S$ que lo decide en $O(t(n)^2)$ pasos.
+\end{teorema}
+
+\textbf{Idea de la simulación.}
+\begin{itemize}
+    \item En la cinta única de $S$ se concatenan las $k$ cintas de $M$, separadas por un símbolo especial \texttt{\#}.
+    \item Para cada cinta, se usa una marca sobre un símbolo (por ejemplo, $\overline{a}$) para indicar la posición del cabezal.
+    \item Para simular \emph{un paso} de $M$: $S$ recorre todas sus celdas para localizar las $k$ cabezas marcadas, aplica la transición y vuelve a recorrer para actualizar los símbolos y mover los cabezales virtuales.
+\end{itemize}
+
+\textbf{Análisis del costo.}
+\begin{itemize}
+    \item Por cada paso de $M$, los contenidos virtuales tienen a lo sumo longitud total $O(t(n))$ (porque cada cinta no puede crecer más rápido que el tiempo gastado).
+    \item Simular un paso de $M$ cuesta $O(t(n))$ pasos a $S$.
+    \item Como $M$ hace $O(t(n))$ pasos en total, $S$ hace $O(t(n)) \cdot O(t(n)) = O(t(n)^2)$ pasos.
+\end{itemize}
+
+\begin{idea}
+El factor cuadrático es \emph{polinomial}: si $t(n)$ era un polinomio, $t(n)^2$ también lo es. Por lo tanto, la clase $P$ no cambia al pasar de \MTs\ multicinta a una sola cinta.
+\end{idea}
+
+\subsection{Tesis de Church-Turing Extendida}
+
+\begin{tcolorbox}[colback=yellow!10!white, colframe=orange!70!black, title=\textbf{Tesis de Church-Turing Extendida}, fonttitle=\bfseries]
+Si un problema es decidible en tiempo $O(t(n))$ por \emph{algún} modelo razonable de computación \textbf{determinista}, entonces es decidible en $O(t(n)^k)$ por \emph{cualquier} otro modelo razonable determinista, para algún $k$.
+\end{tcolorbox}
+
+\textbf{Consecuencia:} la clase $P$ es \emph{robusta} en sentido fuerte. No depende de si elegimos máquinas de Turing, máquinas RAM, lambda cálculo, o un lenguaje de programación moderno: el conjunto de problemas resolubles en tiempo polinomial es el mismo.
+
+\begin{observacion}
+La tesis tiene la palabra \textbf{determinista} subrayada. El caso \emph{no determinista} es distinto: la simulación de una \MT\ no determinista por una determinista cuesta \emph{exponencial}, no polinomial. Esta brecha entre determinismo y no determinismo es la raíz del famoso problema $P$ vs.\ $NP$ (que se aborda en los teóricos posteriores).
+\end{observacion}
+
+\section{Tiempo en máquinas de Turing no deterministas}
+
+\subsection{Definición}
+
+Las máquinas de Turing no deterministas pueden tener varios sucesores en cada configuración. Por eso, la ejecución sobre una entrada forma un \emph{árbol}, no una secuencia lineal.
+
+\begin{definicion}[Tiempo en \MT\ no determinista]
+El tiempo de ejecución de una \MT\ no determinista $N$ sobre una entrada de tamaño $n$ es el largo de la rama \emph{más larga} del árbol de cómputo. Es decir, $T_N(n) \leq t(n)$ significa que \emph{todas} las ramas posibles tienen a lo sumo $t(n)$ pasos.
+\end{definicion}
+
+\subsection{Simulación: no determinista $\Rightarrow$ determinista}
+
+\begin{teorema}
+Si una \MT\ no determinista $N$ decide un problema en $O(t(n))$ pasos, entonces existe una \MT\ determinista $M$ que lo decide en $2^{O(t(n))}$ pasos.
+\end{teorema}
+
+\textbf{Idea (BFS sobre el árbol de ejecución).}
+\begin{itemize}
+    \item Sea $b$ el factor de ramificación máximo (cantidad máxima de sucesores de una configuración). Como $\delta(q, a)$ es un conjunto finito, $b$ está acotado por una constante.
+    \item El árbol de ejecución tiene profundidad $\leq t(n)$, así que su cantidad total de nodos es a lo sumo $b^{t(n)}$.
+    \item Si $b = 2^c$ para alguna constante $c$, entonces $b^{t(n)} = 2^{c \cdot t(n)} \in 2^{O(t(n))}$.
+\end{itemize}
+
+La máquina determinista $M$ recorre todo el árbol con BFS y acepta si y solo si alguna rama acepta. Como debe visitar a lo sumo todos los nodos del árbol, el costo es $2^{O(t(n))}$.
+
+\begin{intuicion}
+La simulación \emph{no es polinomial}: pasar de tiempo $O(t(n))$ no determinista a determinista cuesta una explosión exponencial. Este es el motivo por el cual $P$ y $NP$ \emph{podrían} ser clases distintas; la pregunta abierta es si esta simulación es óptima o si existe alguna técnica más inteligente que evite la explosión.
+\end{intuicion}
+
+\section{Ejemplos de problemas en $P$}
+
+\subsection{Conectividad en grafos: $\mathit{Path}$}
+
+\begin{ejemplo}
+Consideremos
+\[
+\mathit{Path} = \{ \enc{G, v, w} \mid G \text{ es un grafo con un camino de } v \text{ a } w\}.
+\]
+\end{ejemplo}
+
+\textbf{Algoritmo ineficiente.} Generar todos los caminos de longitud 1, 2, 3, …, hasta $|V|$, y verificar si alguno conecta $v$ con $w$. La cantidad de posibles caminos es $|V|!$, así que el algoritmo es $O(n!)$. \emph{No tratable.}
+
+\textbf{Algoritmo eficiente (BFS / marcado).}
+\begin{enumerate}
+    \item Marcar $v$.
+    \item Mientras se agreguen nuevos nodos marcados:
+    \begin{itemize}
+        \item Recorrer las aristas; para cada arista $(a, b)$ con $a$ marcado y $b$ no, marcar $b$.
+    \end{itemize}
+    \item Si $w$ resultó marcado, aceptar; si no, rechazar.
+\end{enumerate}
+
+\textbf{Análisis.} El bucle se ejecuta a lo sumo $|V|$ veces (cada iteración marca al menos un nodo nuevo), y cada pasada recorre las aristas en $O(|E|)$. Total: $O(|V| \cdot |E|) \in O(n^2)$. \textbf{Polinomial}, así que $\mathit{Path} \in P$.
+
+\subsection{Coprimos: aplicación del algoritmo de Euclides}
+
+\begin{ejemplo}
+\[
+\mathit{Coprimos} = \{ \enc{x, y} \mid \gcd(x, y) = 1\}.
+\]
+\end{ejemplo}
+
+\textbf{Algoritmo ineficiente (fuerza bruta).} Para cada $z \leq \min(x, y)$, verificar si $z$ divide a ambos. Como los números están codificados en \emph{binario} con $n$ bits, hay $2^n$ valores de $z$ que probar. Tiempo $2^n$: \emph{exponencial} en el tamaño de la entrada. \textbf{No es polinomial.}
+
+\textbf{Algoritmo eficiente (Euclides).}
+\begin{enumerate}
+    \item Repetir hasta que $y = 0$:
+    \begin{itemize}
+        \item $x \leftarrow x \bmod y$.
+        \item Intercambiar $x$ y $y$.
+    \end{itemize}
+    \item Si $x = 1$, aceptar (son coprimos); si no, rechazar.
+\end{enumerate}
+
+\textbf{Análisis.}
+\begin{itemize}
+    \item En cada iteración, $x$ se reduce \emph{al menos a la mitad}.
+    \item Si los números tienen $n$ bits, alcanzan $O(n)$ iteraciones para terminar.
+    \item Cada operación módulo se computa en tiempo polinomial $p(n)$.
+\end{itemize}
+
+Total: $O(n \cdot p(n))$, \textbf{polinomial}.
+
+\begin{idea}
+Atención al tamaño de la entrada: para problemas numéricos, ``tamaño de la entrada'' significa \emph{cantidad de bits}, no el valor del número. Un algoritmo ``en $x$ pasos'' con $x$ del orden de $2^n$ \emph{no} es polinomial. Por eso la fuerza bruta sobre divisores no califica.
+\end{idea}
+
+\subsection{Pertenencia para gramáticas libres de contexto (CYK)}
+
+\begin{ejemplo}
+\[
+\mathit{GLC} = \{ \enc{G, w} \mid w \text{ es generado por la gramática libre de contexto } G\}.
+\]
+\end{ejemplo}
+
+\textbf{Idea.} Usar \emph{programación dinámica} y la \textbf{Forma Normal de Chomsky}, donde las producciones son $A \to BC$ o $A \to a$ (o $A \to \varepsilon$ para la cadena vacía).
+
+\textbf{Estructura de datos.} Dado $w = w_1 w_2 \cdots w_n$, construimos una matriz $M[i][j]$, donde $M[i][j]$ es el conjunto de variables que pueden generar la subcadena $w_i \cdots w_j$.
+
+\textbf{Algoritmo (CYK).}
+\begin{enumerate}
+    \item Si $w = \varepsilon$: aceptar sii $S \to \varepsilon$ es una regla.
+    \item Para $i = 1, \dots, n$ y cada variable $A$:
+    \begin{itemize}
+        \item Si $A \to w_i$ es regla, agregar $A$ a $M[i][i]$.
+    \end{itemize}
+    \item Para $l = 2, \dots, n$ (longitud de la subcadena):
+    \begin{itemize}
+        \item Para $i = 1, \dots, n - l + 1$ y $j = i + l - 1$:
+        \item Para $k = i, \dots, j - 1$ y cada regla $A \to BC$:
+        \begin{itemize}
+            \item Si $B \in M[i][k]$ y $C \in M[k+1][j]$, agregar $A$ a $M[i][j]$.
+        \end{itemize}
+    \end{itemize}
+    \item Aceptar si $S \in M[1][n]$.
+\end{enumerate}
+
+\textbf{Análisis.}
+\begin{itemize}
+    \item Los bucles anidados sobre $l, i, k$ y reglas hacen $O(|V| \cdot n^3)$ trabajo, donde $|V|$ es la cantidad de variables. Es \textbf{polinomial}.
+\end{itemize}
+
+Por lo tanto $\mathit{GLC} \in P$.
+
+\begin{intuicion}
+El algoritmo CYK es un caso bonito de \emph{programación dinámica}: en lugar de explorar todas las derivaciones (lo que sería exponencial), reutilizamos resultados anteriores. La forma normal de Chomsky es la herramienta que permite ``trocear'' las derivaciones en sub-derivaciones más pequeñas.
+\end{intuicion}
+
+\section{Resumen final}
+
+Ideas centrales para llevar:
+
+\begin{enumerate}
+    \item \textbf{Complejidad vs.\ computabilidad.} Computabilidad pregunta ``¿se puede?''; complejidad pregunta ``¿se puede \emph{rápido}?''. En complejidad ya trabajamos con problemas computables.
+
+    \item \textbf{Tiempo como función.} $T_M : \N \to \R^{\geq 0}$ mide el peor caso. Lo que interesa es el comportamiento asintótico, no las constantes.
+
+    \item \textbf{Notaciones asintóticas.}
+    \begin{itemize}
+        \item $O(g)$: cota superior. $f \leq c \cdot g$ asintóticamente.
+        \item $o(g)$: cota superior estricta. $\lim f/g = 0$.
+        \item $\Omega(g)$: cota inferior.
+        \item $\Theta(g)$: mismo orden de crecimiento (ambas).
+    \end{itemize}
+
+    \item \textbf{Análisis cuidadoso paga.} El mismo problema $\{0^n 1^n\}$ se resuelve en $O(n^2)$ con un algoritmo ingenuo y en $O(n \log n)$ con una idea de ``dividir a la mitad''.
+
+    \item \textbf{Clases de complejidad.} $\mathrm{Time}(t(n))$ agrupa los problemas decidibles en $O(t(n))$ pasos por una \MT\ determinista.
+
+    \item \textbf{La clase $P$.} $P = \bigcup_{k > 0} \mathrm{Time}(O(n^k))$: los problemas resolubles en tiempo polinomial. Es la formalización de ``problemas tratables''. Los polinomios escalan bien; los exponenciales no.
+
+    \item \textbf{Simulación polinomial entre modelos deterministas.} \MTs\ multicinta se simulan en una cinta con costo $O(t(n)^2)$. Esto es polinomial, así que $P$ no depende del modelo (determinista) elegido.
+
+    \item \textbf{Tesis de Church-Turing Extendida.} Todos los modelos razonables \emph{deterministas} se simulan entre sí en tiempo polinomial. Por lo tanto, la noción de ``algoritmo polinomial'' es invariante de modelo.
+
+    \item \textbf{El no determinismo cambia las reglas.} Una \MT\ no determinista de tiempo $t(n)$ se simula con una determinista de tiempo $2^{O(t(n))}$: explosión exponencial. Esta brecha motiva la clase $NP$ y el famoso problema $P \stackrel{?}{=} NP$.
+
+    \item \textbf{Ejemplos de $P$.} $\mathit{Path}$ (BFS, $O(|V| \cdot |E|)$), $\mathit{Coprimos}$ (Euclides, $O(n \cdot p(n))$), $\mathit{GLC}$ (CYK, $O(|V| \cdot n^3)$). \textbf{Importante:} el tamaño de la entrada en problemas numéricos es la cantidad de \emph{bits}, no el valor del número.
+\end{enumerate}
+
+\begin{intuicion}
+La clase $P$ es el punto de partida de toda la complejidad computacional. Definir ``eficiente'' como ``polinomial'' no es perfecto (un algoritmo $O(n^{100})$ es polinomial pero impráctico), pero captura mucho mejor que cualquier otra alternativa la intuición de que ``los buenos algoritmos escalan''. A partir de $P$ se construye la jerarquía de clases ($NP$, $\mathrm{PSPACE}$, etc.), las nociones de \emph{reducción polinomial} y, eventualmente, las preguntas que aún hoy permanecen abiertas en la teoría de la computación.
+\end{intuicion}
+
+\end{document}

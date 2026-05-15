@@ -1,0 +1,618 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-tabla,es-noshorthands]{babel}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{tcolorbox}
+\usepackage{tikz}
+\usetikzlibrary{arrows,positioning,shapes}
+\usepackage{parskip}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!60!black,
+    urlcolor=blue!60!black,
+    citecolor=blue!60!black
+}
+
+\newtheoremstyle{definicion}
+    {1em}{1em}{}{}{\bfseries}{.}{.5em}{}
+\theoremstyle{definicion}
+\newtheorem{definicion}{Definición}[section]
+\newtheorem{teorema}[definicion]{Teorema}
+\newtheorem{proposicion}[definicion]{Proposición}
+\newtheorem{ejemplo}[definicion]{Ejemplo}
+\newtheorem{observacion}[definicion]{Observación}
+
+\newtcolorbox{intuicion}{
+    colback=blue!5!white,
+    colframe=blue!60!black,
+    title=Intuición,
+    fonttitle=\bfseries,
+    boxrule=0.5pt,
+    arc=2pt
+}
+
+\newtcolorbox{idea}{
+    colback=green!5!white,
+    colframe=green!40!black,
+    title=Idea clave,
+    fonttitle=\bfseries,
+    boxrule=0.5pt,
+    arc=2pt
+}
+
+\newcommand{\MT}{\textsc{mt}}
+\newcommand{\MTs}{\textsc{mt}s}
+\newcommand{\enc}[1]{\langle #1 \rangle}
+\newcommand{\Lang}{\mathcal{L}}
+
+\title{\textbf{Resumen Teórico: Reducciones y Reducibilidad}\\[0.3em]
+\large Computabilidad y Complejidad --- UNRC}
+\author{Basado en el material de Pablo Castro (UNRC)}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+\vspace{1em}
+\hrule
+\vspace{1em}
+
+\section{Introducción}
+
+En la teórica anterior vimos por diagonalización que existen problemas \emph{indecidibles}, siendo el ejemplo paradigmático el Halting Problem $A_{TM}$. La diagonalización es una técnica poderosa, pero también delicada: construir un nuevo argumento diagonal cada vez que queremos probar la indecidibilidad de un problema sería trabajoso y propenso a errores.
+
+La técnica de \textbf{reducciones} permite, en cambio, demostrar la indecidibilidad de un problema $B$ \emph{reutilizando} la indecidibilidad de un problema $A$ que ya conocemos:
+\begin{quote}
+``Si pudiéramos resolver $B$, entonces podríamos resolver $A$. Pero sabemos que $A$ es irresoluble, así que $B$ también lo es.''
+\end{quote}
+
+En este resumen vamos a:
+\begin{enumerate}
+    \item Ver la idea informal de \emph{reducir un problema a otro} y aplicarla a varios ejemplos clásicos: $H_{TM}$, $E_{TM}$, $Reg$, $Eq_{TM}$.
+    \item Demostrar el \textbf{Teorema de Rice}: toda propiedad no trivial del lenguaje de una \MT\ es indecidible.
+    \item Introducir las \emph{historias de ejecución} y los \textbf{autómatas linealmente acotados} (LBAs).
+    \item Presentar el \textbf{Problema de Correspondencia de Post} (PCP) y mostrar que es indecidible.
+    \item Formalizar la noción de \textbf{reducción} mediante funciones computables, y derivar las propiedades fundamentales: la reducción \emph{preserva decidibilidad} y \emph{preserva reconocibilidad}.
+\end{enumerate}
+
+\section{La idea de reducción}
+
+\subsection{Esquema general}
+
+Cuando queremos demostrar que un problema $B$ es \textbf{indecidible}, la estrategia general es:
+
+\begin{center}
+\begin{tikzpicture}[node distance=4.5cm, every node/.style={align=center}]
+    \node[draw, rectangle, minimum height=1.4cm, minimum width=3cm] (A) {Problema $A$\\(sabemos que es\\indecidible/no reconocible)};
+    \node[draw, rectangle, minimum height=1.4cm, minimum width=3cm, right of=A, xshift=1.5cm] (B) {Problema $B$\\(queremos ver si es\\decidible/reconocible)};
+    \draw[->, very thick] (A) -- (B) node[midway, above] {\textbf{reducción}};
+\end{tikzpicture}
+\end{center}
+
+La idea es: \emph{si pudiéramos resolver $B$, entonces podríamos resolver $A$}. Como sabemos que $A$ no se puede resolver, $B$ tampoco. La reducción suele construirse usando una máquina de Turing.
+
+\begin{intuicion}
+La dirección de la implicación es crucial. Para probar que $B$ es \emph{indecidible}, reducimos un problema \emph{conocido como indecidible} $A$ a $B$ (escribiremos esto luego como $A \leq B$). \emph{Nunca al revés}: que un problema decidible se pueda reducir a $B$ no aporta información.
+\end{intuicion}
+
+\section{Ejemplos clásicos de reducciones}
+
+\subsection{El problema de terminación: $H_{TM}$ es indecidible}
+
+Sea
+\[
+H_{TM} = \{ \enc{M, w} \mid M \text{ termina con la entrada } w \}.
+\]
+Este lenguaje, conocido como ``el problema de terminación'', es el problema de predecir si una \MT\ va a terminar (sin importar si acepta o rechaza).
+
+\begin{teorema}
+$H_{TM}$ es indecidible.
+\end{teorema}
+
+\textbf{Prueba (reducción desde $A_{TM}$).} Supongamos por absurdo que existe una \MT\ $H$ que decide $H_{TM}$. Construimos una \MT\ $M'$ que decidiría $A_{TM}$:
+
+Sobre la entrada $\enc{M, w}$, $M'$ procede así:
+\begin{enumerate}
+    \item Ejecuta $H$ con la entrada $\enc{M, w}$.
+    \begin{itemize}
+        \item Si $H$ rechaza (es decir, $M$ no termina con $w$), $M'$ \textbf{rechaza}.
+        \item Si $H$ acepta (es decir, $M$ sí termina con $w$), seguimos al paso 2.
+    \end{itemize}
+    \item Simula $M$ con la entrada $w$. Como en este punto sabemos que $M$ termina, la simulación termina:
+    \begin{itemize}
+        \item Si $M$ acepta, $M'$ acepta.
+        \item Si $M$ rechaza, $M'$ rechaza.
+    \end{itemize}
+\end{enumerate}
+
+$M'$ siempre termina (porque la simulación del paso 2 solo se hace si $H$ garantiza terminación) y acepta exactamente cuando $M$ acepta $w$. Por lo tanto $M'$ decide $A_{TM}$, lo cual es una contradicción con la indecidibilidad de $A_{TM}$.\hfill$\square$
+
+\begin{intuicion}
+Sin un decididor de la terminación no podemos simular ciegamente, porque la simulación podría no terminar. Pero \emph{con} ese decididor, primero le preguntamos ``¿esto termina?'', y solo si la respuesta es Sí seguimos. Así reducimos $A_{TM}$ a $H_{TM}$.
+\end{intuicion}
+
+\subsection{Vacío del lenguaje: $E_{TM}$ es indecidible}
+
+Sea
+\[
+E_{TM} = \{ \enc{M} \mid \Lang(M) = \emptyset \}.
+\]
+
+\begin{teorema}
+$E_{TM}$ es indecidible.
+\end{teorema}
+
+\textbf{Prueba (reducción desde $A_{TM}$).} Supongamos que existe una \MT\ $E$ que decide $E_{TM}$. Construimos una \MT\ $M'$ que decidiría $A_{TM}$.
+
+Sobre la entrada $\enc{M, w}$, $M'$ procede así:
+\begin{enumerate}
+    \item Construye una nueva \MT\ $S$ que, dada una entrada $x$, hace lo siguiente:
+    \begin{itemize}
+        \item Si $x \neq w$, rechaza.
+        \item Si $x = w$, simula $M$ con la entrada $w$ y responde lo que responda $M$.
+    \end{itemize}
+    \item Corre $E$ con la entrada $\enc{S}$.
+    \begin{itemize}
+        \item Si $E$ acepta (es decir, $\Lang(S) = \emptyset$), entonces $M$ no acepta $w$ y $M'$ rechaza.
+        \item Si $E$ rechaza (es decir, $\Lang(S) \neq \emptyset$), entonces $M$ acepta $w$ y $M'$ acepta.
+    \end{itemize}
+\end{enumerate}
+
+\textbf{¿Por qué funciona?} Por construcción, $\Lang(S)$ es vacío si $M$ no acepta $w$, y $\Lang(S) = \{w\}$ si $M$ acepta $w$. Detectar el vacío de $\Lang(S)$ es entonces equivalente a decidir si $M$ acepta $w$. Esto contradice la indecidibilidad de $A_{TM}$.\hfill$\square$
+
+\begin{idea}
+Esta técnica es muy general: \emph{filtrar} la entrada para que la máquina construida $S$ ``haga algo interesante'' solo en una cadena particular, y luego usar al supuesto decididor del problema $B$ para extraer la información que necesitamos.
+\end{idea}
+
+\subsection{$Reg$ es indecidible}
+
+Sea
+\[
+Reg = \{ \enc{M} \mid \Lang(M) \text{ es un lenguaje regular} \}.
+\]
+
+\begin{teorema}
+$Reg$ es indecidible.
+\end{teorema}
+
+\textbf{Prueba (reducción desde $A_{TM}$).} Supongamos que $R$ decide $Reg$. Construimos $N$ que decidiría $A_{TM}$.
+
+Sobre la entrada $\enc{M, w}$, $N$ procede así:
+\begin{enumerate}
+    \item Construye una nueva \MT\ $M'$ que, dada una entrada $x$:
+    \begin{itemize}
+        \item Si $x \in \{0^n 1^n \mid n \geq 0\}$, acepta directamente.
+        \item Si $x \notin \{0^n 1^n \mid n \geq 0\}$, simula $M$ con la entrada $w$ y acepta si $M$ acepta.
+    \end{itemize}
+    \item Corre $R$ con la entrada $\enc{M'}$. Devuelve lo mismo que $R$.
+\end{enumerate}
+
+\textbf{¿Por qué funciona?} Analicemos qué lenguaje reconoce $M'$:
+\begin{itemize}
+    \item Si $M$ acepta $w$: $M'$ acepta toda cadena (las de $\{0^n 1^n\}$ por la rama 1, y las demás porque la simulación del paso 2 acepta). Es decir $\Lang(M') = \Sigma^*$, que es regular.
+    \item Si $M$ no acepta $w$: $M'$ acepta exactamente $\{0^n 1^n \mid n \geq 0\}$, que es \emph{no regular}.
+\end{itemize}
+
+Por lo tanto, $\Lang(M')$ es regular si y solo si $M$ acepta $w$. Si pudiéramos decidir $Reg$ (con la máquina $R$), podríamos decidir $A_{TM}$. Contradicción.\hfill$\square$
+
+\subsection{Equivalencia de \MTs: $Eq_{TM}$ es indecidible}
+
+Sea
+\[
+Eq_{TM} = \{ \enc{M, M'} \mid \Lang(M) = \Lang(M') \}.
+\]
+
+\begin{teorema}
+$Eq_{TM}$ es indecidible.
+\end{teorema}
+
+\textbf{Prueba (reducción desde $E_{TM}$).} Supongamos que $R$ decide $Eq_{TM}$. Construimos $E$ que decidiría $E_{TM}$.
+
+Sobre la entrada $\enc{M}$, $E$ procede así:
+\begin{enumerate}
+    \item Sea $M_0$ una \MT\ fija que rechaza todas las cadenas (es decir, $\Lang(M_0) = \emptyset$).
+    \item Corre $R$ con la entrada $\enc{M, M_0}$. Devuelve lo mismo que $R$.
+\end{enumerate}
+
+\textbf{¿Por qué funciona?} $R$ acepta sii $\Lang(M) = \Lang(M_0) = \emptyset$, es decir, exactamente cuando $\enc{M} \in E_{TM}$. Como $E_{TM}$ es indecidible (ya lo probamos arriba), esto da una contradicción.\hfill$\square$
+
+\section{El Teorema de Rice}
+
+Después de varias reducciones similares, surge una pregunta natural: ¿hay alguna propiedad ``interesante'' del lenguaje de una \MT\ que sí sea decidible? La respuesta, debida a Henry Rice, es notable: \textbf{no}. Cualquier propiedad no trivial del lenguaje aceptado por una \MT\ es indecidible.
+
+\subsection{Propiedades de \MTs}
+
+\begin{definicion}[Propiedad de lenguajes de \MTs]
+Un conjunto $P \subseteq \{ \enc{M} \mid M \text{ es una \MT} \}$ se dice una \textbf{propiedad} si \emph{depende únicamente del lenguaje reconocido}: si $\Lang(M) = \Lang(M')$, entonces
+\[
+\enc{M} \in P \iff \enc{M'} \in P.
+\]
+\end{definicion}
+
+\begin{definicion}[Propiedad no trivial]
+Una propiedad $P$ se dice \textbf{no trivial} si:
+\begin{enumerate}
+    \item $P \neq \emptyset$ (alguna \MT\ tiene la propiedad), y
+    \item $P \neq \{ \enc{M} \mid M \text{ es una \MT}\}$ (no \emph{todas} las \MTs\ la tienen).
+\end{enumerate}
+\end{definicion}
+
+\begin{ejemplo}
+Son ejemplos de propiedades no triviales:
+\begin{itemize}
+    \item ``$\Lang(M) = \emptyset$'' (vacío).
+    \item ``$\Lang(M)$ es regular''.
+    \item ``$\Lang(M)$ contiene una cadena específica $w_0$''.
+    \item ``$\Lang(M) = \Sigma^*$''.
+\end{itemize}
+Las propiedades \emph{triviales} (todas o ninguna) son: ``$\Lang(M)$ es cualquier lenguaje'' y ``$\Lang(M)$ es imposible''.
+\end{ejemplo}
+
+\subsection{El teorema}
+
+\begin{teorema}[Rice]
+Toda propiedad no trivial sobre lenguajes de máquinas de Turing es indecidible.
+\end{teorema}
+
+\textbf{Prueba.} Sea $P$ una propiedad no trivial. Supongamos por absurdo que existe una \MT\ $M_P$ que decide $P$. Vamos a reducir $A_{TM}$ a $P$, llegando a una contradicción.
+
+\textbf{Paso 1: elegir un representante de $P$ con lenguaje no vacío.} Como $P$ es no trivial, hay alguna \MT\ que pertenece a $P$. Distinguimos dos casos:
+\begin{itemize}
+    \item Si la \MT\ ``trivial'' $M_\emptyset$ con $\Lang(M_\emptyset) = \emptyset$ no está en $P$: elegimos cualquier $T \in P$. Como $T \in P$ y $M_\emptyset \notin P$, debe tenerse $\Lang(T) \neq \emptyset$.
+    \item Si $M_\emptyset \in P$: trabajamos con $\overline{P}$ en lugar de $P$. Esa propiedad sigue siendo no trivial (por hipótesis $P$ no es la propiedad trivial total) y ahora $M_\emptyset \notin \overline{P}$, así que aplica el caso anterior. Decidir $\overline{P}$ es equivalente a decidir $P$.
+\end{itemize}
+
+En cualquier caso, suponemos sin pérdida de generalidad que tenemos $T \in P$ con $\Lang(T) \neq \emptyset$, y $M_\emptyset \notin P$.
+
+\textbf{Paso 2: construir la reducción.} Sobre la entrada $\enc{M, w}$ de $A_{TM}$, construimos la \MT\ $M_w$ que, dada una entrada $x$, hace lo siguiente:
+\begin{enumerate}
+    \item Simula $M$ con la entrada $w$.
+    \begin{itemize}
+        \item Si $M$ rechaza $w$, $M_w$ rechaza $x$.
+        \item Si $M$ acepta $w$, simula $T$ con la entrada $x$ y acepta si $T$ acepta.
+    \end{itemize}
+\end{enumerate}
+
+\textbf{Paso 3: analizar el lenguaje de $M_w$.}
+\begin{itemize}
+    \item Si $M$ acepta $w$: para toda $x$, $M_w$ simula $T$ con $x$, así que $\Lang(M_w) = \Lang(T)$. Por lo tanto $\enc{M_w} \in P$.
+    \item Si $M$ no acepta $w$: $M_w$ rechaza toda $x$ (o no termina, pero nunca acepta), así que $\Lang(M_w) = \emptyset$. Por lo tanto $\enc{M_w} \notin P$ (porque $M_\emptyset \notin P$).
+\end{itemize}
+
+\textbf{Paso 4: contradicción.} Si pudiéramos decidir $P$, decidiríamos $A_{TM}$: dado $\enc{M, w}$, construimos $M_w$ y le preguntamos a $M_P$ si $\enc{M_w} \in P$. Pero $A_{TM}$ es indecidible. Por lo tanto, $P$ no puede ser decidible.\hfill$\square$
+
+\begin{idea}
+El Teorema de Rice es una herramienta extremadamente poderosa: una vez probado, podemos demostrar la indecidibilidad de muchísimos problemas con una sola línea: ``por Rice''. Basta con verificar que la propiedad sea \emph{no trivial} y que dependa solo del lenguaje.
+\end{idea}
+
+\begin{ejemplo}
+Por el Teorema de Rice, son inmediatamente indecidibles:
+\begin{itemize}
+    \item ``$\Lang(M) = \emptyset$'',
+    \item ``$\Lang(M)$ es finito'',
+    \item ``$\Lang(M)$ es regular'',
+    \item ``$\Lang(M)$ contiene a la cadena $0101$''.
+\end{itemize}
+\end{ejemplo}
+
+\begin{observacion}
+El Teorema de Rice se aplica a propiedades del \emph{lenguaje}. Hay propiedades de la \emph{máquina} (no del lenguaje) que sí son decidibles, por ejemplo: ``$M$ tiene exactamente 5 estados'' o ``$M$ usa el alfabeto $\{0, 1\}$''. Estas no son propiedades en el sentido de Rice porque dos \MTs\ pueden reconocer el mismo lenguaje y diferir en estas propiedades.
+\end{observacion}
+
+\section{Historias de ejecución y autómatas linealmente acotados}
+
+Algunas reducciones requieren codificar la \emph{ejecución completa} de una \MT, no solo el resultado. Para esto se introduce la noción de \emph{historia de ejecución}.
+
+\subsection{Historia de ejecución}
+
+\begin{definicion}[Historia de ejecución]
+Dada una \MT\ $M$ y una entrada $w$, una \textbf{historia de ejecución} es una secuencia de configuraciones
+\[
+C_0, C_1, \dots, C_k
+\]
+tal que:
+\begin{itemize}
+    \item $C_0 = q_0 w$ es la configuración inicial.
+    \item Para $0 \leq i < k$, $C_i \to_M C_{i+1}$ es un paso legal de cómputo de $M$.
+    \item $C_k$ es una configuración final (acepta o rechaza).
+\end{itemize}
+\end{definicion}
+
+Una \MT\ determinista tiene a lo sumo \emph{una} historia de ejecución para cada entrada. Las historias que terminan en $q_A$ son \emph{aceptantes}; las que terminan en $q_R$ son \emph{rechazantes}.
+
+\subsection{Autómatas linealmente acotados (LBAs)}
+
+\begin{definicion}[Autómata linealmente acotado]
+Un \textbf{autómata linealmente acotado} (LBA) es una \MT\ que \emph{solo} puede usar la porción de la cinta ocupada por la entrada como memoria. Si el cabezal intenta salir hacia la izquierda o la derecha, se mantiene en la posición límite.
+\end{definicion}
+
+\begin{intuicion}
+Los LBA son un modelo intermedio entre los autómatas finitos y las \MTs\ generales: tienen memoria, pero limitada al tamaño de la entrada. Esto los hace estrictamente más débiles que las \MTs\ pero más fuertes que los autómatas a pila.
+\end{intuicion}
+
+\textbf{Cota sobre la cantidad de configuraciones.} Dada una entrada de tamaño $n$ y un LBA con conjunto finito de estados $Q$ y alfabeto de cinta $\Gamma$, la cantidad de configuraciones posibles está acotada por
+\[
+|Q| \cdot n \cdot |\Gamma|^n.
+\]
+Esto se debe a que una configuración está determinada por: (i) el estado actual ($|Q|$ opciones), (ii) la posición del cabezal ($n$ opciones), (iii) el contenido de la cinta ($|\Gamma|^n$ opciones, porque hay $n$ celdas y cada una contiene un símbolo de $\Gamma$).
+
+\subsection{$A_{LBA}$ es decidible}
+
+\begin{teorema}
+El lenguaje
+\[
+A_{LBA} = \{ \enc{A, w} \mid A \text{ es un LBA y } A \text{ acepta } w \}
+\]
+es decidible.
+\end{teorema}
+
+\textbf{Idea.} El problema en una \MT\ general es que puede entrar en un bucle infinito sin que podamos detectarlo. Pero en un LBA, la cantidad de configuraciones es \emph{finita} y acotada. Si la simulación se extiende más allá de esa cota, es porque hemos repetido una configuración: estamos en un bucle.
+
+\textbf{Algoritmo.} Sobre la entrada $\enc{A, w}$ con $|w| = n$:
+\begin{enumerate}
+    \item Simular $A$ con la entrada $w$ durante a lo sumo $|Q| \cdot n \cdot |\Gamma|^n$ pasos.
+    \item Si en algún momento $A$ acepta, aceptar.
+    \item Si en algún momento $A$ rechaza, rechazar.
+    \item Si se superó la cantidad máxima de pasos sin terminar, rechazar (es un bucle).
+\end{enumerate}
+
+El algoritmo siempre termina, así que $A_{LBA}$ es decidible.\hfill$\square$
+
+\subsection{$E_{LBA}$ es indecidible}
+
+A pesar de lo anterior, no todo es decidible para LBAs:
+
+\begin{teorema}
+El lenguaje
+\[
+E_{LBA} = \{ \enc{A} \mid A \text{ es un LBA y } \Lang(A) = \emptyset \}
+\]
+es \emph{indecidible}.
+\end{teorema}
+
+\textbf{Prueba (idea, reducción desde $A_{TM}$).} Vamos a reducir $A_{TM}$ a $E_{LBA}$.
+
+Sobre la entrada $\enc{M, w}$, construimos un LBA $E$ cuyo lenguaje sea \emph{la codificación de la única historia de ejecución aceptante de $M$ con entrada $w$} (si existe).
+
+Concretamente, $E$ recibe como entrada una cadena que pretende ser una secuencia $C_0 \# C_1 \# \cdots \# C_k$, y chequea:
+\begin{itemize}
+    \item Que $C_0 = q_0 w$ sea la configuración inicial correcta.
+    \item Que cada $C_{i+1}$ se obtenga de $C_i$ aplicando un paso legal de $M$.
+    \item Que $C_k$ contenga el estado $q_A$.
+\end{itemize}
+
+Todas estas verificaciones se hacen con memoria proporcional al tamaño de la entrada (que es la historia), así que $E$ es efectivamente un LBA.
+
+\textbf{Observación clave:}
+\begin{itemize}
+    \item Si $M$ acepta $w$, hay una única historia aceptante, y $E$ la acepta. Por lo tanto $\Lang(E) \neq \emptyset$.
+    \item Si $M$ no acepta $w$, no hay historia aceptante, y $\Lang(E) = \emptyset$.
+\end{itemize}
+
+Entonces, decidir $E_{LBA}$ permitiría decidir $A_{TM}$. Como $A_{TM}$ es indecidible, $E_{LBA}$ también lo es.\hfill$\square$
+
+\section{El Problema de Correspondencia de Post}
+
+\subsection{Definición y ejemplo}
+
+El \textbf{Problema de Correspondencia de Post} (PCP) es un problema combinatorio muy sencillo de enunciar pero indecidible. Se trabaja con \emph{fichas de dominó}, cada una con una cadena arriba y otra abajo:
+\[
+\frac{b}{ca}, \quad \frac{a}{ab}, \quad \frac{ca}{a}, \quad \frac{abc}{c}.
+\]
+
+\textbf{Pregunta:} ¿existe una secuencia de fichas (con posibles repeticiones) tal que la concatenación de las cadenas de arriba sea \emph{igual} a la concatenación de las cadenas de abajo?
+
+\begin{ejemplo}
+Para el conjunto anterior, una solución es:
+\[
+\frac{a}{ab}, \frac{b}{ca}, \frac{ca}{a}, \frac{a}{ab}, \frac{abc}{c}.
+\]
+Arriba leemos: $a \cdot b \cdot ca \cdot a \cdot abc = abcaaabc$. Abajo leemos: $ab \cdot ca \cdot a \cdot ab \cdot c = abcaaabc$. ¡Coinciden!
+\end{ejemplo}
+
+Formalmente, el lenguaje asociado es
+\[
+PCP = \{ \enc{D} \mid D \text{ es un conjunto de fichas con solución} \}.
+\]
+
+\subsection{PCP es indecidible}
+
+\begin{teorema}[Post]
+$PCP$ es indecidible.
+\end{teorema}
+
+\textbf{Idea de la prueba (reducción desde $A_{TM}$).} La prueba consiste en mostrar que, dado un par $\enc{M, w}$, podemos construir un conjunto de fichas $D$ tal que $D$ tiene solución si y solo si $M$ acepta $w$. La idea es codificar la \emph{historia de ejecución} de $M$ con entrada $w$ mediante el juego de fichas.
+
+\textbf{Fichas que codifican $\delta$.} Para cada transición $\delta(q_i, a) = (q_j, b, R)$ se introduce la ficha
+\[
+\frac{q_i\, a}{b\, q_j}.
+\]
+Para cada transición $\delta(q_i, b) = (q_j, c, L)$ se agrega, para cada símbolo $a$,
+\[
+\frac{a\, q_i\, b}{q_j\, a\, c}.
+\]
+
+\textbf{Fichas de copia.} Para cada símbolo $a$ del alfabeto, se agrega
+\[
+\frac{a}{a},
+\]
+que permite mantener intactos los símbolos no afectados por el cabezal.
+
+\textbf{Ficha de inicio.} Se incluye una ficha especial que ``inicializa'' la solución con la configuración $\#\, q_0\, w\, \#$ arriba y abajo desfasados.
+
+\textbf{Fichas de cierre.} Se introducen fichas para que, una vez que aparece el estado de aceptación $q_A$, las cadenas de arriba y de abajo finalmente se ``empaten''.
+
+\textbf{¿Cómo funciona el juego?} En cualquier solución parcial, la cadena de arriba está siempre un paso atrasada respecto de la cadena de abajo: la parte de abajo es siempre la configuración actual de $M$, y la parte de arriba es la configuración anterior. Las fichas que codifican $\delta$ son las únicas que permiten avanzar. Si $M$ acepta $w$, hay una secuencia finita de configuraciones que termina en $q_A$, y las fichas de cierre permiten ``alcanzar'' a la parte de arriba; si $M$ no acepta, las dos cadenas nunca pueden alinearse.
+
+\textbf{Conclusión.} El conjunto $D$ así construido tiene solución sii $M$ acepta $w$. Por lo tanto, decidir PCP permitiría decidir $A_{TM}$.\hfill$\square$
+
+\begin{intuicion}
+La importancia del PCP es que se trata de un problema \emph{puramente combinatorio} (no menciona máquinas ni cómputo) y aun así es indecidible. Esto significa que la indecidibilidad no es un fenómeno exclusivo de los problemas ``sobre programas''; también aparece en problemas matemáticos elementales. PCP es muy útil como ``punto de partida'' para demostrar indecidibilidad en problemas de áreas no relacionadas con \MTs\ (lenguajes formales, gramáticas, ecuaciones, etc.).
+\end{intuicion}
+
+\section{La noción formal de reducibilidad}
+
+Hasta ahora usamos la palabra ``reducción'' de forma informal. Vamos a formalizarla en términos de funciones computables.
+
+\subsection{Funciones computables}
+
+\begin{definicion}[Función computable]
+Una función $f : \Sigma^* \to \Sigma^*$ se dice \textbf{computable} si existe una \MT\ $M$ que, comenzando con $w$ en la cinta, termina con $f(w)$ en la cinta.
+\end{definicion}
+
+\begin{ejemplo}
+Son funciones computables:
+\begin{itemize}
+    \item Las funciones aritméticas: dada una entrada $\enc{m, n}$ podemos diseñar una \MT\ que termine con $m + n$.
+    \item Las transformaciones entre \MTs: dada la descripción $\enc{M}$ podemos construir, con una \MT, una descripción $\enc{M'}$ de otra \MT\ que se comporte de algún modo determinado a partir de $M$.
+\end{itemize}
+\end{ejemplo}
+
+\begin{idea}
+Las funciones computables son herramientas para \emph{transformar entradas}. Sirven, por ejemplo, para reescribir una instancia de un problema en una instancia de otro problema, sin perder información sobre la respuesta.
+\end{idea}
+
+\subsection{Reducción de mapeo}
+
+\begin{definicion}[Reducibilidad de mapeo]
+El lenguaje $A$ es \textbf{reducible} al lenguaje $B$, escrito $A \leq B$, si existe una función computable $f : \Sigma^* \to \Sigma^*$ tal que para toda $w$,
+\[
+w \in A \iff f(w) \in B.
+\]
+La función $f$ se llama una \textbf{reducción} de $A$ a $B$.
+\end{definicion}
+
+\begin{intuicion}
+Tener una reducción $A \leq B$ significa que cualquier instancia de $A$ puede transformarse algorítmicamente en una instancia de $B$ que tiene la \emph{misma respuesta}. Por lo tanto, si supiéramos resolver $B$, podríamos resolver $A$: traducimos primero la entrada con $f$ y aplicamos la solución de $B$.
+\end{intuicion}
+
+\subsection{Propiedades fundamentales}
+
+\begin{teorema}[Preservación de decidibilidad]
+Si $A \leq B$ y $B$ es decidible, entonces $A$ es decidible.
+\end{teorema}
+
+\textbf{Prueba.} Sea $M_B$ una máquina de decisión para $B$, y $f$ la reducción de $A$ a $B$. Construimos una máquina de decisión $M_A$ para $A$ así:
+
+Sobre la entrada $w$:
+\begin{enumerate}
+    \item Computar $f(w)$ (esto siempre termina porque $f$ es computable).
+    \item Ejecutar $M_B$ sobre la entrada $f(w)$.
+    \item Devolver la misma respuesta que $M_B$.
+\end{enumerate}
+
+Por la propiedad de la reducción, $w \in A \iff f(w) \in B \iff M_B$ acepta $f(w)$. Como $M_B$ siempre termina, $M_A$ también. Por lo tanto $M_A$ decide $A$.\hfill$\square$
+
+\begin{teorema}[Preservación de reconocibilidad]
+Si $A \leq B$ y $B$ es Turing reconocible, entonces $A$ es Turing reconocible.
+\end{teorema}
+
+\textbf{Prueba.} Idéntica a la anterior, pero usando una \MT\ $M_B$ que solo \emph{reconoce} $B$. La construcción de $M_A$ es la misma:
+
+Sobre la entrada $w$:
+\begin{enumerate}
+    \item Computar $f(w)$.
+    \item Ejecutar $M_B$ sobre la entrada $f(w)$.
+    \item Devolver la misma respuesta.
+\end{enumerate}
+
+$M_A$ acepta $w$ sii $M_B$ acepta $f(w)$ sii $f(w) \in B$ sii $w \in A$.\hfill$\square$
+
+\subsection{Contrapositivas: la herramienta para indecidibilidad}
+
+Tomando las contrapositivas de los teoremas anteriores obtenemos las versiones \emph{útiles} para probar indecidibilidad/no reconocibilidad:
+
+\begin{itemize}
+    \item Si $A \leq B$ y $A$ es \emph{indecidible}, entonces $B$ es indecidible.
+    \item Si $A \leq B$ y $A$ \emph{no es reconocible}, entonces $B$ no es reconocible.
+\end{itemize}
+
+\begin{idea}
+Esta es la forma estándar de usar reducciones. Para probar que $B$ es indecidible:
+\begin{enumerate}
+    \item Tomamos un problema $A$ que sabemos indecidible (por ejemplo, $A_{TM}$).
+    \item Construimos una función computable $f$ con $w \in A \iff f(w) \in B$.
+\end{enumerate}
+La contrapositiva del teorema nos garantiza que $B$ es indecidible.
+\end{idea}
+
+\subsection{Ejemplo formal: $A_{TM} \leq Halt$}
+
+Veamos cómo aplicar la definición formal al problema de terminación. Recordemos
+\[
+Halt = H_{TM} = \{ \enc{M, w} \mid M \text{ termina con la entrada } w \}.
+\]
+
+\textbf{Reducción.} Definimos una función computable $f$ tal que $\enc{M, w} \in A_{TM} \iff f(\enc{M, w}) \in Halt$.
+
+Sobre la entrada $\enc{M, w}$, $f$ construye la siguiente \MT\ $M'$:
+\begin{quote}
+$M'$ con cualquier entrada (ignorada) simula $M$ con la entrada $w$:
+\begin{itemize}
+    \item Si $M$ acepta $w$, $M'$ acepta (y termina).
+    \item Si $M$ rechaza $w$, $M'$ entra en un loop infinito y \emph{no} termina.
+\end{itemize}
+\end{quote}
+
+$f$ devuelve la descripción $\enc{M', \varepsilon}$ (cualquier entrada sirve).
+
+\textbf{Verificación.}
+\begin{itemize}
+    \item Si $\enc{M, w} \in A_{TM}$ (es decir, $M$ acepta $w$), entonces $M'$ termina. Por lo tanto $\enc{M', \varepsilon} \in Halt$.
+    \item Si $\enc{M, w} \notin A_{TM}$ (es decir, $M$ no acepta $w$): puede pasar que $M$ rechace o que no termine. En ambos casos $M'$ \emph{no} termina (en el primer caso por el loop, en el segundo por la simulación que no termina). Por lo tanto $\enc{M', \varepsilon} \notin Halt$.
+\end{itemize}
+
+Hemos exhibido $f$ computable con $w \in A_{TM} \iff f(w) \in Halt$. Es decir, $A_{TM} \leq Halt$. Como $A_{TM}$ es indecidible, $Halt$ también lo es.\hfill$\square$
+
+\begin{observacion}
+Compará esta prueba con la primera prueba ``informal'' que dimos para $H_{TM}$ al comienzo. La idea es la misma; lo que cambia es que ahora la formalizamos como una función computable $f$ entre instancias, en lugar de describir una simulación que invoca al supuesto decididor de $H_{TM}$.
+\end{observacion}
+
+\section{Resumen final}
+
+Las ideas centrales del teórico:
+
+\begin{enumerate}
+    \item \textbf{Reducir un problema a otro} es la técnica fundamental para extender resultados de indecidibilidad. Si podemos transformar instancias de un problema indecidible $A$ en instancias de $B$ preservando las respuestas, entonces $B$ es indecidible.
+
+    \item \textbf{Reducciones informales y formales.} Las reducciones se pueden expresar como ``si tuviera un decididor de $B$, decidiría $A$'' (forma informal con simulación), o como una función computable $f$ con $w \in A \iff f(w) \in B$ (forma formal: $A \leq B$).
+
+    \item \textbf{Ejemplos clave de problemas indecidibles.}
+    \begin{itemize}
+        \item $H_{TM}$ (terminación) --- reducción desde $A_{TM}$.
+        \item $E_{TM}$ (vacío) --- reducción desde $A_{TM}$ con ``máquina filtro''.
+        \item $Reg$ (regularidad del lenguaje) --- reducción usando $\{0^n 1^n\}$ como ``testigo''.
+        \item $Eq_{TM}$ (equivalencia) --- reducción desde $E_{TM}$.
+    \end{itemize}
+
+    \item \textbf{Teorema de Rice.} Toda propiedad no trivial del lenguaje de una \MT\ es indecidible. Es una herramienta para descartar de un saque la decidibilidad de un montón de problemas.
+
+    \item \textbf{Historias de ejecución.} Codificar la traza completa de una \MT\ es útil para reducciones cuando hace falta ``apoderarse'' del paso a paso de la simulación.
+
+    \item \textbf{Autómatas linealmente acotados (LBAs).} Modelo intermedio. $A_{LBA}$ es decidible (por la cota finita $|Q| \cdot n \cdot |\Gamma|^n$ de configuraciones). Sin embargo, $E_{LBA}$ \emph{sí} es indecidible.
+
+    \item \textbf{Problema de Correspondencia de Post (PCP).} Un problema combinatorio sobre fichas de dominó. Es indecidible mediante una reducción desde $A_{TM}$ que codifica historias de ejecución. Es útil como ``cabeza de puente'' para probar indecidibilidad en problemas que no involucran \MTs\ directamente.
+
+    \item \textbf{Propiedades fundamentales de $\leq$.}
+    \begin{itemize}
+        \item Si $A \leq B$ y $B$ es decidible, entonces $A$ es decidible.
+        \item Si $A \leq B$ y $B$ es reconocible, entonces $A$ es reconocible.
+        \item Contrapositivas: si $A$ es indecidible y $A \leq B$, entonces $B$ es indecidible (idem para reconocibilidad).
+    \end{itemize}
+\end{enumerate}
+
+\begin{intuicion}
+Las reducciones son el puente entre la teoría de la indecidibilidad y los problemas concretos que aparecen en la práctica. Una vez establecidos algunos pocos ``núcleos duros'' de indecidibilidad ($A_{TM}$, $H_{TM}$, $PCP$), todo el resto se demuestra encadenando reducciones. Más adelante en la materia veremos que la misma idea, restringida a reducciones \emph{eficientes} (en tiempo polinomial), es la herramienta central de la teoría de la complejidad y de la noción de NP-completitud.
+\end{intuicion}
+
+\end{document}

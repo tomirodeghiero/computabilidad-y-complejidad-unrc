@@ -1,0 +1,430 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-tabla,es-noshorthands]{babel}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{tcolorbox}
+\usepackage{tikz}
+\usetikzlibrary{arrows,positioning,shapes,calc,decorations.pathreplacing}
+\usepackage{listings}
+\usepackage{parskip}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!60!black,
+    urlcolor=blue!60!black,
+    citecolor=blue!60!black
+}
+
+\newtheoremstyle{definicion}
+    {1em}{1em}{}{}{\bfseries}{.}{.5em}{}
+\theoremstyle{definicion}
+\newtheorem{definicion}{Definición}[section]
+\newtheorem{teorema}[definicion]{Teorema}
+\newtheorem{proposicion}[definicion]{Proposición}
+\newtheorem{ejemplo}[definicion]{Ejemplo}
+\newtheorem{observacion}[definicion]{Observación}
+
+\newtcolorbox{intuicion}{
+    colback=blue!5!white,
+    colframe=blue!60!black,
+    title=Intuición,
+    fonttitle=\bfseries,
+    boxrule=0.5pt,
+    arc=2pt
+}
+
+\newtcolorbox{idea}{
+    colback=green!5!white,
+    colframe=green!40!black,
+    title=Idea clave,
+    fonttitle=\bfseries,
+    boxrule=0.5pt,
+    arc=2pt
+}
+
+\lstset{
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue!60!black}\bfseries,
+    commentstyle=\color{gray},
+    stringstyle=\color{red!50!black},
+    showstringspaces=false,
+    language=Python,
+    frame=single,
+    framerule=0.3pt,
+    rulecolor=\color{gray!50},
+    breaklines=true,
+    inputencoding=utf8,
+    extendedchars=true,
+    literate=%
+        {á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'\i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+        {ñ}{{\~n}}1 {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1
+        {Ú}{{\'U}}1 {Ñ}{{\~N}}1
+}
+
+\newcommand{\MT}{\textsc{mt}}
+\newcommand{\MTs}{\textsc{mt}s}
+\newcommand{\enc}[1]{\langle #1 \rangle}
+\newcommand{\Lang}{\mathcal{L}}
+
+\title{\textbf{Resumen Teórico: Autorreferencia, Recursión y Oráculos}\\[0.3em]
+\large Tópicos avanzados en Computabilidad --- UNRC}
+\author{Basado en el material de Pablo Castro (UNRC)}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+\vspace{1em}
+\hrule
+\vspace{1em}
+
+\section{Introducción}
+
+Hasta ahora vimos cómo las máquinas de Turing formalizan la noción de cómputo, cómo demostrar problemas indecidibles por diagonalización, y cómo extender esos resultados mediante reducciones. En este teórico estudiamos un grupo de \emph{tópicos avanzados} que aprovechan una propiedad notable y a primera vista paradójica de las \MTs: la \textbf{autorreferencia}.
+
+Las máquinas de Turing pueden:
+\begin{itemize}
+    \item Tomar como entrada \emph{descripciones de otras \MTs} (lo vimos en la máquina universal).
+    \item Tomar como entrada \emph{su propia} descripción.
+    \item \emph{Producir} descripciones de máquinas; en particular, su propia descripción.
+\end{itemize}
+
+Esto permite construir programas que \emph{se ven a sí mismos}, demostrar el \textbf{Teorema de la Recursión} (una herramienta general para implementar autorreferencia), reobtener la indecidibilidad de $A_{TM}$ de manera muy elegante, estudiar el lenguaje $\mathit{Min}$ de las \MTs\ minimales, y generalizar la noción de reducción mediante \textbf{oráculos}.
+
+\section{Autorreferencia en máquinas de Turing}
+
+\subsection{Idea general}
+
+Una pregunta natural es: \emph{¿puede una máquina de Turing escribir su propia descripción?} Si pensamos en programas, esto es lo que se llama un \emph{quine}: un programa que, al ejecutarse, imprime su propio código fuente sin leer ningún archivo externo.
+
+La respuesta es \textbf{sí}: existe una \MT, que llamaremos $\mathit{Self}$, que con cualquier entrada termina escribiendo en la cinta su propia descripción $\enc{\mathit{Self}}$.
+
+\begin{intuicion}
+La construcción es delicada porque ``hablar de uno mismo'' aparenta requerir conocer la propia descripción antes de existir. Pero usaremos una idea muy ingeniosa: dividir la máquina en dos partes $A$ y $B$, donde $A$ produce $\enc{B}$ y $B$ usa $\enc{B}$ para \emph{reconstruir} $\enc{A}$ y unirlo.
+\end{intuicion}
+
+\subsection{El paso previo: la función $q$}
+
+\begin{proposicion}\label{prop:q}
+Existe una función computable $q : \Sigma^* \to \Sigma^*$ tal que para toda cadena $w \in \Sigma^*$, $q(w)$ es la descripción $\enc{P_w}$ de una \MT\ $P_w$ que, con cualquier entrada, \emph{imprime $w$ y termina}.
+\end{proposicion}
+
+\textbf{Construcción de $P_w$.} Dada $w$, la máquina $P_w$ es muy simple: \emph{ignora} su entrada, borra la cinta, escribe $w$ y termina. Como diseñar esta máquina solo requiere ``codificar'' $w$ en los estados/transiciones de $P_w$, esto se puede hacer algorítmicamente.
+
+\textbf{La \MT\ $M_q$ que computa $q$.} Dada una entrada $w$, $M_q$ genera (de manera mecánica) la descripción $\enc{P_w}$ de la \MT\ $P_w$ correspondiente.
+
+\begin{idea}
+$q$ es una herramienta general: dado cualquier ``valor'' $w$, produce el código de un programa que imprime $w$. Es análogo a la operación \texttt{print(w)} considerada como ``constructor de programas''.
+\end{idea}
+
+\subsection{La máquina $\mathit{Self}$}
+
+Usando $q$, construimos la máquina $\mathit{Self}$ con dos partes consecutivas $A$ y $B$:
+
+\textbf{Parte $A$.} Es la máquina $P_{\enc{B}}$ obtenida aplicando $q$ a $\enc{B}$, es decir, $A = P_{\enc{B}}$. Su efecto cuando se ejecuta es: \emph{escribir $\enc{B}$ en la cinta y terminar}.
+
+\textbf{Parte $B$.} Después de que se ejecutó $A$, la cinta contiene $\enc{B}$. Entonces $B$ procede así:
+\begin{enumerate}
+    \item Lee $\enc{B}$ de la cinta.
+    \item Aplica la función $q$ a $\enc{B}$, obteniendo $\enc{P_{\enc{B}}} = \enc{A}$.
+    \item Escribe en la cinta la descripción completa $\enc{AB} = \enc{\mathit{Self}}$ (concatenando $\enc{A}$ adelante).
+\end{enumerate}
+
+\textbf{Resultado.} Al terminar $A$ y $B$, la cinta contiene $\enc{AB} = \enc{\mathit{Self}}$. La máquina ha escrito su propia descripción.
+
+\begin{intuicion}
+\textbf{¿Por qué funciona?} Notar que $A$ no necesita ``saber su propia descripción''. $A$ solo necesita conocer $\enc{B}$ (que sí podemos describir explícitamente: las instrucciones de $B$ son fijas y conocidas). $B$, por su parte, reconstruye $\enc{A}$ de manera \emph{computable} aplicando $q$ a la información dejada por $A$. La autorreferencia se logra evitando la circularidad: $A$ y $B$ saben uno del otro, no de sí mismos.
+\end{intuicion}
+
+\subsection{Analogía: párrafos que se reproducen}
+
+Una analogía textual ilumina la idea de $\mathit{Self}$. Considerá el siguiente par de instrucciones:
+
+\begin{quote}
+Copiar dos veces el siguiente párrafo, una con comillas dobles:\\
+``Copiar dos veces el siguiente párrafo, una con comillas dobles:''
+\end{quote}
+
+\textbf{Análisis.}
+\begin{itemize}
+    \item La primera línea (sin comillas) hace el rol de $B$: es la instrucción ``activa'' que dice qué hacer.
+    \item La segunda línea (entre comillas) hace el rol de $A$: contiene la \emph{representación} de $B$ como dato.
+\end{itemize}
+
+Al ``ejecutar'' las instrucciones uno escribe primero la versión \emph{con} comillas (es decir, la representación de $B$) y luego la versión sin comillas (es decir, $B$ mismo). El resultado es una copia completa del par original.
+
+\begin{idea}
+La autorreferencia es posible porque hay dos representaciones de la ``misma información'': una \emph{ejecutable} (el código) y otra \emph{como dato} (la cadena entre comillas). La parte ejecutable puede manipular la versión-dato y reconstruir todo.
+\end{idea}
+
+\section{El Teorema de la Recursión}
+
+La idea de la sección anterior se puede generalizar enormemente: en cualquier modelo de cómputo razonable, podemos \emph{escribir programas que tienen acceso a su propio código}. La formalización de este hecho es el \emph{Teorema de la Recursión}.
+
+\subsection{Enunciado y significado}
+
+\begin{teorema}[Teorema de la Recursión]\label{teo:recursion}
+Sea $t : \Sigma^* \times \Sigma^* \to \Sigma^*$ una función computable, computada por una \MT\ $T$. Entonces existe una función computable $r : \Sigma^* \to \Sigma^*$, computada por una \MT\ $R$, tal que para toda $w$,
+\[
+r(w) = t(\enc{R}, w).
+\]
+\end{teorema}
+
+\begin{intuicion}
+$T$ es una máquina que ``ejecuta otra máquina sobre una entrada'': dada $\enc{M}$ y $w$ devuelve el resultado de correr $M$ sobre $w$. El teorema garantiza que podemos construir una \MT\ $R$ que, sobre $w$, computa $t(\enc{R}, w)$. Es decir, \emph{$R$ puede usar su propio código $\enc{R}$ como parte de su cómputo}.
+\end{intuicion}
+
+\subsection{Demostración (construcción de $R$)}
+
+La construcción es análoga a la de $\mathit{Self}$, con un pequeño agregado: $R$ se compone de tres partes $A$, $B$ y $T$.
+
+Dada la \MT\ $T$ que computa $t$, definimos:
+
+\textbf{Parte $A$.} Es la máquina $P_{\enc{BT}}$, es decir, una \MT\ que con cualquier entrada $w$, deja en la cinta la secuencia $w\enc{BT}$. Es decir, $A$ preserva la entrada $w$ y agrega después $\enc{BT}$.
+
+\textbf{Parte $B$.} Hace lo siguiente:
+\begin{enumerate}
+    \item Lee $\enc{BT}$ de la cinta.
+    \item Aplica $q$ a $\enc{BT}$, obteniendo $\enc{P_{\enc{BT}}} = \enc{A}$.
+    \item Concatena para formar $\enc{ABT} = \enc{R}$.
+    \item Escribe en la cinta $\enc{R}\, w$ (la descripción de la máquina completa seguida de la entrada original).
+\end{enumerate}
+
+\textbf{Parte $T$.} Se ejecuta sobre el contenido actual de la cinta, que es $\enc{R}\, w$. Por definición, $T$ con esa entrada calcula $t(\enc{R}, w)$.
+
+\textbf{Resultado.} Sobre la entrada $w$, la \MT\ $R = ABT$ termina con $t(\enc{R}, w)$ en la cinta. Esta es precisamente la función $r$ buscada.\hfill$\square$
+
+\begin{center}
+\begin{tikzpicture}[node distance=2cm, every node/.style={align=center}]
+    \node (entradaT1) {$\enc{M}$};
+    \node[right of=entradaT1, xshift=1cm] (entradaT2) {$w$};
+    \node[draw, rectangle, minimum width=2cm, minimum height=1cm, below of=entradaT1, xshift=1.2cm, yshift=0.2cm] (T) {$T$};
+    \node[below of=T, yshift=0.4cm] (salidaT) {$t(\enc{M}, w)$};
+    \draw[->] (entradaT1) -- ($(T.north)+(-0.3,0)$);
+    \draw[->] (entradaT2) -- ($(T.north)+(0.3,0)$);
+    \draw[->] (T) -- (salidaT);
+
+    \node[right of=salidaT, xshift=4cm] (entradaR) {$w$};
+    \node[draw, rectangle, minimum width=2cm, minimum height=1cm, below of=entradaR, yshift=0.2cm] (R) {$R$};
+    \node[below of=R, yshift=0.4cm] (salidaR) {$t(\enc{R}, w)$};
+    \draw[->] (entradaR) -- (R);
+    \draw[->] (R) -- (salidaR);
+\end{tikzpicture}
+\end{center}
+
+\begin{intuicion}
+El teorema dice: si tenemos una operación $t$ que ``ejecuta otra máquina'', podemos \emph{plegar} esa operación para que la máquina ejecute \emph{a sí misma}. Como consecuencia, al programar podemos suponer que el código tiene acceso a su propia descripción $\enc{R}$ ``gratis''.
+\end{intuicion}
+
+\section{Aplicación: $A_{TM}$ es indecidible (otra vez)}
+
+El Teorema de la Recursión brinda una prueba alternativa, muy corta y elegante, de la indecidibilidad del Halting Problem.
+
+\begin{teorema}
+$A_{TM}$ es indecidible.
+\end{teorema}
+
+\textbf{Prueba (con Teorema de la Recursión).} Supongamos por absurdo que existe una \MT\ $H$ que decide $A_{TM}$, es decir,
+\[
+H(\enc{M, w}) = \begin{cases} \text{acepta} & \text{si } M \text{ acepta } w, \\ \text{rechaza} & \text{en otro caso.} \end{cases}
+\]
+
+Usamos el Teorema de la Recursión para construir una \MT\ $B$ con acceso a su propia descripción $\enc{B}$, que sobre la entrada $w$ hace lo siguiente:
+\begin{enumerate}
+    \item Obtiene su propia descripción $\enc{B}$ (lo permite el Teorema de la Recursión).
+    \item Ejecuta $H$ con la entrada $\enc{B, w}$.
+    \item Si $H$ acepta, $B$ \textbf{rechaza}.
+    \item Si $H$ rechaza, $B$ \textbf{acepta}.
+\end{enumerate}
+
+\textbf{Contradicción.} Por construcción, $B$ hace \emph{exactamente lo contrario} de lo que predice $H$ sobre $\enc{B, w}$:
+\begin{itemize}
+    \item Si $B$ acepta $w$, entonces $H$ había rechazado $\enc{B, w}$, lo que significa que $B$ no acepta $w$. Contradicción.
+    \item Si $B$ rechaza $w$, entonces $H$ había aceptado $\enc{B, w}$, lo que significa que $B$ acepta $w$. Contradicción.
+\end{itemize}
+
+Por lo tanto, $H$ no puede existir.\hfill$\square$
+
+\begin{idea}
+Comparada con la prueba original por diagonalización, esta versión es mucho más directa: no hace falta construir ninguna ``máquina diagonal'' externa ni razonar sobre tablas. El Teorema de la Recursión \emph{empaqueta} la diagonalización en una herramienta de propósito general, y el argumento se vuelve casi una línea: ``si $H$ existiera, construimos $B$ que hace lo contrario de lo que $H$ predice sobre $B$ mismo''.
+\end{idea}
+
+\section{Introspección en lenguajes de programación}
+
+La autorreferencia no es solamente una curiosidad teórica: los lenguajes de programación reales implementan formas de \emph{introspección} (también llamada \emph{reflexión}) que permiten que un programa lea su propio código en tiempo de ejecución.
+
+\subsection{Ejemplo en Python}
+
+En Python, la biblioteca \texttt{inspect} permite que un programa obtenga información sobre sus propias funciones, clases, atributos y código fuente:
+
+\begin{lstlisting}
+import inspect
+
+def foo():
+    pass
+
+print(inspect.getmembers(foo))  # info sobre la función
+\end{lstlisting}
+
+\begin{lstlisting}
+import inspect
+
+def foo(x, y, z):
+    pass
+
+print(inspect.getargspec(foo))  # info sobre argumentos
+\end{lstlisting}
+
+\begin{intuicion}
+Por el Teorema de la Recursión, cualquier lenguaje Turing-completo \emph{podría} ofrecer introspección. Los lenguajes la implementan de manera nativa porque resulta práctica: depuración, serialización, frameworks de testing, generación de código en tiempo de ejecución, etc. La autorreferencia teórica de las \MTs\ aparece, transformada, en cada programa que se ``mira a sí mismo''.
+\end{intuicion}
+
+\section{El lenguaje de las \MTs\ minimales}
+
+Una aplicación más sutil de la autorreferencia tiene que ver con la noción de \emph{minimalidad}.
+
+\subsection{Definición}
+
+\begin{definicion}[\MT\ minimal]
+Una \MT\ $T$ se dice \textbf{minimal} si no existe otra \MT\ equivalente a $T$ (es decir, que reconozca el mismo lenguaje) con descripción \emph{más corta}, $|\enc{T'}| < |\enc{T}|$.
+\end{definicion}
+
+Definimos el lenguaje
+\[
+\mathit{Min} = \{ \enc{M} \mid M \text{ es una \MT\ minimal} \}.
+\]
+
+\subsection{$\mathit{Min}$ no es Turing reconocible}
+
+\begin{teorema}
+$\mathit{Min}$ no es Turing reconocible.
+\end{teorema}
+
+\textbf{Prueba (con Teorema de la Recursión).} Supongamos, por absurdo, que $\mathit{Min}$ es Turing reconocible. Entonces existe un enumerador $E$ que lista todas las \MTs\ minimales (recordemos que un lenguaje es reconocible sii hay un enumerador que lo enumera).
+
+Usando el Teorema de la Recursión, construimos una \MT\ $M$ con acceso a su propia descripción $\enc{M}$, que sobre cualquier entrada hace lo siguiente:
+\begin{enumerate}
+    \item Ejecuta $E$ y va recibiendo, una a una, las descripciones de \MTs\ minimales que $E$ va imprimiendo.
+    \item En cuanto aparece una \MT\ $D$ tal que $|\enc{D}| > |\enc{M}|$ (es decir, $D$ es estrictamente más larga que $M$):
+    \item $M$ simula $D$ con la entrada original, y devuelve lo que $D$ devuelva.
+\end{enumerate}
+
+\textbf{Análisis.}
+\begin{itemize}
+    \item Como $E$ enumera \emph{todas} las \MTs\ minimales, y hay infinitas (las hay arbitrariamente grandes), eventualmente aparecerá alguna $D$ con $|\enc{D}| > |\enc{M}|$.
+    \item Por construcción, $M$ se comporta como $D$ en cualquier entrada: $\Lang(M) = \Lang(D)$.
+    \item Pero $\enc{M}$ es \emph{más corto} que $\enc{D}$. Entonces $D$ no podía ser minimal: contradicción.
+\end{itemize}
+
+Por lo tanto, $\mathit{Min}$ no puede ser reconocible.\hfill$\square$
+
+\begin{intuicion}
+La idea es bellísima: una \MT\ ``espera'' hasta ver una hermana más larga que ella, y entonces se hace pasar por esa hermana. Como la hermana se suponía minimal (no debería tener equivalente más corto), aparece la contradicción. El Teorema de la Recursión es esencial: sin él, $M$ no podría conocer su propia longitud $|\enc{M}|$ para hacer la comparación.
+\end{intuicion}
+
+\section{Oráculos y reducibilidad de Turing}
+
+Hasta ahora estudiamos máquinas que computan ``por sí solas''. Una generalización muy poderosa es permitirles \emph{consultar a un oráculo}: un dispositivo que responde correctamente preguntas de pertenencia a un lenguaje fijo, posiblemente indecidible.
+
+\subsection{Definición de oráculo}
+
+\begin{definicion}[Oráculo]
+Un \textbf{oráculo} para un lenguaje $B$ es un dispositivo externo que, dada una cadena $w$, responde correctamente y en un solo paso si $w \in B$ o $w \notin B$.
+\end{definicion}
+
+\begin{definicion}[\MT\ con oráculo]
+Una \textbf{máquina de Turing con oráculo} es una \MT\ extendida con la capacidad de consultar a un oráculo. Si la máquina $M$ usa el oráculo $B$, escribimos $M^B$.
+\end{definicion}
+
+\begin{intuicion}
+Pensemos al oráculo como una caja negra mágica: si tuviéramos uno para $A_{TM}$, podríamos preguntarle ``¿$M$ acepta $w$?'' y recibir la respuesta correcta instantáneamente. Esto es claramente \emph{no realista}, pero es una herramienta teórica muy útil para clasificar la dificultad relativa de los problemas.
+\end{intuicion}
+
+\subsection{Resolver problemas indecidibles con oráculos}
+
+Si tenemos un oráculo para un problema suficientemente difícil, podemos resolver otros problemas que serían indecidibles por sí solos.
+
+\begin{ejemplo}
+Con un oráculo para $A_{TM}$, podemos decidir $E_{TM}$ (el vacío del lenguaje).
+\end{ejemplo}
+
+\textbf{Construcción.} Dada $\enc{M}$ queremos decidir si $\Lang(M) = \emptyset$. Construimos la \MT\ $N$ que con cualquier entrada hace lo siguiente:
+\begin{enumerate}
+    \item Para $k = 1, 2, 3, \dots$:
+    \begin{itemize}
+        \item Por cada cadena $s$ de longitud $k$: simular $M$ con la entrada $s$ por $k$ pasos.
+        \item Si \emph{alguna} de esas simulaciones acepta, $N$ acepta.
+    \end{itemize}
+\end{enumerate}
+
+Observación clave: $N$ acepta \emph{cualquier} entrada $\varepsilon$ si y solo si $M$ acepta \emph{alguna} cadena, es decir, $\Lang(M) \neq \emptyset$.
+
+Ahora consultamos al oráculo para $A_{TM}$ con la pregunta ``¿$N$ acepta $\varepsilon$?''. La respuesta nos dice si $\Lang(M)$ es vacío o no.
+
+\subsection{Reducibilidad de Turing}
+
+La noción de oráculo permite definir un tipo de reducción más general que la que vimos antes.
+
+\begin{definicion}[Decidibilidad relativa]
+Un lenguaje $A$ es \textbf{decidible relativo a $B$} si existe una \MT\ $M^B$ (con acceso al oráculo $B$) que decide $A$.
+\end{definicion}
+
+\begin{definicion}[Reducción de Turing]
+Decimos que $A$ es \textbf{Turing reducible} a $B$, escrito $A \leq_T B$, si $A$ es decidible relativo a $B$.
+\end{definicion}
+
+\begin{ejemplo}
+Por la construcción anterior, $E_{TM} \leq_T A_{TM}$: con un oráculo para $A_{TM}$, podemos decidir $E_{TM}$.
+\end{ejemplo}
+
+\subsection{Comparación con la reducción de mapeo}
+
+La reducción de Turing $\leq_T$ es \emph{más general} que la reducción de mapeo $\leq$ vista en el teórico de Reducibilidad:
+
+\begin{itemize}
+    \item Si $A \leq B$ (reducción de mapeo), entonces $A \leq_T B$. La reducción de mapeo es un caso particular: traducir la entrada y hacer una sola consulta.
+    \item La recíproca no vale: hay lenguajes con $A \leq_T B$ pero no $A \leq B$. Por ejemplo, $\overline{A_{TM}} \leq_T A_{TM}$ (con un oráculo para $A_{TM}$, simplemente invierto la respuesta), pero $\overline{A_{TM}} \not\leq A_{TM}$ (si valiera la reducción de mapeo, como $A_{TM}$ es reconocible, también $\overline{A_{TM}}$ lo sería, lo cual contradice resultados conocidos).
+\end{itemize}
+
+\begin{idea}
+La reducción de Turing es más expresiva porque permite \emph{múltiples} consultas al oráculo, en cualquier orden, y combinar las respuestas como uno quiera. La reducción de mapeo, en cambio, exige una única transformación de la entrada y una única consulta al decididor de $B$. La diferencia se vuelve crucial cuando se estudian las relaciones de reducibilidad entre lenguajes reconocibles y no reconocibles.
+\end{idea}
+
+\section{Resumen final}
+
+Las ideas centrales de este teórico:
+
+\begin{enumerate}
+    \item \textbf{Autorreferencia.} Las \MTs\ pueden tomar como entrada descripciones de \MTs\ (incluso la propia) y también producirlas. Esto da origen a un fenómeno análogo a los \emph{quines} de la programación.
+
+    \item \textbf{La máquina $\mathit{Self}$.} Mediante una función computable $q$ (que dada $w$ produce $\enc{P_w}$, una \MT\ que imprime $w$), construimos $\mathit{Self} = AB$ con $A = P_{\enc{B}}$ y $B$ usa $q(\enc{B})$ para reconstruir $\enc{A}$ y armar $\enc{\mathit{Self}}$. La clave es \emph{evitar la circularidad}: cada parte conoce a la otra, no a sí misma.
+
+    \item \textbf{Analogía textual.} El truco del párrafo ``Copiar dos veces… '' (una vez sin comillas y otra entre comillas) es la versión informal del mismo principio: separar el ``código'' del ``dato''.
+
+    \item \textbf{Teorema de la Recursión.} Si $t$ es computable, existe $R$ tal que $r(w) = t(\enc{R}, w)$. En lenguaje informal: \emph{cualquier \MT\ puede usar su propia descripción}. Garantiza que la autorreferencia es siempre legítima.
+
+    \item \textbf{Nueva prueba de la indecidibilidad de $A_{TM}$.} Con el Teorema de la Recursión, construimos una \MT\ $B$ que hace lo contrario de lo que predice el supuesto decididor $H$ sobre $\enc{B, w}$, y obtenemos una contradicción inmediata. Es la diagonalización ``compilada'' como teorema.
+
+    \item \textbf{Introspección.} En los lenguajes de programación reales, la autorreferencia se manifiesta como \emph{reflexión}: bibliotecas como \texttt{inspect} en Python permiten que un programa lea su propio código.
+
+    \item \textbf{$\mathit{Min}$ no es reconocible.} Con el Teorema de la Recursión, una \MT\ puede esperar hasta ver una versión más larga de sí misma en la enumeración y hacerse pasar por esa máquina; contradice la minimalidad.
+
+    \item \textbf{Oráculos.} Una \MT\ con oráculo $B$, escrita $M^B$, puede consultar gratis la pertenencia a $B$. Esto permite resolver problemas indecidibles cuando el oráculo es suficientemente potente.
+
+    \item \textbf{Reducción de Turing} $A \leq_T B$: $A$ es decidible relativo a $B$. Es estrictamente más expresiva que la reducción de mapeo (permite múltiples consultas al oráculo y combinarlas libremente).
+\end{enumerate}
+
+\begin{intuicion}
+La autorreferencia es la herramienta central en muchos resultados profundos de la lógica y la computabilidad: la prueba de Turing del Halting Problem, el primer Teorema de Incompletitud de Gödel, las paradojas semánticas (mentiroso, Russell), los virus informáticos, y los lenguajes de programación con reflexión. Todos comparten la misma estructura: \emph{construir un objeto que habla de sí mismo} y derivar de allí, o bien resultados imposibles, o bien herramientas extraordinariamente flexibles.
+\end{intuicion}
+
+\end{document}

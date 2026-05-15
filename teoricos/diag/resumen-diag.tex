@@ -1,0 +1,496 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-tabla,es-noshorthands]{babel}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{tcolorbox}
+\usepackage{array}
+\usepackage{parskip}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!60!black,
+    urlcolor=blue!60!black,
+    citecolor=blue!60!black
+}
+
+\newtheoremstyle{definicion}
+    {1em}{1em}{}{}{\bfseries}{.}{.5em}{}
+\theoremstyle{definicion}
+\newtheorem{definicion}{Definición}[section]
+\newtheorem{teorema}[definicion]{Teorema}
+\newtheorem{proposicion}[definicion]{Proposición}
+\newtheorem{ejemplo}[definicion]{Ejemplo}
+\newtheorem{observacion}[definicion]{Observación}
+
+\newtcolorbox{intuicion}{
+    colback=blue!5!white,
+    colframe=blue!60!black,
+    title=Intuición,
+    fonttitle=\bfseries,
+    boxrule=0.5pt,
+    arc=2pt
+}
+
+\newtcolorbox{idea}{
+    colback=green!5!white,
+    colframe=green!40!black,
+    title=Idea clave,
+    fonttitle=\bfseries,
+    boxrule=0.5pt,
+    arc=2pt
+}
+
+\newcommand{\MT}{\textsc{mt}}
+\newcommand{\MTs}{\textsc{mt}s}
+\newcommand{\enc}[1]{\langle #1 \rangle}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\R}{\mathbb{R}}
+
+\title{\textbf{Resumen Teórico: Indecidibilidad y Diagonalización}\\[0.3em]
+\large Computabilidad y Complejidad --- UNRC}
+\author{Basado en el material de Pablo Castro (UNRC)}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+\vspace{1em}
+\hrule
+\vspace{1em}
+
+\section{Introducción}
+
+En el material anterior vimos cómo las máquinas de Turing capturan formalmente la noción de cómputo. Llegó la hora de usar esa formalización para demostrar el resultado más sorprendente de la teoría de la computabilidad: \textbf{existen problemas que ninguna máquina de Turing puede resolver}.
+
+Este resumen recorre el siguiente camino:
+\begin{enumerate}
+    \item \textbf{Cómo codificar problemas como lenguajes}: para hablar formalmente de ``problemas computables''.
+    \item \textbf{Ejemplos de problemas decidibles}: el vacío de un AFD, la pertenencia para gramáticas libres de contexto.
+    \item \textbf{Cardinalidad de conjuntos infinitos} (Cantor): para mostrar que existen \emph{muchos} lenguajes no computables.
+    \item \textbf{La técnica de diagonalización}: usada por Cantor para probar que $\R$ no es contable, y por Turing para mostrar que el \emph{Halting Problem} es indecidible.
+    \item \textbf{Un lenguaje que ni siquiera es reconocible}: hay problemas más difíciles que el Halting Problem.
+\end{enumerate}
+
+\section{Problemas decidibles vs.\ indecidibles}
+
+\subsection{Codificar problemas como lenguajes}
+
+Para hablar formalmente de ``problemas computables'', representamos cada \emph{problema} como un \emph{lenguaje}: el conjunto de entradas codificadas que constituyen ``instancias positivas'' del problema. Resolver el problema equivale entonces a decidir el lenguaje asociado.
+
+\begin{ejemplo}[Aceptación de una \MT]
+El problema ``¿la máquina $M$ acepta la palabra $w$?'' se codifica como
+\[
+A_{TM} = \{ \enc{M, w} \mid M \text{ es una \MT\ y } M \text{ acepta } w\}.
+\]
+Si pudiéramos decidir este lenguaje, tendríamos un algoritmo general para predecir si cualquier \MT\ acepta o no una cadena dada.
+\end{ejemplo}
+
+\begin{ejemplo}[Satisfacibilidad]
+El problema SAT se codifica como
+\[
+SAT = \{ \enc{\phi} \mid \phi \text{ es una fórmula proposicional satisfacible} \}.
+\]
+Decidir este lenguaje sería tener un programa que dice si una fórmula es satisfacible.
+\end{ejemplo}
+
+\begin{intuicion}
+La idea es siempre la misma: tomamos un problema (``dado un input, responder Sí/No'') y lo convertimos en un lenguaje (``el conjunto de inputs cuya respuesta es Sí''). De este modo todas las preguntas sobre algoritmos se vuelven preguntas sobre lenguajes y máquinas de Turing.
+\end{intuicion}
+
+\section{Algunos problemas decidibles}
+
+Antes de meternos con los problemas indecidibles, conviene ver ejemplos no triviales de problemas \emph{decidibles}. Esto sirve también para fijar la técnica de ``construir una \MT\ que decide un lenguaje''.
+
+\subsection{Vacío del lenguaje de un AFD}
+
+\begin{teorema}
+El lenguaje
+\[
+E_{DFA} = \{ \enc{A} \mid A \text{ es un AFD y } L(A) = \emptyset \}
+\]
+es decidible.
+\end{teorema}
+
+\textbf{Idea.} Un AFD acepta alguna cadena si y solo si \emph{algún estado final es alcanzable} desde el estado inicial. Por lo tanto, basta con un algoritmo de alcanzabilidad sobre el grafo del autómata.
+
+\textbf{Algoritmo (máquina $M$ que decide $E_{DFA}$).} Dada la representación $\enc{A}$ de un AFD:
+\begin{enumerate}
+    \item Marcar el estado inicial de $A$.
+    \item Repetir mientras se agregan nuevos estados marcados:
+    \begin{itemize}
+        \item Marcar todo estado que esté conectado (por alguna transición) a un estado ya marcado.
+    \end{itemize}
+    \item Cuando ya no se agregan nuevos estados marcados:
+    \begin{itemize}
+        \item Si \emph{ningún} estado final quedó marcado, aceptar (el lenguaje es vacío).
+        \item Si algún estado final fue marcado, rechazar.
+    \end{itemize}
+\end{enumerate}
+
+El algoritmo termina porque la cantidad de estados es finita y a lo sumo se hacen tantas iteraciones como estados tenga $A$. Es, por lo tanto, una máquina de decisión.
+
+\subsection{Pertenencia para gramáticas libres de contexto}
+
+\begin{teorema}
+El lenguaje
+\[
+A_{CFG} = \{ \enc{G, w} \mid G \text{ es una CFG y } G \text{ genera } w \}
+\]
+es decidible.
+\end{teorema}
+
+\textbf{Idea.} Si pudiéramos enumerar \emph{todas} las derivaciones de $G$ y verificar si alguna produce $w$, decidiríamos el problema. El obstáculo es que una CFG arbitraria tiene infinitas derivaciones posibles. La clave es usar la \textbf{Forma Normal de Chomsky}, en la que toda derivación de una palabra de tamaño $n$ tiene una cantidad acotada de pasos.
+
+\begin{definicion}[Forma Normal de Chomsky]
+Una CFG está en \textbf{forma normal de Chomsky} si todas sus producciones tienen alguna de las formas
+\[
+A \to BC \qquad \text{o} \qquad A \to a,
+\]
+donde $A, B, C$ son variables y $a$ es un terminal.
+\end{definicion}
+
+\begin{proposicion}[Cota sobre las derivaciones]
+Si $G$ está en forma normal de Chomsky y $w$ tiene longitud $n$, entonces toda derivación de $w$ en $G$ tiene exactamente $2n - 1$ pasos.
+\end{proposicion}
+
+\textbf{Por qué es cierto.} Cada producción $A \to BC$ aumenta en uno la cantidad de variables; cada producción $A \to a$ ``convierte'' una variable en un terminal. Para llegar a $n$ terminales hace falta primero generar $n$ variables (a partir de una inicial, en $n-1$ aplicaciones de reglas tipo $BC$) y luego convertir cada una en un terminal ($n$ aplicaciones del segundo tipo). Total: $(n - 1) + n = 2n - 1$.
+
+\textbf{Algoritmo (máquina $M$ que decide $A_{CFG}$).} Dada la entrada $\enc{G, w}$ con $|w| = n$:
+\begin{enumerate}
+    \item Convertir $G$ a forma normal de Chomsky.
+    \item Generar todas las derivaciones de exactamente $2n - 1$ pasos (mediante un DFS acotado sobre el árbol de derivaciones).
+    \item Si alguna de ellas produce $w$, aceptar; si no, rechazar.
+\end{enumerate}
+
+El paso (2) termina porque el árbol de derivaciones de profundidad $2n - 1$ es finito.
+
+\begin{intuicion}
+La estrategia general en estas pruebas es la misma: encontrar una \emph{cota} sobre el espacio de búsqueda. Cuando hay una cota finita y computable, el problema es decidible porque podemos ``probar todas las opciones''. La indecidibilidad va a aparecer justamente cuando \emph{no} podamos acotar el espacio de búsqueda.
+\end{intuicion}
+
+\section{Problemas indecidibles: primer encuentro}
+
+Hay problemas sumamente naturales que, sin embargo, son \emph{indecidibles}. El ejemplo paradigmático es:
+
+\[
+A_{TM} = \{ \enc{M, w} \mid M \text{ es una \MT\ y } M \text{ acepta } w \}.
+\]
+
+\subsection{$A_{TM}$ es Turing reconocible}
+
+Aunque no sea decidible, $A_{TM}$ \emph{sí} es Turing reconocible. La idea es usar una \textbf{máquina universal} $U$ que simula a cualquier otra \MT.
+
+\textbf{Construcción de $U$.} Dada la entrada $\enc{M, w}$:
+\begin{enumerate}
+    \item $U$ simula paso a paso la ejecución de $M$ con entrada $w$.
+    \item Si en algún momento $M$ acepta, $U$ acepta.
+    \item Si $M$ rechaza, $U$ rechaza.
+\end{enumerate}
+
+\begin{observacion}
+Si $M$ no termina con la entrada $w$, entonces $U$ tampoco termina al simularlo. Esto significa que $U$ \emph{reconoce} $A_{TM}$ (acepta exactamente las cadenas $\enc{M, w}$ con $w \in \mathcal{L}(M)$) pero no es una máquina de decisión: no podemos garantizar terminación cuando $w \notin \mathcal{L}(M)$.
+\end{observacion}
+
+\begin{intuicion}
+La existencia de $U$ es una idea muy poderosa: prueba que ``ejecutar programas'' es algo que puede hacer una \MT. En cierto sentido, $U$ es el ancestro teórico de las computadoras modernas, que ejecutan programas arbitrarios codificados como datos.
+\end{intuicion}
+
+\section{Cardinalidad de conjuntos infinitos}
+
+Antes de demostrar la indecidibilidad de $A_{TM}$, conviene desarrollar algunas herramientas de Cantor para comparar conjuntos infinitos. Estas ideas son el corazón del argumento diagonal.
+
+\subsection{Igualdad y desigualdad de cardinales}
+
+\begin{definicion}[Misma cardinalidad]
+Dos conjuntos $A$ y $B$ tienen la misma cardinalidad, escrito $A \cong B$, si existe una función \textbf{biyectiva} $f : A \to B$.
+\end{definicion}
+
+\begin{definicion}[Estrictamente menor]
+$A < B$ (cardinalmente) si existe una función inyectiva $A \to B$, pero \emph{no} existe ninguna biyección.
+\end{definicion}
+
+\begin{intuicion}
+Para conjuntos finitos esto coincide con la idea usual de ``$A$ tiene menos elementos que $B$''. Para conjuntos infinitos puede dar resultados sorprendentes: por ejemplo, $\N$ tiene la misma cardinalidad que $\Z$ y que $\Q$, pero \emph{menor} cardinalidad que $\R$.
+\end{intuicion}
+
+\subsection{Aritmética transfinita}
+
+La cardinalidad de un conjunto $A$ se nota $\#A$. Las cardinalidades de los conjuntos infinitos se denotan con la letra hebrea $\aleph$ (\emph{aleph}):
+\[
+\aleph_0 = \#\N, \quad \aleph_1 = \text{``el siguiente infinito''}, \quad \aleph_2, \aleph_3, \dots
+\]
+
+\begin{teorema}[Cantor]
+Para todo conjunto $A$,
+\[
+A \;<\; \mathcal{P}(A),
+\]
+es decir, el conjunto de partes siempre tiene \emph{estrictamente} más elementos que el conjunto original.
+\end{teorema}
+
+Existen, por lo tanto, infinitos cardinales infinitos. La relación exacta entre $\aleph_1$ y $\mathcal{P}(\aleph_0)$ depende de la axiomatización de la teoría de conjuntos que se use (es el famoso \emph{problema del continuo}).
+
+\subsection{Conjuntos contables}
+
+\begin{definicion}[Contable]
+Un conjunto $A$ es \textbf{contable} si tiene la misma cardinalidad que $\N$, es decir, si existe una biyección entre $A$ y $\N$.
+\end{definicion}
+
+\begin{ejemplo}[$\N \cong \Z$]
+La función $f : \N \to \Z$ definida por
+\[
+f(n) = \begin{cases} \left\lceil n / 2 \right\rceil & \text{si } n \text{ es impar,} \\ -\,n / 2 & \text{si } n \text{ es par,} \end{cases}
+\]
+es biyectiva. Listada:
+\[
+0 \mapsto 0, \quad 1 \mapsto 1, \quad 2 \mapsto -1, \quad 3 \mapsto 2, \quad 4 \mapsto -2, \quad 5 \mapsto 3, \dots
+\]
+Por lo tanto $\Z$ es contable.
+\end{ejemplo}
+
+\begin{ejemplo}[$\N \cong \Q$]
+Los racionales positivos se pueden poner en una grilla infinita
+\[
+\begin{array}{cccccc}
+1/1 & 1/2 & 1/3 & 1/4 & \cdots \\
+2/1 & 2/2 & 2/3 & 2/4 & \cdots \\
+3/1 & 3/2 & 3/3 & 3/4 & \cdots \\
+4/1 & 4/2 & 4/3 & 4/4 & \cdots \\
+\vdots & \vdots & \vdots & \vdots
+\end{array}
+\]
+y enumerarse recorriendo las diagonales (1/1, 1/2, 2/1, 1/3, 2/2, 3/1, ...). Como cada racional aparece en la grilla, podemos definir una sobreyección $\N \to \Q^+$. Saltando duplicados y combinando con los negativos se obtiene una biyección $\N \cong \Q$.
+\end{ejemplo}
+
+\begin{idea}
+Para mostrar que un conjunto es contable, basta con \emph{enumerar} sus elementos: dar una forma de listarlos $a_0, a_1, a_2, \dots$ de modo que cada elemento aparezca al menos una vez.
+\end{idea}
+
+\section{La diagonalización de Cantor: \texorpdfstring{$\N < \R$}{N < R}}
+
+Ahora viene el argumento más importante del PDF: existe un conjunto, $\R$, que es \emph{estrictamente} mayor que $\N$. La técnica que se usa para demostrarlo se llama \textbf{diagonalización}, y se va a reutilizar para probar la indecidibilidad del Halting Problem.
+
+\subsection{Reducción al intervalo $[0, 1)$}
+
+Basta con mostrar que el intervalo $[0, 1)$ no es contable, ya que si lo fuera, $\R$ tampoco podría serlo (porque $[0,1) \subseteq \R$).
+
+\subsection{La prueba diagonal}
+
+\begin{teorema}[Cantor]
+El intervalo $[0, 1)$ no es contable.
+\end{teorema}
+
+\textbf{Prueba (por contradicción).} Supongamos que $[0, 1)$ es contable. Entonces existe una biyección que enumera todos sus elementos como $r_1, r_2, r_3, \dots$ Escribiendo cada $r_i$ en su representación decimal,
+\[
+r_i = 0.\,d^1_i\, d^2_i\, d^3_i\, d^4_i \cdots
+\]
+podemos disponer todas las representaciones en una tabla (la fila $i$ contiene los dígitos de $r_i$):
+
+\begin{center}
+\begin{tabular}{c|cccccc}
+& 1 & 2 & 3 & 4 & \dots \\
+\hline
+$r_1$ & $d^1_1$ & $d^2_1$ & $d^3_1$ & $d^4_1$ & \dots \\
+$r_2$ & $d^1_2$ & $d^2_2$ & $d^3_2$ & $d^4_2$ & \dots \\
+$r_3$ & $d^1_3$ & $d^2_3$ & $d^3_3$ & $d^4_3$ & \dots \\
+$r_4$ & $d^1_4$ & $d^2_4$ & $d^3_4$ & $d^4_4$ & \dots \\
+\vdots & \vdots & \vdots & \vdots & \vdots
+\end{tabular}
+\end{center}
+
+Construimos ahora un número $\bar r \in [0,1)$, dígito a dígito, que \emph{no} aparece en la lista. Definimos sus dígitos $\bar d^1, \bar d^2, \bar d^3, \dots$ con la regla
+\[
+\bar d^i = \begin{cases} 1 & \text{si } d^i_i \neq 1, \\ 0 & \text{si } d^i_i = 1. \end{cases}
+\]
+
+\textbf{Observación clave.} Por construcción, $\bar d^i \neq d^i_i$ para todo $i$. Por lo tanto $\bar r$ difiere de $r_i$ \emph{al menos} en el $i$-ésimo dígito decimal. Esto implica $\bar r \neq r_i$ para todo $i$.
+
+\textbf{Contradicción.} Asumimos que la enumeración cubría \emph{todo} $[0, 1)$, pero acabamos de construir un elemento de $[0, 1)$ que no aparece. Conclusión: no existe ninguna enumeración de $[0, 1)$, y por lo tanto $[0, 1)$ --- y $\R$ --- no son contables.\hfill$\square$
+
+\begin{intuicion}
+La idea de la diagonalización es asumir que tenemos una enumeración \emph{completa} y construir un elemento que difiera, en la posición $i$, del $i$-ésimo elemento enumerado. Cualquier intento de ``haberlo incluido'' falla, porque por la propia construcción nuestro elemento es distinto de cada uno de los enumerados.
+\end{intuicion}
+
+\section{Existencia de lenguajes no computables}
+
+Ahora aplicamos los resultados de cardinalidad a las máquinas de Turing.
+
+\begin{teorema}
+Existen lenguajes que no son Turing reconocibles.
+\end{teorema}
+
+\textbf{Prueba (argumento de conteo).}
+\begin{itemize}
+    \item El conjunto $\{\enc{T} \mid T \text{ es una \MT}\}$ es contable: $\aleph_0$. Cada \MT\ se puede codificar como una cadena finita sobre un alfabeto fijo, y las cadenas finitas son contables.
+    \item El conjunto $\{0, 1\}^*$ de \emph{todas} las cadenas finitas también es contable: $\aleph_0$.
+    \item Un \emph{lenguaje} sobre $\{0, 1\}$ es un subconjunto de $\{0, 1\}^*$. El conjunto de todos los lenguajes es entonces $\mathcal{P}(\{0,1\}^*)$.
+    \item Por el teorema de Cantor: $\#\{0,1\}^* < \#\mathcal{P}(\{0,1\}^*)$.
+\end{itemize}
+
+Resumiendo: $\#\{\enc{M} \mid M$ es \MT$\} = \aleph_0 < \#\mathcal{P}(\{0,1\}^*)$. Hay \emph{estrictamente más lenguajes que máquinas de Turing}. Por lo tanto, debe haber lenguajes que ninguna \MT\ reconoce.\hfill$\square$
+
+\begin{idea}
+Este argumento prueba la \emph{existencia} de lenguajes no computables sin exhibir uno concreto. Es un resultado puramente de cardinalidad: hay tantos lenguajes que las \MTs\ no alcanzan a cubrirlos todos. En las próximas secciones vamos a \emph{exhibir} ejemplos concretos.
+\end{idea}
+
+\section{El Halting Problem: \texorpdfstring{$A_{TM}$}{ATM} es indecidible}
+
+Ahora viene el resultado más famoso de la materia. Vamos a mostrar que el lenguaje $A_{TM} = \{ \enc{M, w} \mid M \text{ acepta } w\}$ es indecidible.
+
+\subsection{Enunciado y suposición por absurdo}
+
+\begin{teorema}[Turing]
+El lenguaje $A_{TM}$ es indecidible.
+\end{teorema}
+
+\textbf{Prueba (por contradicción).} Supongamos que $A_{TM}$ es decidible. Entonces existe una máquina de Turing $H$ que \emph{siempre termina} y satisface
+\[
+H(\enc{M, w}) = \begin{cases} \text{acepta} & \text{si } M \text{ acepta } w, \\ \text{rechaza} & \text{si } M \text{ no acepta } w. \end{cases}
+\]
+
+\subsection{Construcción de la máquina diagonal $D$}
+
+Usando $H$ como subrutina, construimos una nueva máquina $D$ que recibe como entrada la codificación $\enc{M}$ de una \MT\ y procede así:
+\begin{enumerate}
+    \item Simula $H$ con la entrada $\enc{M, \enc{M}}$ (es decir, $H$ pregunta si $M$ acepta su propia descripción).
+    \item Si $H$ acepta, entonces $D$ \textbf{rechaza}.
+    \item Si $H$ rechaza, entonces $D$ \textbf{acepta}.
+\end{enumerate}
+
+En símbolos:
+\[
+D(\enc{M}) = \begin{cases} \text{acepta} & \text{si } M \text{ no acepta } \enc{M}, \\ \text{rechaza} & \text{si } M \text{ acepta } \enc{M}. \end{cases}
+\]
+
+\subsection{Contradicción: ejecutar $D$ sobre $\enc{D}$}
+
+Ahora preguntamos: ¿qué hace $D$ con la entrada $\enc{D}$?
+\begin{itemize}
+    \item Si $D$ \emph{acepta} $\enc{D}$, entonces por su definición $D$ no acepta $\enc{D}$. Contradicción.
+    \item Si $D$ \emph{rechaza} $\enc{D}$, entonces por su definición $D$ acepta $\enc{D}$. Contradicción.
+\end{itemize}
+
+En cualquier caso llegamos a una contradicción. La hipótesis de partida (que existe $H$) debe ser falsa: no puede haber ninguna \MT\ que decida $A_{TM}$.\hfill$\square$
+
+\subsection{¿Por qué se llama ``diagonalización''?}
+
+La conexión con el argumento de Cantor se ve claramente al imaginar una tabla infinita en la que la fila $i$ corresponde a la máquina $M_i$ y la columna $j$ a la entrada $\enc{M_j}$, con un símbolo $A$ o $R$ en cada celda según $M_i$ acepte o rechace $\enc{M_j}$:
+
+\begin{center}
+\begin{tabular}{c|ccccc}
+& $\enc{M_1}$ & $\enc{M_2}$ & $\enc{M_3}$ & $\cdots$ & $\enc{D}$ \\
+\hline
+$M_1$ & $\mathbf{A}$ & R & R & \dots & \\
+$M_2$ & R & $\mathbf{R}$ & A & \dots & \\
+$M_3$ & A & R & $\mathbf{A}$ & \dots & \\
+$M_4$ & R & R & R & $\mathbf{R}$ \dots & \\
+$\vdots$ & & & & & \\
+$D$ & & & & & $\mathbf{?}$ \\
+\end{tabular}
+\end{center}
+
+La máquina $H$, si existiera, \emph{completaría toda la grilla}: para cualquier par $(i, j)$ podría decirnos si $M_i$ acepta $\enc{M_j}$.
+
+La máquina $D$ está diseñada para \emph{contradecir la diagonal}: $D$ acepta $\enc{M_i}$ si y solo si $M_i$ rechaza $\enc{M_i}$. Es decir, $D$ es ``lo opuesto a la diagonal''.
+
+Pero $D$ es ella misma una \MT, así que aparece como una fila en la tabla, digamos $M_k = D$. ¿Qué tendría que valer en la celda $(D, \enc{D})$? Por construcción, $D$ acepta $\enc{D}$ si y solo si $D$ rechaza $\enc{D}$. Contradicción.
+
+\begin{intuicion}
+La construcción es exactamente análoga a la de Cantor: en la celda $(i, i)$ ponemos lo \emph{opuesto} a lo que dice la fila $i$, y obtenemos un elemento que no puede estar en la lista. La existencia de $H$ permitiría construir $D$, y $D$ es la ``anti-diagonal'' que rompe todo.
+\end{intuicion}
+
+\section{Un lenguaje que ni siquiera es reconocible}
+
+El Halting Problem mostró que existen lenguajes Turing reconocibles que no son decidibles. ¿Habrá lenguajes que ni siquiera sean reconocibles? Sí.
+
+\subsection{Un teorema clave}
+
+\begin{teorema}\label{teo:complemento}
+Si un lenguaje $L$ es Turing reconocible y su complemento $\overline{L}$ también lo es, entonces $L$ es decidible.
+\end{teorema}
+
+\textbf{Prueba.} Supongamos que $M$ reconoce $L$ y que $\overline{M}$ reconoce $\overline{L}$. Construimos una máquina $T$ con dos cintas auxiliares que decide $L$:
+
+\begin{itemize}
+    \item En la cinta 2 simula $M$ con la entrada original.
+    \item En la cinta 3 simula $\overline{M}$ con la misma entrada.
+    \item Las simulaciones avanzan \emph{en paralelo}, alternando un paso de $M$ y un paso de $\overline{M}$.
+    \item Si en algún momento la simulación de $M$ acepta, $T$ acepta.
+    \item Si en algún momento la simulación de $\overline{M}$ acepta, $T$ rechaza.
+\end{itemize}
+
+\textbf{¿Por qué $T$ siempre termina?} Dada una entrada $w$, hay dos casos:
+\begin{itemize}
+    \item Si $w \in L$, entonces $M$ acepta $w$ en una cantidad finita de pasos, y $T$ termina aceptando.
+    \item Si $w \notin L$, entonces $w \in \overline{L}$, y por hipótesis $\overline{M}$ acepta $w$ en una cantidad finita de pasos, y $T$ termina rechazando.
+\end{itemize}
+
+En cualquier caso $T$ termina con la respuesta correcta. Por lo tanto $L$ es decidible.\hfill$\square$
+
+\subsection{$\overline{A_{TM}}$ no es Turing reconocible}
+
+Definamos el complemento del Halting Problem:
+\[
+\overline{A_{TM}} = \{ \enc{M, w} \mid M \text{ no acepta } w \}.
+\]
+
+\begin{teorema}
+$\overline{A_{TM}}$ no es Turing reconocible.
+\end{teorema}
+
+\textbf{Prueba (por contradicción).} Supongamos que $\overline{A_{TM}}$ es Turing reconocible. Ya vimos que $A_{TM}$ \emph{también} es Turing reconocible (vía la máquina universal $U$). Entonces, por el Teorema~\ref{teo:complemento}, $A_{TM}$ sería decidible. Pero acabamos de demostrar que $A_{TM}$ \emph{no} es decidible. Contradicción.\hfill$\square$
+
+\begin{idea}
+Tenemos entonces una jerarquía estricta:
+\[
+\text{decidibles} \;\subsetneq\; \text{Turing reconocibles} \;\subsetneq\; \text{todos los lenguajes}.
+\]
+\begin{itemize}
+    \item Los lenguajes \textbf{decidibles} son los que algún algoritmo siempre puede responder.
+    \item Los \textbf{Turing reconocibles} son los que algún algoritmo puede \emph{confirmar} cuando la respuesta es Sí, pero pueden no terminar si la respuesta es No.
+    \item Los lenguajes que \textbf{no son ni siquiera reconocibles} son aquellos para los que ni siquiera podemos pretender confirmar las respuestas afirmativas. $\overline{A_{TM}}$ es el primer ejemplo concreto.
+\end{itemize}
+\end{idea}
+
+\section{Resumen final}
+
+Las ideas y resultados más importantes para recordar:
+
+\begin{enumerate}
+    \item \textbf{Codificación de problemas como lenguajes.} Decidir si un problema es algorítmicamente resoluble equivale a decidir si su lenguaje asociado es \emph{decidible}.
+
+    \item \textbf{Problemas decidibles concretos.} Tanto el vacío de un AFD ($E_{DFA}$) como la pertenencia para gramáticas libres de contexto ($A_{CFG}$) son decidibles. La técnica común es \emph{acotar el espacio de búsqueda} (BFS sobre estados, derivaciones de longitud $2n-1$ en forma normal de Chomsky).
+
+    \item \textbf{La máquina universal $U$.} Dada $\enc{M, w}$, $U$ simula $M$ con entrada $w$. Esto muestra que $A_{TM}$ es Turing reconocible (aunque no decidible).
+
+    \item \textbf{Cardinalidad de Cantor.} Dos conjuntos tienen la misma cardinalidad si hay una biyección entre ellos. $\N \cong \Z \cong \Q$ son todos contables; en cambio, $\R$ es \emph{estrictamente} más grande ($\N < \R$).
+
+    \item \textbf{Argumento diagonal de Cantor.} La no-contabilidad de $\R$ se prueba suponiendo una enumeración y construyendo un nuevo número que difiere del $i$-ésimo en su $i$-ésimo dígito.
+
+    \item \textbf{Existencia de lenguajes no computables.} Hay $\aleph_0$ máquinas de Turing y $2^{\aleph_0}$ lenguajes posibles. Por simple conteo, deben existir lenguajes no reconocibles.
+
+    \item \textbf{Indecidibilidad de $A_{TM}$ (Halting Problem).} Si existiera un decididor $H$, podríamos construir una máquina $D$ que acepta $\enc{M}$ si y solo si $M$ no acepta $\enc{M}$. Evaluar $D(\enc{D})$ produce contradicción.
+
+    \item \textbf{Teorema del complemento.} Si $L$ y $\overline{L}$ son ambos reconocibles, entonces $L$ es decidible. Equivalentemente: si $L$ es reconocible pero no decidible, entonces $\overline{L}$ \emph{no} es reconocible.
+
+    \item \textbf{$\overline{A_{TM}}$ no es reconocible.} Es el primer ejemplo concreto de lenguaje fuera de la clase Turing reconocible.
+
+    \item \textbf{Jerarquía estricta.} Los lenguajes decidibles son un subconjunto propio de los reconocibles, que a su vez son un subconjunto propio de todos los lenguajes.
+\end{enumerate}
+
+\begin{intuicion}
+La gran lección de este teórico es que la noción de cómputo, formalizada por las \MTs, tiene \emph{límites intrínsecos}: no porque seamos malos programadores ni porque nos falte memoria, sino por razones puramente matemáticas. La diagonalización es la herramienta universal para exhibir esos límites: aparece en Cantor, en Turing, en Gödel, y en muchos otros lugares de la lógica y la computabilidad.
+\end{intuicion}
+
+\end{document}

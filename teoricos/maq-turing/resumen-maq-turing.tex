@@ -1,0 +1,545 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-tabla,es-noshorthands]{babel}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{tcolorbox}
+\usepackage{tikz}
+\usetikzlibrary{automata,arrows,positioning,shapes}
+\usepackage{parskip}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!60!black,
+    urlcolor=blue!60!black,
+    citecolor=blue!60!black
+}
+
+\newtheoremstyle{definicion}
+    {1em}{1em}{}{}{\bfseries}{.}{.5em}{}
+\theoremstyle{definicion}
+\newtheorem{definicion}{Definición}[section]
+\newtheorem{teorema}[definicion]{Teorema}
+\newtheorem{ejemplo}[definicion]{Ejemplo}
+\newtheorem{observacion}[definicion]{Observación}
+
+\newtcolorbox{intuicion}{
+    colback=blue!5!white,
+    colframe=blue!60!black,
+    title=Intuición,
+    fonttitle=\bfseries,
+    boxrule=0.5pt,
+    arc=2pt
+}
+
+\newtcolorbox{idea}{
+    colback=green!5!white,
+    colframe=green!40!black,
+    title=Idea clave,
+    fonttitle=\bfseries,
+    boxrule=0.5pt,
+    arc=2pt
+}
+
+\newcommand{\MT}{\textsc{mt}}
+\newcommand{\MTs}{\textsc{mt}s}
+\newcommand{\bl}{\sqcup}
+
+\title{\textbf{Resumen Teórico: Máquinas de Turing}\\[0.3em]
+\large Computabilidad y Complejidad --- UNRC}
+\author{Basado en el material de Pablo Castro (UNRC)}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+\vspace{1em}
+\hrule
+\vspace{1em}
+
+\section{Introducción}
+
+La idea de \emph{algoritmo} es uno de los conceptos más antiguos de la matemática, pero su formalización es relativamente reciente. Durante miles de años, los matemáticos usaron procedimientos algorítmicos sin una definición precisa de lo que significaba ``poder calcular algo''. Recién en 1936, Alan Turing propuso un modelo formal que permitió hablar con rigor matemático sobre qué problemas son \textbf{computables} y cuáles no.
+
+Este resumen recorre el modelo de las \textbf{Máquinas de Turing} (\MT): su motivación histórica, su definición formal, sus variantes (multicinta, no determinista, enumeradores), las nociones de lenguaje \emph{reconocible} y \emph{decidible}, y termina con la \textbf{Tesis de Church-Turing}, que sintetiza por qué este modelo se considera \emph{la} formalización de la noción de computación.
+
+\section{Un poco de historia}
+
+\subsection{Algoritmos antes de las computadoras}
+
+La idea intuitiva de algoritmo es muy anterior a la existencia de computadoras. Algunos ejemplos clásicos:
+
+\begin{itemize}
+    \item \textbf{Tablas de arcilla de Bagdad} (aproximadamente 1600 a.C.): describen el algoritmo de la división.
+    \item \textbf{Criba de Eratóstenes} (aproximadamente 200 a.C.): un procedimiento para encontrar los números primos menores a un valor dado.
+    \item \textbf{Algoritmo de Euclides}: calcula el máximo común divisor de dos enteros.
+\end{itemize}
+
+\subsection{El problema con la informalidad}
+
+Aunque estos algoritmos funcionaban, su descripción era \emph{informal}. Por ejemplo, la criba de Eratóstenes se enuncia así:
+
+\begin{quote}
+Dado un $N$, queremos encontrar todos los primos $\leq N$:
+\begin{enumerate}
+    \item Listar los números $1, 2, 3, \dots, N$.
+    \item Para cada $i = 2, \dots, \sqrt{N}$: tachar todos los múltiplos de $i$ desde $i+1$ hasta $N$.
+    \item Los números no tachados son primos.
+\end{enumerate}
+\end{quote}
+
+La descripción es clara para una persona, pero \textbf{no es matemáticamente precisa}: ¿qué significa exactamente ``tachar''? ¿cómo se representa la lista? Para poder \emph{demostrar} cosas sobre algoritmos hace falta una definición formal de lo que es un algoritmo.
+
+\subsection{El problema décimo de Hilbert}
+
+En 1900, David Hilbert planteó 23 problemas que consideraba los más importantes para los matemáticos de su tiempo. El problema número 10 fue particularmente influyente:
+
+\begin{quote}
+\emph{``¿Existe un procedimiento que, en una secuencia finita de pasos, permita determinar si un polinomio tiene una raíz entera?''}
+\end{quote}
+
+Por ejemplo, dado el polinomio $6x^3 y z^2 + 3 x z^2$, ¿hay valores enteros de $x, y, z$ que lo hagan cero? La pregunta de Hilbert es: ¿existe un algoritmo \emph{general} que responda esto para cualquier polinomio?
+
+\begin{idea}
+Si tal procedimiento existe, alcanza con describirlo. Pero si \emph{no} existe, demostrarlo es mucho más difícil: hay que probar que ningún algoritmo posible puede resolverlo. Y para eso primero hay que definir formalmente qué es un algoritmo.
+\end{idea}
+
+\subsection{Turing y la respuesta}
+
+El décimo problema de Hilbert inspiró a Alan Turing a buscar una definición precisa de la noción de algoritmo, con el objetivo de poder demostrar que existen problemas \textbf{no computables}. En 1936 publicó el artículo \emph{``On computable numbers, with an application to the Entscheidungsproblem''}, donde introdujo las máquinas que hoy llevan su nombre y demostró la existencia de problemas que ninguna máquina puede resolver.
+
+\section{Las Máquinas de Turing}
+
+\subsection{Idea intuitiva}
+
+Una máquina de Turing es una formalización muy simple de la noción de computación. Consta de:
+
+\begin{itemize}
+    \item Una \textbf{cinta} infinita dividida en celdas, donde se almacenan símbolos.
+    \item Un \textbf{cabezal} que apunta a una celda de la cinta. Puede leer y escribir.
+    \item Un \textbf{estado} interno (de un conjunto finito).
+    \item Un \textbf{símbolo blanco} $\bl$ que aparece en las celdas vacías.
+\end{itemize}
+
+\begin{center}
+\begin{tikzpicture}[scale=0.9]
+    \foreach \x/\v in {0/$w_0$,1/$w_1$,2/$w_2$,3/$w_3$,4/$w_4$,5/$w_5$,6/$\bl$,7/$\bl$,8/$\bl$} {
+        \draw (\x,0) rectangle (\x+1,1);
+        \node at (\x+0.5,0.5) {\v};
+    }
+    \draw[->, thick] (3.5,2) -- (3.5,1.05);
+    \node[draw,rounded corners] at (3.5,2.4) {Estado};
+\end{tikzpicture}
+\end{center}
+
+En cada paso la máquina realiza tres acciones:
+\begin{enumerate}
+    \item \textbf{Lee} el símbolo bajo el cabezal.
+    \item Según el estado y el símbolo leído, \textbf{escribe} un nuevo símbolo.
+    \item \textbf{Mueve} el cabezal una posición a la izquierda (L) o a la derecha (R), y cambia su estado.
+\end{enumerate}
+
+\begin{intuicion}
+Pensemos la cinta como una memoria ilimitada, el cabezal como un ``procesador'' que solo ve una celda a la vez, y los estados como las distintas situaciones internas en las que puede estar el programa. A pesar de su simplicidad, este modelo es capaz de simular cualquier computadora.
+\end{intuicion}
+
+\subsection{Definición formal}
+
+\begin{definicion}[Máquina de Turing]
+Una \textbf{máquina de Turing} (determinista) es una tupla
+\[
+M = \langle Q, \Sigma, \Gamma, \delta, q_0, q_A, q_R \rangle
+\]
+donde:
+\begin{itemize}
+    \item $Q$ es un conjunto \emph{finito} de estados.
+    \item $\Sigma$ es el \textbf{alfabeto de entrada}, que \emph{no} contiene el símbolo blanco $\bl$.
+    \item $\Gamma$ es el \textbf{alfabeto de la cinta}, con $\Sigma \subseteq \Gamma$ y $\bl \in \Gamma$.
+    \item $\delta : Q \times \Gamma \rightarrow Q \times \Gamma \times \{L, R\}$ es la \textbf{función de transición}.
+    \item $q_0 \in Q$ es el \textbf{estado inicial}.
+    \item $q_A \in Q$ es el \textbf{estado de aceptación}.
+    \item $q_R \in Q$ es el \textbf{estado de rechazo}, con $q_A \neq q_R$.
+\end{itemize}
+\end{definicion}
+
+La transición $\delta(q, a) = (q', b, D)$ se lee así: ``estando en el estado $q$ y leyendo el símbolo $a$, escribo $b$, me muevo en la dirección $D \in \{L, R\}$ y paso al estado $q'$''.
+
+\subsection{Funcionamiento sobre una entrada}
+
+Dada una cadena de entrada $w \in \Sigma^*$, la máquina $M$ procede así:
+
+\begin{enumerate}
+    \item Empieza en el estado $q_0$, con $w$ escrito en las primeras celdas de la cinta (el resto contiene $\bl$) y el cabezal apuntando al primer símbolo.
+    \item En cada paso aplica $\delta$ al estado y símbolo actuales: escribe, se mueve y cambia de estado.
+    \item Se repite hasta llegar al estado $q_A$ (acepta) o al estado $q_R$ (rechaza).
+\end{enumerate}
+
+Hay \textbf{tres posibles resultados}:
+\begin{enumerate}[label=(\roman*)]
+    \item La máquina \textbf{acepta} la entrada al llegar a $q_A$.
+    \item La máquina \textbf{rechaza} la entrada al llegar a $q_R$.
+    \item La máquina \textbf{no termina} (se queda corriendo para siempre).
+\end{enumerate}
+
+\begin{intuicion}
+La tercera posibilidad --- que la máquina no termine --- es una característica fundamental del modelo. A diferencia de los autómatas finitos, una \MT\ puede entrar en bucles infinitos. Esto, lejos de ser un ``defecto'', es lo que le permite capturar la idea genuina de cómputo y, como veremos, está íntimamente relacionado con la existencia de problemas no decidibles.
+\end{intuicion}
+
+\section{Configuraciones y aceptación}
+
+\subsection{Configuraciones}
+
+Para describir formalmente la ejecución de una \MT\ usamos la noción de \emph{configuración}, que captura el estado completo de la máquina en un instante.
+
+\begin{definicion}[Configuración]
+Una \textbf{configuración} de una \MT\ tiene tres componentes y se representa como
+\[
+w\, q_i\, v
+\]
+donde:
+\begin{itemize}
+    \item $w \in \Gamma^*$ es la porción de la cinta a la izquierda del cabezal,
+    \item $q_i \in Q$ es el estado actual,
+    \item $v \in \Gamma^*$ es la porción de la cinta a la derecha, \emph{incluyendo} el símbolo bajo el cabezal.
+\end{itemize}
+\end{definicion}
+
+\begin{definicion}[Paso de cómputo]
+Escribimos $w\, q_i\, v \to_M w'\, q_j\, v'$ si la configuración $w'\, q_j\, v'$ se obtiene aplicando una vez la función de transición $\delta$ de la máquina $M$ a la configuración $w\, q_i\, v$.
+\end{definicion}
+
+\subsection{Aceptación y lenguaje reconocido}
+
+\begin{definicion}[Aceptación de una cadena]
+Una \MT\ $M$ \textbf{acepta} una cadena $w$ si existe una secuencia de configuraciones $C_0, C_1, \dots, C_n$ tal que:
+\begin{itemize}
+    \item $C_0 = q_0\, w$ es la configuración inicial.
+    \item Para cada $0 \leq i < n$, se tiene $C_i \to_M C_{i+1}$.
+    \item $C_n$ es una configuración de aceptación, es decir, $C_n = w'\, q_A\, w''$ para algunos $w', w'' \in \Gamma^*$.
+\end{itemize}
+\end{definicion}
+
+\begin{definicion}[Lenguaje reconocido]
+Dada una \MT\ $M$, el \textbf{lenguaje reconocido} por $M$ es
+\[
+\mathcal{L}(M) = \{ w \in \Sigma^* \mid M \text{ acepta } w \}.
+\]
+\end{definicion}
+
+\begin{definicion}[Lenguaje Turing reconocible]
+Un lenguaje $L$ es \textbf{Turing reconocible} (también llamado \emph{recursivamente enumerable}) si y solo si existe una \MT\ $M$ tal que $\mathcal{L}(M) = L$.
+\end{definicion}
+
+\begin{observacion}
+Si $w \notin \mathcal{L}(M)$, la máquina puede rechazar $w$ explícitamente (llegando a $q_R$) \emph{o} no terminar nunca. Ambas situaciones cuentan como ``$M$ no acepta $w$''.
+\end{observacion}
+
+\section{Máquinas de decisión y lenguajes decidibles}
+
+Hay un sub-tipo de \MT\ especialmente importante: las que \emph{siempre} terminan.
+
+\begin{definicion}[Máquina de decisión]
+Una \textbf{máquina de decisión} es una \MT\ que, para cualquier entrada, termina (en $q_A$ o $q_R$). Es decir, nunca se queda corriendo indefinidamente.
+\end{definicion}
+
+\begin{definicion}[Lenguaje decidible]
+Un lenguaje $L$ se dice \textbf{decidible} si y solo si existe una máquina de decisión $M$ tal que $\mathcal{L}(M) = L$.
+\end{definicion}
+
+\begin{idea}
+Una máquina de decisión nos permite responder con \emph{certeza} si una cadena pertenece o no a un lenguaje. Las máquinas que no siempre terminan, en cambio, solo pueden \emph{confirmar} pertenencia: si la cadena no está en el lenguaje, podríamos esperar para siempre sin obtener respuesta.
+\end{idea}
+
+\subsection{Relación entre decidible y reconocible}
+
+Toda máquina de decisión es, en particular, una \MT, así que:
+\[
+\text{decidible} \implies \text{Turing reconocible}.
+\]
+
+\textbf{Pero la implicación inversa no vale.} Existen lenguajes que son Turing reconocibles \emph{pero no decidibles}: una \MT\ los reconoce, pero no hay forma de garantizar que termine cuando la cadena no pertenece al lenguaje.
+
+\begin{ejemplo}[Reconocible pero no decidible]
+Consideremos
+\[
+L = \{ \phi \mid \;\vdash \phi \}
+\]
+el lenguaje de las fórmulas de primer orden que son válidas (es decir, los teoremas demostrables).
+
+Podemos pensar una \MT\ que reconozca $L$ del siguiente modo:
+\begin{enumerate}
+    \item Empieza con la fórmula $\phi$ codificada en la cinta.
+    \item Detrás de $\phi$ escribe un separador \texttt{\#}.
+    \item Va enumerando \emph{todas} las posibles demostraciones (combinando reglas y axiomas).
+    \item Si en algún momento la demostración produce $\phi$, acepta.
+\end{enumerate}
+
+Si $\phi$ es demostrable, eventualmente aparecerá entre las demostraciones generadas y la máquina aceptará. Pero si $\phi$ \emph{no} es demostrable, la máquina sigue buscando para siempre. Puede probarse que este lenguaje \emph{no} es decidible: no existe ningún algoritmo que siempre termine y decida correctamente si una fórmula es teorema.
+\end{ejemplo}
+
+\section{Cómo describir máquinas de Turing}
+
+Para diseñar \MTs\ usamos distintos niveles de descripción: \emph{alto nivel} (en palabras), \emph{diagrama de estados}, o \emph{tabla de transiciones}.
+
+\subsection{Ejemplo 1: el lenguaje $A = \{w \# w \mid w \in \{0,1\}^*\}$}
+
+Queremos una \MT\ que reconozca cadenas de la forma $w \# w$.
+
+\textbf{Idea de alto nivel:} comparar carácter a carácter, marcando cada símbolo ya comparado con una $x$ para no volver a procesarlo.
+
+\textbf{Algoritmo:}
+\begin{enumerate}
+    \item Dado un símbolo $b$ a la izquierda del \texttt{\#}, reemplazarlo por $x$ y avanzar a la derecha hasta encontrar el primer símbolo después del \texttt{\#} que no sea $x$.
+    \begin{itemize}
+        \item Si ese símbolo es igual a $b$, reemplazarlo por $x$ y volver al comienzo.
+        \item Si es distinto (o no hay), rechazar.
+    \end{itemize}
+    \item Cuando se llegue a una configuración donde antes del \texttt{\#} todo es $x$, verificar que después del \texttt{\#} también es todo $x$. Si es así, aceptar; sino, rechazar.
+\end{enumerate}
+
+\textbf{Definición formal:} con $\Sigma = \{0, 1, \#\}$ y $\Gamma = \{0, 1, \#, x, \bl\}$, la máquina $M_1$ tiene estados $q_1, \dots, q_8, q_{\text{accept}}$ (más $q_R$ implícito) y un diagrama que coordina:
+\begin{itemize}
+    \item $q_1$: leer el primer símbolo sin marcar de la izquierda y marcarlo con $x$.
+    \item $q_2, q_3$: recordar si el símbolo borrado era 0 o 1, mientras se cruza hacia la derecha del \texttt{\#}.
+    \item $q_4, q_5$: buscar el primer símbolo no marcado a la derecha y compararlo.
+    \item $q_6, q_7$: regresar a la izquierda para repetir el proceso.
+    \item $q_8$: verificar que después de \texttt{\#} todo sea $x$, y aceptar.
+\end{itemize}
+
+Las transiciones \emph{no especificadas} explícitamente se asume que van al estado de rechazo $q_R$.
+
+\subsection{Ejemplo 2: el lenguaje $A = \{0^{2^n} \mid n \geq 0\}$}
+
+Aquí queremos reconocer cadenas con $1, 2, 4, 8, 16, \dots$ ceros (potencias de 2).
+
+\textbf{Idea de alto nivel:} en cada pasada por la cinta, ``tachar'' la mitad de los ceros. Si en alguna pasada queda exactamente un cero, aceptamos. Si en alguna pasada queda una cantidad impar mayor a 1, rechazamos (porque la cantidad no era potencia de 2).
+
+\textbf{Algoritmo:}
+\begin{enumerate}
+    \item Reemplazar el primer $0$ por $\bl$. Si no había más símbolos, \emph{aceptar}.
+    \item Si hay otro $0$, reemplazarlo por $x$ (esta primera ``marca'' indica el inicio de la pasada).
+    \item Para cada $0$ a la derecha, reemplazar uno sí y uno no por $x$ (es decir, contar de a pares).
+    \item Si la cantidad de ceros era impar (mayor a 1), rechazar.
+    \item Al llegar al final, volver al principio y repetir el paso 3 sobre los ceros restantes.
+    \item Si en algún momento solo queda un cero, aceptar.
+\end{enumerate}
+
+Cada pasada divide a la mitad la cantidad de ceros sin marcar; si la cantidad original era $2^n$, después de $n$ pasadas queda 1 y aceptamos. Si no era potencia de 2, en alguna pasada la cantidad será impar y rechazamos.
+
+\subsection{Tabla de transiciones}
+
+También se puede definir $\delta$ mediante una \textbf{tabla}: para cada par (estado, símbolo), se indica el símbolo a escribir, el movimiento (L/R) y el estado siguiente.
+
+\textbf{Observación práctica:} para máquinas grandes, tanto el diagrama como la tabla resultan \emph{impracticables}. Por eso normalmente diseñamos las \MTs\ con descripciones de alto nivel.
+
+\section{Variantes del modelo}
+
+Una propiedad muy importante del modelo de Turing es su \textbf{robustez}: muchas variantes naturales (más cintas, no determinismo, cinta doblemente infinita, etc.) resultan equivalentes en poder de cómputo a la \MT\ original. Esto es una evidencia fuerte a favor de que las \MTs\ capturan la noción intuitiva de cómputo.
+
+\subsection{Máquinas de Turing con múltiples cintas}
+
+Una \MT\ con $k$ cintas es como la versión estándar pero con $k$ cintas independientes, cada una con su propio cabezal. La cadena de entrada está inicialmente en la primera cinta; las otras empiezan vacías.
+
+\begin{definicion}[\MT\ multicinta]
+Una \MT\ con $k$ cintas es una tupla
+\[
+\langle Q, \Sigma, \{\Gamma_i\}_{0 \leq i < k}, \delta, q_0, q_A, q_R \rangle
+\]
+donde $\Gamma_i$ es el alfabeto de la $i$-ésima cinta y
+\[
+\delta : Q \times \Gamma_0 \times \cdots \times \Gamma_{k-1} \;\longrightarrow\; Q \times \Gamma_0 \times \cdots \times \Gamma_{k-1} \times \{L, R\}^k.
+\]
+En cada paso, la máquina lee \emph{los $k$ símbolos} bajo los cabezales, escribe en cada cinta, y mueve cada cabezal en su propia dirección.
+\end{definicion}
+
+\begin{teorema}[Equivalencia multicinta--una cinta]
+Para toda \MT\ con $k$ cintas existe una \MT\ con una sola cinta equivalente: reconocen el mismo lenguaje.
+\end{teorema}
+
+\textbf{Idea de la prueba (simulación).} Dada una \MT\ $M$ con $k$ cintas, construimos una \MT\ $S$ con una sola cinta que simula a $M$:
+
+\begin{itemize}
+    \item En la cinta de $S$ se concatenan los contenidos de las $k$ cintas de $M$, separados por el símbolo \texttt{\#}:
+    \[
+    \#\; t_1 \;\#\; t_2 \;\#\; \cdots \;\#\; t_k \;\#
+    \]
+    \item Para indicar dónde está el cabezal de cada cinta, se introducen \textbf{símbolos marcados} (por ejemplo, $\overline{a}$ representa el símbolo $a$ con el cabezal encima).
+    \item Para simular un paso de $M$, la máquina $S$ recorre la cinta para localizar los $k$ símbolos marcados, decide qué hacer según $\delta$, y luego vuelve a recorrer la cinta para realizar las modificaciones y mover los cabezales virtuales.
+    \item Si una cinta virtual necesita más espacio (por ejemplo, su cabezal se ``sale'' del segmento asignado), $S$ desplaza todo lo que está a la derecha una posición.
+\end{itemize}
+
+Esta simulación tiene un costo en tiempo (es \emph{cuadráticamente} más lenta), pero reconoce exactamente el mismo lenguaje.
+
+\subsection{Máquinas de Turing no deterministas}
+
+En una \MT\ \textbf{no determinista} (NTM, por \emph{nondeterministic Turing machine}), la transición ya no produce \emph{un} sucesor sino un \emph{conjunto} de sucesores posibles. Es decir, desde una misma configuración la máquina puede ``ramificarse'' en varias ejecuciones.
+
+\begin{definicion}[\MT\ no determinista]
+Una \MT\ no determinista difiere de la determinista solo en la función de transición:
+\[
+\delta : Q \times \Gamma \;\longrightarrow\; \mathcal{P}(Q \times \Gamma \times \{L, R\}).
+\]
+Es decir, $\delta(q, a)$ es un \emph{conjunto} de tripletas, posiblemente con más de un elemento.
+\end{definicion}
+
+\textbf{Propiedades importantes:}
+\begin{itemize}
+    \item Cada configuración tiene una \emph{cantidad finita} de posibles sucesores.
+    \item La ejecución forma un \textbf{árbol} (no una secuencia lineal).
+    \item Se dice que la máquina \textbf{acepta} la cadena si \emph{existe al menos una rama} del árbol que llegue a $q_A$.
+    \item No es un modelo realista de cómputo: no se corresponde con una computadora real, pero es una herramienta teórica muy útil.
+\end{itemize}
+
+\begin{intuicion}
+Podemos pensar al no determinismo como un ``adivino mágico'' que siempre toma la decisión correcta. Si \emph{alguna} secuencia de decisiones lleva a aceptar, la máquina acepta. Equivalentemente: se ejecutan todas las ramas en paralelo y basta con que una acepte.
+\end{intuicion}
+
+\begin{teorema}[Equivalencia DTM--NTM]
+Para toda \MT\ no determinista $N$ existe una \MT\ determinista $M$ equivalente, es decir, $\mathcal{L}(N) = \mathcal{L}(M)$.
+\end{teorema}
+
+\textbf{Idea de la prueba.} La idea es recorrer el árbol de ejecución de $N$ con un algoritmo de búsqueda en anchura (\textbf{BFS}):
+\begin{itemize}
+    \item $M$ explora todas las ramas del árbol de ejecución de $N$, nivel por nivel.
+    \item Si \emph{alguna} rama acepta la cadena, $M$ acepta.
+    \item Es importante usar BFS y no DFS: si usáramos DFS y la primera rama no terminara, nunca exploraríamos las otras ramas (que podrían aceptar). Con BFS, si hay una rama que acepta a profundidad finita, en algún momento la encontramos.
+    \item Si $N$ no acepta la cadena y alguna rama no termina, entonces $M$ tampoco terminará.
+\end{itemize}
+
+\textbf{Conclusión:} el no determinismo no agrega poder de cómputo, solo cambia la \emph{eficiencia} (y de hecho, la relación entre clases deterministas y no deterministas es uno de los problemas abiertos centrales en teoría de la complejidad: $P$ vs.\ $NP$).
+
+\subsection{Otras variantes equivalentes}
+
+Otras variantes que también resultan equivalentes a la \MT\ estándar (no se demuestra en detalle aquí, pero la idea es similar):
+\begin{itemize}
+    \item \textbf{Cinta doblemente infinita}: la cinta es infinita tanto a izquierda como a derecha. Se simula con una cinta normal ``doblando'' la cinta sobre sí misma y usando dos pistas.
+    \item Diferentes alfabetos, números variables de estados, etc.
+\end{itemize}
+
+\section{Equivalencia entre máquinas}
+
+\begin{definicion}[Máquinas equivalentes]
+Dos \MTs\ $M$ y $M'$ son \textbf{equivalentes} si para toda cadena $w$:
+\begin{itemize}
+    \item $M$ acepta $w$ si y solo si $M'$ acepta $w$;
+    \item $M$ rechaza $w$ si y solo si $M'$ rechaza $w$;
+    \item $M$ no termina con $w$ si y solo si $M'$ no termina con $w$.
+\end{itemize}
+\end{definicion}
+
+\begin{observacion}
+La \textbf{equivalencia} entre \MTs\ es un problema \textbf{no decidible}: no existe ningún algoritmo que, dadas dos \MTs\ cualesquiera, siempre termine y decida si son equivalentes. Este es uno de los resultados de imposibilidad clásicos de la teoría de la computabilidad.
+\end{observacion}
+
+\section{Enumeradores}
+
+\subsection{Idea intuitiva}
+
+Hasta ahora pensamos a las \MTs\ como ``reconocedoras'': les damos una cadena y nos dicen si la aceptan o no. Otra perspectiva igualmente útil es la de máquinas que \emph{producen} todas las cadenas de un lenguaje, una tras otra. A estas máquinas las llamamos \textbf{enumeradores}.
+
+Un enumerador, intuitivamente, es una \MT\ con una ``impresora'': cada cierto tiempo escribe una cadena en su salida. El conjunto de todas las cadenas que llega a imprimir constituye el lenguaje \emph{enumerado} por la máquina.
+
+\subsection{Formalización}
+
+\begin{definicion}[Enumerador]
+Un \textbf{enumerador} es una \MT\ con \textbf{dos cintas}:
+\[
+\langle Q, \Sigma, \Gamma_0, \Gamma_1, q_0, q_{\text{init}}, q_A, q_R, q_{\text{print}} \rangle
+\]
+donde:
+\begin{itemize}
+    \item $\Gamma_0$ es el alfabeto de la cinta de trabajo.
+    \item $\Gamma_1$ es el alfabeto de la cinta de impresión (output).
+    \item $q_{\text{print}}$ es un \textbf{estado de impresión}: cada vez que se llega a $q_{\text{print}}$, se ``emite'' el contenido actual de la cinta de impresión y luego se limpia.
+\end{itemize}
+\end{definicion}
+
+\begin{definicion}[Lenguaje enumerado]
+Un lenguaje $L$ es \textbf{recursivamente enumerado} (por un enumerador $E$) si existe un enumerador $E$ tal que el conjunto de todas las cadenas que $E$ imprime es exactamente $L$.
+\end{definicion}
+
+\subsection{Lenguajes reconocibles vs. lenguajes enumerados}
+
+Los conceptos de Turing reconocible y enumerable por un enumerador coinciden:
+
+\begin{teorema}
+Un lenguaje $L$ es Turing reconocible si y solo si existe un enumerador $E$ que lo enumera.
+\end{teorema}
+
+\textbf{Prueba.} La demostración va en ambos sentidos.
+
+\textbf{($\Leftarrow$) De enumerador a reconocedor.} Supongamos que $E$ enumera $L$. Construimos una \MT\ $M$ con dos cintas que reconoce $L$:
+\begin{itemize}
+    \item Dada una entrada $w$, $M$ simula $E$ en la segunda cinta.
+    \item Cada vez que $E$ imprime una cadena $w'$, $M$ la compara con $w$.
+    \item Si en algún momento $w' = w$, la máquina $M$ acepta.
+    \item Si $w \notin L$, $E$ no imprime $w$ y $M$ nunca acepta (no termina o sigue esperando).
+\end{itemize}
+
+\textbf{($\Rightarrow$) De reconocedor a enumerador.} Dada una \MT\ $M$ que reconoce $L$, construimos un enumerador $E$ así:
+\begin{itemize}
+    \item $E$ ignora su entrada.
+    \item Sea $s_1, s_2, s_3, \dots$ una enumeración (computable) de todas las cadenas de $\Sigma^*$.
+    \item Para cada $i = 1, 2, 3, \dots$:
+    \begin{itemize}
+        \item Correr $M$ durante $i$ pasos sobre cada una de las cadenas $s_1, s_2, \dots, s_i$.
+        \item Cada vez que $M$ acepta alguna de estas cadenas dentro de $i$ pasos, imprimirla.
+    \end{itemize}
+\end{itemize}
+
+\textbf{¿Por qué funciona?} Si $w \in L$, entonces $M$ acepta $w$ en algún número finito de pasos $k$. Cuando $i \geq \max(k, j)$ (donde $s_j = w$), la doble pasada del bucle llega a probar $M$ con $w$ por $i$ pasos, encuentra la aceptación e imprime $w$. Por lo tanto, toda cadena de $L$ termina siendo impresa.
+
+\begin{idea}
+La técnica de simular ``$M$ por $i$ pasos sobre las primeras $i$ cadenas, para $i = 1, 2, 3, \dots$'' se llama \textbf{dovetailing} y es fundamental. Permite ``ejecutar en paralelo'' infinitas computaciones sin quedarse atrapado en una sola que nunca termina.
+\end{idea}
+
+\section{La Tesis de Church-Turing}
+
+A lo largo de la historia se propusieron diferentes formalizaciones de la idea de computación: las \MTs\ de Turing, el $\lambda$-cálculo de Church, las funciones recursivas de Gödel-Kleene, los sistemas de Post, las máquinas RAM, los lenguajes de programación modernos, etc.
+
+\textbf{Hecho notable:} \emph{todas estas formalizaciones resultaron ser equivalentes entre sí}. Cualquier función calculable por uno de estos modelos también lo es por los demás.
+
+\begin{tcolorbox}[colback=yellow!10!white, colframe=orange!70!black, title=\textbf{Tesis de Church-Turing}, fonttitle=\bfseries]
+La noción intuitiva de \emph{algoritmo} (o \emph{función computable}) coincide con la noción formal de \emph{función computable por una máquina de Turing}. En otras palabras: \emph{todos los modelos razonables de computación son equivalentes en poder a la máquina de Turing}.
+\end{tcolorbox}
+
+\textbf{Importante:} la tesis de Church-Turing \emph{no es un teorema}: no se puede demostrar matemáticamente, porque la idea informal de algoritmo no está formalizada. Es una afirmación \emph{filosófica/empírica}, sustentada en la enorme evidencia acumulada de que todos los modelos propuestos coinciden.
+
+\section{Resumen final}
+
+Las ideas centrales que conviene tener clarísimas:
+
+\begin{enumerate}
+    \item \textbf{Una \MT\ es una formalización muy simple de la noción de cómputo}: una cinta infinita, un cabezal con un estado, y una función de transición que dice qué hacer en cada paso.
+
+    \item \textbf{Una \MT\ tiene tres comportamientos posibles ante una entrada}: aceptar, rechazar o no terminar.
+
+    \item \textbf{Distinguir dos clases de lenguajes es fundamental:}
+    \begin{itemize}
+        \item \textbf{Decidibles}: existe una \MT\ que siempre termina y reconoce el lenguaje.
+        \item \textbf{Turing reconocibles}: existe una \MT\ que reconoce el lenguaje (pero puede no terminar sobre cadenas que no pertenecen).
+    \end{itemize}
+    Todo decidible es reconocible, pero no al revés.
+
+    \item \textbf{El modelo es muy robusto.} Variantes naturales --- multicinta, no determinista, cinta doblemente infinita --- son todas \emph{equivalentes} en poder de cómputo a la \MT\ estándar. Pueden cambiar la eficiencia, pero no qué lenguajes pueden reconocer.
+
+    \item \textbf{Los lenguajes Turing reconocibles coinciden con los lenguajes enumerables} por un enumerador. La doble caracterización (reconocedor / enumerador) es muy útil para demostrar propiedades.
+
+    \item \textbf{Existen problemas no decidibles}, e incluso problemas Turing reconocibles que no son decidibles (como la validez de fórmulas de primer orden, o la equivalencia entre dos \MTs).
+
+    \item \textbf{Tesis de Church-Turing}: todos los modelos razonables de cómputo son equivalentes en poder a la \MT. Esto justifica usar las \MTs\ como modelo canónico de ``lo que se puede computar''.
+\end{enumerate}
+
+\begin{intuicion}
+Si en algún momento te preguntás ``¿este problema se puede resolver con una computadora?'', la respuesta formal es: ``$\Leftrightarrow$ existe una \MT\ que lo decide''. Y si tenés una idea informal de un algoritmo, por la tesis de Church-Turing tenés implícita la garantía de que se puede convertir en una \MT. Por eso, en el resto de la materia, vamos a poder dar algoritmos en lenguaje informal sin perder rigor.
+\end{intuicion}
+
+\end{document}
