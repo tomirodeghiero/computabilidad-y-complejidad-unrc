@@ -1,0 +1,737 @@
+% =============================================================================
+% Practico 03 - Autoreferencia y Teorema de la Recursion
+% Computabilidad y Complejidad (Teoria de la Computacion II)
+% FCEFQyN - Universidad Nacional de Rio Cuarto
+% Primer Cuatrimestre de 2026
+% -----------------------------------------------------------------------------
+% Compilacion sugerida: pdflatex resolucion-practico-03.tex
+% =============================================================================
+
+\documentclass[11pt,a4paper]{article}
+
+% --- Codificacion y idioma --------------------------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-tabla]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+
+% --- Matematica -------------------------------------------------------------
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{stmaryrd}
+
+% --- Layout y tipografia ----------------------------------------------------
+\usepackage[margin=2.7cm]{geometry}
+\usepackage{enumitem}
+\setlist[itemize]{topsep=2pt,itemsep=2pt,parsep=0pt}
+\setlist[enumerate]{topsep=2pt,itemsep=2pt,parsep=0pt}
+\usepackage{parskip}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{array}
+
+% --- Codigo -----------------------------------------------------------------
+\usepackage{fancyvrb}
+\fvset{
+  fontsize=\footnotesize,
+  frame=single,
+  framerule=0.3pt,
+  xleftmargin=6pt,
+  xrightmargin=6pt
+}
+\DefineVerbatimEnvironment{pycode}{Verbatim}{}
+
+% --- Hyperref ---------------------------------------------------------------
+\usepackage[hidelinks]{hyperref}
+\hypersetup{
+  pdftitle={Practico 03 - Autoreferencia},
+  pdfauthor={Computabilidad y Complejidad - UNRC 2026},
+  pdfsubject={Resolucion del Practico 03},
+  pdfkeywords={recursion, autoreferencia, SELF, quine, oraculo, Turing reducibility}
+}
+
+% --- Ambientes de teoremas --------------------------------------------------
+\theoremstyle{plain}
+\newtheorem{teorema}{Teorema}[section]
+\newtheorem{proposicion}[teorema]{Proposicion}
+\newtheorem{lema}[teorema]{Lema}
+\newtheorem{corolario}[teorema]{Corolario}
+
+\theoremstyle{definition}
+\newtheorem{definicion}[teorema]{Definicion}
+\newtheorem{ejemplo}[teorema]{Ejemplo}
+
+\theoremstyle{remark}
+\newtheorem*{observacion}{Observacion}
+\newtheorem*{idea}{Idea}
+\newtheorem*{intuicion}{Intuicion}
+
+% --- Comandos de notacion ---------------------------------------------------
+\newcommand{\MT}{\mathrm{MT}}
+\newcommand{\TM}{\mathrm{TM}}
+\newcommand{\enc}[1]{\langle #1\rangle}
+\newcommand{\encMw}{\langle M, w\rangle}
+\newcommand{\lang}{\mathcal{L}}
+\newcommand{\Sstar}{\Sigma^{*}}
+\newcommand{\redm}{\le_{m}}
+\newcommand{\redT}{\le_{T}}
+\newcommand{\compl}[1]{\overline{#1}}
+\newcommand{\qaccept}{q_{\text{accept}}}
+\newcommand{\qreject}{q_{\text{reject}}}
+\newcommand{\ATM}{A_{\TM}}
+\newcommand{\HALT}{\mathit{HALT}_{\TM}}
+\newcommand{\ETM}{E_{\TM}}
+\newcommand{\MIN}{\mathit{MIN}_{\TM}}
+\newcommand{\SELF}{\mathrm{SELF}}
+\newcommand{\Pw}[1]{P_{#1}}
+\newcommand{\Powerset}{\mathcal{P}}
+
+% --- Cabecera ---------------------------------------------------------------
+\title{\textbf{Practico 03 -- Autoreferencia y Teorema de la Recursi\'on}\\[0.3em]
+       \normalsize Computabilidad y Complejidad (Teor\'ia de la Computaci\'on II)\\
+       \normalsize FCEFQyN -- Universidad Nacional de R\'io Cuarto\\
+       \normalsize Primer Cuatrimestre de 2026}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\thispagestyle{empty}
+
+\hrule
+\vspace{0.4em}
+\begin{center}
+\small
+Resoluci\'on completa del Pr\'actico 03. Apoyada en el Cap\'itulo 6 del libro
+de M.~Sipser, \emph{Introduction to the Theory of Computation}, y en las l\'aminas
+te\'oricas de la c\'atedra (\texttt{autoref.pdf}).
+\end{center}
+\vspace{0.4em}
+\hrule
+
+\tableofcontents
+\bigskip
+\hrule
+\bigskip
+
+% =============================================================================
+\section*{Introducci\'on}
+\addcontentsline{toc}{section}{Introducci\'on}
+
+El presente trabajo resuelve la totalidad de los ejercicios del Pr\'actico 03
+de la asignatura, centrado en la \emph{autoreferencia} y el \emph{Teorema de la
+Recursi\'on}. Estas herramientas permiten que las M\'aquinas de Turing obtengan
+su propia descripci\'on y operen con ella, lo cual da lugar a una nueva
+demostraci\'on de la indecibilidad de $\ATM$, a propiedades llamativas como
+la no-reconocibilidad de $\MIN$, y a la noci\'on de \emph{introspecci\'on}
+en lenguajes de programaci\'on reales. La gu\'ia te\'orica utilizada es:
+
+\begin{itemize}
+  \item el Cap\'itulo 6 del libro de Sipser (\texttt{chapter-06.pdf}), que
+        cubre el Teorema de la Recursi\'on, sus aplicaciones (m\'aquinas
+        m\'inimas, teorema del punto fijo) y las nociones de \emph{oracle
+        Turing machine} y de \emph{Turing reducibility};
+  \item las l\'aminas de la c\'atedra (\texttt{autoref.pdf}) de Pablo Castro,
+        que sintetizan la construcci\'on de la m\'aquina $\SELF$, su versi\'on
+        recursiva general, el lenguaje $\MIN$ y la noci\'on de or\'aculo.
+\end{itemize}
+
+\paragraph{Convenciones de notaci\'on.}
+A lo largo del documento adoptamos las siguientes convenciones, en l\'inea
+con Sipser:
+\begin{itemize}
+  \item $\Sigma$ es un alfabeto y $\Sstar$ el conjunto de cadenas finitas
+        sobre $\Sigma$.
+  \item $\enc{M}$ denota una codificaci\'on (descripci\'on) de la M\'aquina
+        de Turing $M$, y $\encMw$ codifica el par $(M,w)$.
+  \item $\lang(M)$ es el lenguaje reconocido por $M$.
+  \item $M^{O}$ denota una MT $M$ con un or\'aculo para el lenguaje $O$
+        (Definici\'on 6.18 de Sipser).
+  \item $A\redT B$ significa que $A$ es decidible relativo a $B$, es decir,
+        existe una MT con or\'aculo $M^{B}$ que decide $A$
+        (Definici\'on 6.20 de Sipser).
+  \item ``Decidible'' = Turing-decidible; ``reconocible'' = Turing-reconocible.
+\end{itemize}
+
+\paragraph{Lemas de referencia.}
+La herramienta b\'asica de toda esta secci\'on es el siguiente lema, que se usa
+repetidamente:
+
+\begin{lema}[Sipser 6.1]
+\label{lem:q}
+Existe una funci\'on computable $q:\Sstar\to\Sstar$ tal que, para toda
+$w\in\Sstar$, $q(w)$ es la descripci\'on $\enc{\Pw{w}}$ de una M\'aquina de
+Turing $\Pw{w}$ que en cualquier entrada borra la cinta, escribe $w$ y se
+detiene.
+\end{lema}
+
+A partir de \'el, Sipser construye la m\'aquina $\SELF$ y demuestra el
+Teorema 6.3 (Recursi\'on), que es la versi\'on ``parametrizada'' de
+$\SELF$.
+
+\bigskip\hrule\bigskip
+
+% =============================================================================
+\section{Ejercicio 1: lectura del Cap\'itulo 6}
+\label{sec:ej1}
+
+El primer \'item del pr\'actico consiste en \emph{leer el Cap\'itulo 6 del
+libro de Sipser}. Se asume realizado como prerrequisito te\'orico para el
+resto de los ejercicios. Las nociones que se utilizan a partir del
+Ejercicio~2 incluyen, entre otras:
+\begin{itemize}
+  \item el Lema~\ref{lem:q} (Sipser 6.1) y la construcci\'on de la m\'aquina
+        $\SELF$ que imprime su propia descripci\'on;
+  \item el Teorema de la Recursi\'on (Sipser 6.3) y su aplicaci\'on a la
+        indecibilidad de $\ATM$ (Teorema 6.5);
+  \item la no reconocibilidad de $\MIN$ (Teorema 6.7);
+  \item la versi\'on de punto fijo de la recursi\'on (Teorema 6.8);
+  \item la noci\'on formal de \emph{or\'aculo} y de \emph{Turing reducibility}
+        (Definiciones 6.18 y 6.20);
+  \item el resultado de cardinalidad: el conjunto de lenguajes es incontable
+        (Corolario 4.18) y, por lo tanto, existen lenguajes no reconocibles
+        a\'un por MT con or\'aculo (Problema 6.19).
+\end{itemize}
+Cada ejercicio que sigue cita expl\'icitamente las definiciones y resultados
+del cap\'itulo que invoca.
+
+\bigskip\hrule\bigskip
+
+% =============================================================================
+\section{Ejercicio 2: la funci\'on \texttt{Self} en Python}
+\label{sec:ej2}
+
+\subsection*{Enunciado}
+
+Escribir en Python la funci\'on $\SELF$ que se reproduce a s\'i misma.
+
+\subsection*{Idea y conexi\'on con la teor\'ia}
+
+La m\'aquina $\SELF$ de Sipser est\'a construida en dos partes $A$ y $B$
+(p\'aginas 246--248). Por el Lema~\ref{lem:q} tomamos $A = \Pw{\enc{B}}$, la
+m\'aquina que imprime $\enc{B}$ en la cinta. Despu\'es, $B$ lee de la cinta
+$\enc{B}$, aplica $q$ para reconstruir $\enc{A}$, y combina ambas mitades para
+imprimir $\enc{AB}=\enc{\SELF}$.
+
+En un lenguaje de programaci\'on real esta construcci\'on se traduce en un
+\emph{quine}: un programa que produce una copia exacta de su c\'odigo fuente.
+
+\subsection*{Implementaci\'on en Python}
+
+\begin{pycode}
+# self.py - Quine clasico estilo Sipser
+# Parte A: la sentencia print(...) que imprime la cadena B.
+# Parte B: la cadena B que describe el programa completo, con un
+# marcador {!r} que se reemplaza por la propia B citada.
+B = 'B = {!r}\nprint(B.format(B))\n'
+print(B.format(B))
+\end{pycode}
+
+\paragraph{Correspondencia con $\SELF$.}
+La siguiente tabla muestra c\'omo se corresponden las componentes:
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Sipser ($\SELF$)                  & Python (\texttt{self.py})              \\
+\midrule
+$B$ (cadena base)                 & literal de la variable \texttt{B}      \\
+$A = \Pw{\enc{B}}$                & \texttt{print(B.format(B))}            \\
+$q$ (computa $\Pw{w}$)            & especificador \texttt{\{!r\}} de \texttt{format} \\
+salida $\enc{AB}$                 & texto impreso por \texttt{print}       \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Verificaci\'on.}
+La correcci\'on del quine se comprueba ejecutando
+\[
+  \texttt{diff <(python3 self.py) self.py}
+\]
+que no debe producir salida. Esto es porque $\texttt{repr}(B)$ genera el
+literal exacto de \texttt{B} que aparece en el c\'odigo, y la cadena
+\texttt{B} describe las dos l\'ineas del programa.
+
+\subsection*{Variante mediante introspecci\'on}
+
+Una versi\'on m\'as cercana al enunciado teorico ``una MT obtiene su propia
+descripci\'on'' usa el m\'odulo \texttt{inspect}:
+
+\begin{pycode}
+import inspect
+
+def self_program():
+    """Imprime su propio codigo fuente."""
+    print(inspect.getsource(self_program))
+
+if __name__ == "__main__":
+    self_program()
+\end{pycode}
+
+Aqu\'i \texttt{inspect.getsource} cumple el rol de la operaci\'on
+``obtener $\enc{M}$'' que el Teorema 6.3 garantiza para una MT. La l\'inea
+\texttt{self\_program()} es la \emph{ejecuci\'on} de esa descripci\'on.
+
+\subsection*{Conclusi\'on}
+
+La existencia del quine en Python es una evidencia pr\'actica del Teorema de
+la Recursi\'on: cualquier lenguaje de programaci\'on Turing-completo permite
+escribir un programa que produce una copia exacta de s\'i mismo. La
+construcci\'on de Sipser para $\SELF$ se traduce directamente en el patr\'on
+$A+B$ usando \texttt{format} y \texttt{repr}.
+
+\bigskip\hrule\bigskip
+
+% =============================================================================
+\section{Ejercicio 3: dos MT que se imprimen mutuamente}
+\label{sec:ej3}
+
+\subsection*{Enunciado}
+
+Describir dos M\'aquinas de Turing $M$ y $N$ tales que, comenzando en
+cualquier input, $M$ imprima $\enc{N}$ y $N$ imprima $\enc{M}$.
+
+\begin{observacion}
+El enunciado del pr\'actico (\texttt{practica03.pdf}) tiene una errata menor:
+pide ``$M$ imprime $\enc{M}$ y $N$ imprime $\enc{M}$'', lo cual es trivial
+(dos copias de $\SELF$ resuelven el caso). Tanto el Problema~6.6 de Sipser
+como las l\'aminas de c\'atedra (\texttt{autoref.pdf}) piden imprimirse
+\emph{mutuamente}, y esa es la versi\'on interesante que resolvemos.
+\end{observacion}
+
+\subsection*{Estrategia}
+
+La t\'ecnica es la misma que la de $\SELF$, agregando un \emph{paso de
+transformaci\'on} al final. Por el Lema~\ref{lem:q}, dada cualquier cadena
+$w$, sabemos construir computacionalmente $\enc{\Pw{w}}$. En particular,
+podemos enviar
+\[
+  \enc{N} \;\longmapsto\; q(\enc{N}) \;=\; \enc{\Pw{\enc{N}}}.
+\]
+Si definimos $M = \Pw{\enc{N}}$, entonces $q(\enc{N})$ es \emph{exactamente}
+$\enc{M}$. Esto convierte ``imprimir $\enc{M}$'' en ``imprimir $q(\enc{N})$'',
+una tarea computable a partir de $\enc{N}$.
+
+\subsection*{Construcci\'on}
+
+\paragraph{Definici\'on de $M$.}
+$M$ es la m\'aquina del Lema~\ref{lem:q} aplicada a $\enc{N}$:
+
+\medskip\noindent\textbf{$M = $ ``Con entrada $x$:}
+\begin{enumerate}
+  \item Ignorar $x$.
+  \item Borrar la cinta y escribir la cadena $\enc{N}$ (cableada en la
+        descripci\'on de $M$).
+  \item Detenerse.''
+\end{enumerate}
+\medskip
+
+Es decir, $M=\Pw{\enc{N}}$, donde $\enc{N}$ aparece como constante en la
+descripci\'on de $M$.
+
+\paragraph{Definici\'on de $N$.}
+$N$ se construye al estilo $\SELF$, en partes $A_N$ y $B_N$:
+
+\medskip\noindent\textbf{$N$:}
+\begin{enumerate}
+  \item \textbf{Parte $A_N$.} Es $\Pw{\enc{B_N}}$: ejecutarla deja $\enc{B_N}$
+        en la cinta.
+  \item \textbf{Parte $B_N$.} En entrada $\enc{B_N}$:
+        \begin{enumerate}
+          \item computar $q(\enc{B_N}) = \enc{A_N}$;
+          \item combinar $A_N$ y $B_N$ para obtener $\enc{A_N B_N}=\enc{N}$;
+          \item computar $q(\enc{N})=\enc{M}$;
+          \item borrar la cinta, escribir $\enc{M}$ y detenerse.
+        \end{enumerate}
+\end{enumerate}
+\medskip
+
+\subsection*{Por qu\'e no hay circularidad}
+
+A primera vista parecer\'ia que $M$ y $N$ se definen mutuamente y la
+construcci\'on es circular. No lo es:
+\begin{itemize}
+  \item $N$ \emph{calcula} $\enc{N}$ en tiempo de ejecuci\'on (al estilo
+        $\SELF$, lo reconstruye desde la cinta), y reci\'en luego produce
+        $\enc{M}$ aplicando $q$.
+  \item $M$, en cambio, tiene $\enc{N}$ \emph{cableado} como constante; pero
+        $\enc{N}$ ya est\'a fijo una vez construida la m\'aquina $N$.
+\end{itemize}
+
+\subsection*{Demostraci\'on alternativa por el Teorema de la Recursi\'on}
+
+\begin{teorema}[Sipser 6.3]
+Sea $T$ una MT que computa $t:\Sstar\times\Sstar\to\Sstar$. Entonces existe
+una MT $R$ que computa $r:\Sstar\to\Sstar$ con
+$r(w)=t(\enc{R},w)$ para todo $w$.
+\end{teorema}
+
+Aplicando el Teorema con la transformaci\'on $t(\enc{R},w) = q(\enc{R})$
+obtenemos directamente una MT $N$ que en cualquier entrada $w$ produce
+$q(\enc{N}) = \enc{M}$. La m\'aquina $M$ se obtiene como $\Pw{\enc{N}}$.
+
+\subsection*{Correctitud}
+
+\begin{proof}
+\begin{itemize}
+  \item Por construcci\'on de $\Pw{w}$ (Lema~\ref{lem:q}), $M$ ignora su
+        entrada y deja $\enc{N}$ en la cinta. Luego $M$ imprime $\enc{N}$.
+  \item Por la construcci\'on de $\SELF$ (Lema~\ref{lem:q} aplicado a $B_N$)
+        $N$ reconstruye su propia descripci\'on $\enc{N}$ en la cinta.
+        El \'unico paso adicional es aplicar $q$ una vez m\'as para obtener
+        $q(\enc{N})=\enc{M}$. Luego $N$ imprime $\enc{M}$.
+\end{itemize}
+\end{proof}
+
+\subsection*{Conclusi\'on}
+
+\begin{center}\fbox{$N$ usa la receta de $\SELF$ y aplica $q$ una vez m\'as
+para imprimir $\enc{M}$; $M=\Pw{\enc{N}}$.}\end{center}
+
+\bigskip\hrule\bigskip
+
+% =============================================================================
+\section{Ejercicio 4: cardinalidad y or\'aculo $\ATM$}
+\label{sec:ej4}
+
+\subsection*{Enunciado}
+
+Usar la propiedad de que el conjunto de lenguajes es incontable para demostrar
+que existen lenguajes que no pueden ser reconocidos con una m\'aquina con un
+or\'aculo $\ATM$.
+
+\subsection*{Idea}
+
+Argumento cl\'asico de cardinalidad (Cantor):
+
+\begin{itemize}
+  \item El conjunto de lenguajes sobre $\Sigma$ es \emph{incontable}
+        (Corolario 4.18 de Sipser).
+  \item El conjunto de MT con or\'aculo $\ATM$ es \emph{contable}: cada una
+        se describe con una cadena finita.
+  \item La imagen de un conjunto contable bajo cualquier funci\'on es
+        contable; en particular, la familia de lenguajes reconocidos por
+        MT con or\'aculo $\ATM$ es contable.
+  \item Una funci\'on no puede ser sobreyectiva de un conjunto contable a uno
+        incontable.
+\end{itemize}
+
+Por lo tanto, existen lenguajes que ninguna MT con or\'aculo $\ATM$ reconoce.
+
+\subsection*{Recordatorios}
+
+\begin{teorema}[Sipser, Corolario 4.18]
+\label{teo:incont}
+El conjunto $\Powerset(\Sstar)$ de lenguajes sobre $\Sigma$ es incontable.
+\end{teorema}
+
+\begin{definicion}[Sipser 6.18]
+Un \emph{or\'aculo} para el lenguaje $B$ es un dispositivo externo capaz de
+responder, en un \'unico paso, si una cadena $w$ pertenece o no a $B$. Una
+\emph{MT con or\'aculo}, notada $M^{B}$, es una MT modificada con la
+capacidad de hacer consultas al or\'aculo. La descripci\'on $\enc{M^{B}}$
+de una MT con or\'aculo es finita (no incluye al or\'aculo en s\'i; solo
+contiene los estados de consulta).
+\end{definicion}
+
+\subsection*{Demostraci\'on}
+
+\begin{proposicion}
+\label{prop:ej4}
+Existe un lenguaje $L\subseteq\Sstar$ que no es reconocido por ninguna MT con
+or\'aculo $\ATM$.
+\end{proposicion}
+
+\begin{proof}
+Sea $\mathcal{M}_{\ATM}$ la familia de MT con or\'aculo $\ATM$. La
+asignaci\'on
+\[
+  M^{\ATM} \;\longmapsto\; \enc{M^{\ATM}}\in\Sstar
+\]
+es una inyecci\'on, ya que distintas MT producen distintas descripciones.
+Como $\Sstar$ es contable, $\mathcal{M}_{\ATM}$ tambi\'en lo es.
+
+Definimos
+\[
+  \mathcal{R}_{\ATM} \;=\; \{\,\lang(M) : M\in\mathcal{M}_{\ATM}\,\}.
+\]
+La imagen de un conjunto contable bajo cualquier funci\'on es contable, por
+lo que $\mathcal{R}_{\ATM}$ es contable.
+
+Por el Teorema~\ref{teo:incont}, $\Powerset(\Sstar)$ es incontable. Luego
+\[
+  |\mathcal{R}_{\ATM}| \;\le\; \aleph_0 \;<\; 2^{\aleph_0} \;=\;
+  |\Powerset(\Sstar)|,
+\]
+y por lo tanto $\mathcal{R}_{\ATM}\subsetneq \Powerset(\Sstar)$. Existe
+$L\in\Powerset(\Sstar)\setminus\mathcal{R}_{\ATM}$; ese $L$ no es reconocido
+por ninguna MT con or\'aculo $\ATM$.
+\end{proof}
+
+\subsection*{Interpretaci\'on}
+
+\begin{observacion}
+Una MT con or\'aculo $\ATM$ es muy poderosa: decide $\ATM$ por consulta
+directa, y por construcci\'on adicional decide $\ETM$, $\HALT$, $\mathit{EQ}_{\TM}$, etc.
+(Ejemplo 6.19 y ejercicios de Sipser). Sin embargo, el argumento de
+cardinalidad muestra que su poder es ``solamente contable'': se quedan
+incontables lenguajes fuera. Este resultado es \emph{robusto} bajo el cambio
+de or\'aculo: para cualquier lenguaje fijo $B$ existen lenguajes no
+reconocibles por MT con or\'aculo $B$.
+\end{observacion}
+
+\subsection*{Conclusi\'on}
+
+\begin{center}\fbox{$\exists L\subseteq\Sstar$ tal que $L\notin\{\lang(M^{\ATM}) : M \text{ es MT}\}$.}\end{center}
+
+\bigskip\hrule\bigskip
+
+% =============================================================================
+\section{Ejercicio 5: clase \texttt{Persona} e introspecci\'on}
+\label{sec:ej5}
+
+\subsection*{Enunciado}
+
+Escribir una clase \texttt{Persona} en Python con los atributos cl\'asicos. Y
+hacer una funci\'on que con introspecci\'on:
+\begin{itemize}
+  \item imprima la lista de atributos de la clase;
+  \item imprima el c\'odigo de alguno de los m\'etodos.
+\end{itemize}
+
+\subsection*{Contexto te\'orico}
+
+El Teorema de la Recursi\'on dice que toda MT puede obtener su propia
+descripci\'on $\enc{M}$ y operar con ella. En un lenguaje de programaci\'on
+moderno, esto se concreta como \emph{introspecci\'on}: posibilidad de
+consultar, en tiempo de ejecuci\'on, el c\'odigo y la estructura de los
+propios objetos. Python lo expone mediante el m\'odulo est\'andar
+\texttt{inspect}.
+
+\subsection*{Clase \texttt{Persona}}
+
+\begin{pycode}
+# persona.py
+class Persona:
+    """Representa una persona con datos personales clasicos."""
+
+    especie = "Homo sapiens"  # atributo de clase
+
+    def __init__(self, nombre: str, edad: int, dni: str, email: str):
+        self.nombre = nombre
+        self.edad = edad
+        self.dni = dni
+        self.email = email
+
+    def saludar(self) -> str:
+        return f"Hola, soy {self.nombre} y tengo {self.edad} anios."
+
+    def es_mayor_de_edad(self) -> bool:
+        return self.edad >= 18
+
+    def __str__(self) -> str:
+        return f"Persona(nombre={self.nombre!r}, edad={self.edad}, dni={self.dni!r})"
+\end{pycode}
+
+Los atributos \texttt{nombre}, \texttt{edad}, \texttt{dni}, \texttt{email} son
+de \emph{instancia} y se crean en \texttt{\_\_init\_\_}; \texttt{especie} es
+un atributo de \emph{clase}.
+
+\subsection*{Funci\'on de introspecci\'on}
+
+\begin{pycode}
+import inspect
+
+def inspeccionar(cls, metodo: str | None = None) -> None:
+    """Lista atributos y muestra el codigo de un metodo de la clase."""
+    print(f"--- Inspeccion de la clase {cls.__name__} ---")
+
+    miembros = inspect.getmembers(cls)
+    atributos = [n for n, _ in miembros if not n.startswith("__")]
+    print("Atributos y metodos publicos:")
+    for nombre in atributos:
+        print(f"  - {nombre}")
+
+    print("\nClasificacion:")
+    for nombre in atributos:
+        valor = getattr(cls, nombre)
+        tipo = "metodo" if inspect.isfunction(valor) else "atributo de clase"
+        print(f"  - {nombre} ({tipo})")
+
+    if metodo is None:
+        metodos = [n for n, v in miembros
+                   if inspect.isfunction(v) and not n.startswith("__")]
+        if not metodos:
+            print("\n(No hay metodos publicos para mostrar.)")
+            return
+        metodo = metodos[0]
+
+    print(f"\nCodigo del metodo `{metodo}`:")
+    print(inspect.getsource(getattr(cls, metodo)))
+
+
+if __name__ == "__main__":
+    inspeccionar(Persona)
+    inspeccionar(Persona, "es_mayor_de_edad")
+\end{pycode}
+
+\paragraph{Explicaci\'on.}
+\begin{itemize}
+  \item \texttt{inspect.getmembers(cls)} devuelve todos los miembros de la
+        clase; filtramos los \texttt{dunder}.
+  \item \texttt{inspect.isfunction} permite separar m\'etodos de atributos
+        de clase.
+  \item \texttt{inspect.getsource} reconstruye, a partir del archivo fuente,
+        el texto exacto del m\'etodo. Es el equivalente real al
+        ``obtener $\enc{M}$'' del Teorema de la Recursi\'on.
+\end{itemize}
+
+\subsection*{Observaciones}
+
+Los atributos de instancia no aparecen al inspeccionar la clase, porque
+existen solamente despu\'es de instanciar. Para verlos:
+\[
+  \texttt{p = Persona("Ada", 36, "0", "ada@x.org"); print(vars(p))}.
+\]
+
+\subsection*{Conclusi\'on}
+
+\texttt{inspect} provee de f\'abrica todas las herramientas necesarias para
+la introspecci\'on pedida. Su existencia es la traducci\'on concreta, en
+Python, de la libertad de una MT para acceder a su propia descripci\'on que
+el Teorema de la Recursi\'on garantiza.
+
+\bigskip\hrule\bigskip
+
+% =============================================================================
+\section{Ejercicio 6: creaci\'on din\'amica de una clase}
+\label{sec:ej6}
+
+\subsection*{Enunciado}
+
+Usando introspecci\'on, hacer una funci\'on que cree una clase din\'amicamente.
+
+\subsection*{Idea}
+
+Python expone \texttt{type(nombre, bases, atributos)} como constructor
+universal de clases. Llam\'andolo en tiempo de ejecuci\'on con tres
+argumentos crea una clase nueva, igual a la que producir\'ia el azucar
+sint\'actico \texttt{class}. Combinado con \texttt{inspect}, podemos
+construir clases ``a la carta'' a partir de descripciones, en una analog\'ia
+directa con la construcci\'on $q$ del Lema~\ref{lem:q}.
+
+\subsection*{C\'odigo}
+
+\begin{pycode}
+# clase_dinamica.py
+import inspect
+from typing import Callable, Iterable
+
+def crear_clase(
+    nombre: str,
+    campos: Iterable[str],
+    metodos: dict[str, Callable] | None = None,
+    bases: tuple[type, ...] = (object,),
+):
+    """Crea y devuelve una nueva clase usando type(...) y luego la inspecciona."""
+    metodos = metodos or {}
+    campos = list(campos)
+
+    def __init__(self, *args, **kwargs):
+        if len(args) > len(campos):
+            raise TypeError(
+                f"{nombre}.__init__() recibe a lo sumo {len(campos)} argumentos"
+            )
+        for c, v in zip(campos, args):
+            setattr(self, c, v)
+        for c, v in kwargs.items():
+            if c not in campos:
+                raise TypeError(f"campo desconocido para {nombre}: {c!r}")
+            setattr(self, c, v)
+
+    def __repr__(self):
+        partes = ", ".join(f"{c}={getattr(self, c, None)!r}" for c in campos)
+        return f"{nombre}({partes})"
+
+    atributos = {
+        "__init__": __init__,
+        "__repr__": __repr__,
+        "__doc__": f"Clase generada dinamicamente con campos: {campos}",
+        **metodos,
+    }
+    cls = type(nombre, bases, atributos)
+
+    print(f"[ok] Clase creada: {cls.__name__}")
+    print(f"     Bases       : {tuple(b.__name__ for b in cls.__bases__)}")
+    metodos_pub = [n for n, _ in inspect.getmembers(cls, inspect.isfunction)
+                   if not n.startswith("__")]
+    print(f"     Metodos     : {metodos_pub or '(ninguno)'}")
+    print(f"     Firma init  : {inspect.signature(cls.__init__)}")
+    return cls
+
+
+if __name__ == "__main__":
+    Punto = crear_clase(
+        "Punto",
+        campos=["x", "y"],
+        metodos={
+            "norma": lambda self: (self.x ** 2 + self.y ** 2) ** 0.5,
+            "trasladar": lambda self, dx, dy: Punto(self.x + dx, self.y + dy),
+        },
+    )
+    p = Punto(3, 4)
+    print("Instancia    :", p)
+    print("norma        :", p.norma())
+    print("trasladar    :", p.trasladar(1, 1))
+\end{pycode}
+
+\subsection*{Conexi\'on con la teor\'ia}
+
+\begin{observacion}
+La funci\'on \texttt{crear\_clase} es la versi\'on programable de la
+construcci\'on del Lema~\ref{lem:q}: as\'i como $q$ toma una cadena $w$ y
+produce $\enc{\Pw{w}}$, nuestra funci\'on toma una descripci\'on (nombre +
+bases + diccionario de atributos) y produce una clase. \texttt{type} juega el
+rol de la transformaci\'on $q$, e \texttt{inspect} permite verificar el
+resultado.
+\end{observacion}
+
+\subsection*{Conclusi\'on}
+
+\texttt{type} y \texttt{inspect} son suficientes para crear clases en tiempo
+de ejecuci\'on y validar su estructura, completando el ciclo de
+\emph{metaprogramaci\'on}. Esto cierra la analog\'ia entre el Teorema de la
+Recursi\'on (capacidad de operar sobre la propia descripci\'on) y las
+facilidades est\'andar de Python para inspecci\'on y construcci\'on
+din\'amica de objetos.
+
+\bigskip\hrule\bigskip
+
+% =============================================================================
+\section*{Conclusiones}
+\addcontentsline{toc}{section}{Conclusiones}
+
+A lo largo del Pr\'actico 03 hemos puesto en pr\'actica el \emph{Teorema de
+la Recursi\'on} y sus aplicaciones:
+
+\begin{itemize}
+  \item Los Ejercicios~2 y~3 construyen autoreferencia: una MT (y su an\'alogo
+        en Python) que se imprime a s\'i misma, y un par de MT que se imprimen
+        \emph{mutuamente}. Ambos siguen la receta del Lema~\ref{lem:q}.
+  \item El Ejercicio~4 muestra que, aun aument\'andole a una MT el poder de
+        un or\'aculo $\ATM$, sigue existiendo una cantidad incontable de
+        lenguajes que escapa a su alcance. El argumento es de cardinalidad
+        (Cantor) y es robusto bajo cambios de or\'aculo.
+  \item Los Ejercicios~5 y~6 traen el Teorema de la Recursi\'on al terreno
+        pr\'actico: el m\'odulo \texttt{inspect} y la funci\'on \texttt{type}
+        de Python son la versi\'on operativa de ``obtener la propia
+        descripci\'on'' y ``construir nuevas m\'aquinas a partir de
+        descripciones''.
+\end{itemize}
+
+En conjunto, los resultados consolidan la imagen de la autoreferencia como
+una herramienta central para entender los l\'imites y las capacidades del
+modelo de c\'omputo, y como un puente concreto entre la teor\'ia y la
+programaci\'on real.
+
+\end{document}

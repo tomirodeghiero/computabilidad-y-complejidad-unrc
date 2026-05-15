@@ -1,0 +1,573 @@
+% =============================================================================
+% Resumen teorico - Practico 03 (Autoreferencia y Teorema de la Recursion)
+% Computabilidad y Complejidad (Teoria de la Computacion II)
+% FCEFQyN - Universidad Nacional de Rio Cuarto
+% Primer Cuatrimestre de 2026
+% -----------------------------------------------------------------------------
+% Fuentes principales:
+%   - chapter-06.pdf  (Sipser, Cap. 6: Advanced Topics in Computability Theory)
+%   - autoref.pdf     (laminas de la catedra: AutoReferencia)
+%
+% Compilacion sugerida: tectonic resumen-teorico-practico-03.tex
+% =============================================================================
+
+\documentclass[11pt,a4paper]{article}
+
+% --- Codificacion y idioma --------------------------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-tabla]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+
+% --- Matematica -------------------------------------------------------------
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{stmaryrd}
+
+% --- Layout y tipografia ----------------------------------------------------
+\usepackage[margin=2.7cm]{geometry}
+\usepackage{enumitem}
+\setlist[itemize]{topsep=2pt,itemsep=2pt,parsep=0pt}
+\setlist[enumerate]{topsep=2pt,itemsep=2pt,parsep=0pt}
+\usepackage{parskip}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{array}
+
+% --- Codigo -----------------------------------------------------------------
+\usepackage{fancyvrb}
+\fvset{
+  fontsize=\footnotesize,
+  frame=single,
+  framerule=0.3pt,
+  xleftmargin=6pt,
+  xrightmargin=6pt
+}
+\DefineVerbatimEnvironment{pycode}{Verbatim}{}
+
+% --- Hyperref ---------------------------------------------------------------
+\usepackage[hidelinks]{hyperref}
+\hypersetup{
+  pdftitle={Resumen teorico - Practico 03},
+  pdfauthor={Computabilidad y Complejidad - UNRC 2026},
+  pdfsubject={Autoreferencia y Teorema de la Recursion - Resumen teorico},
+  pdfkeywords={recursion, autoreferencia, SELF, MIN, oraculo, Turing reducibility}
+}
+
+% --- Ambientes de teoremas --------------------------------------------------
+\theoremstyle{plain}
+\newtheorem{teorema}{Teorema}[section]
+\newtheorem{proposicion}[teorema]{Proposicion}
+\newtheorem{lema}[teorema]{Lema}
+\newtheorem{corolario}[teorema]{Corolario}
+
+\theoremstyle{definition}
+\newtheorem{definicion}[teorema]{Definicion}
+\newtheorem{ejemplo}[teorema]{Ejemplo}
+
+\theoremstyle{remark}
+\newtheorem*{observacion}{Observacion}
+\newtheorem*{idea}{Idea}
+\newtheorem*{intuicion}{Intuicion}
+
+% --- Comandos de notacion ---------------------------------------------------
+\newcommand{\MT}{\mathrm{MT}}
+\newcommand{\TM}{\mathrm{TM}}
+\newcommand{\enc}[1]{\langle #1\rangle}
+\newcommand{\encMw}{\langle M, w\rangle}
+\newcommand{\lang}{\mathcal{L}}
+\newcommand{\Sstar}{\Sigma^{*}}
+\newcommand{\redm}{\le_{m}}
+\newcommand{\redT}{\le_{T}}
+\newcommand{\compl}[1]{\overline{#1}}
+\newcommand{\qaccept}{q_{\text{accept}}}
+\newcommand{\qreject}{q_{\text{reject}}}
+\newcommand{\ATM}{A_{\TM}}
+\newcommand{\HALT}{\mathit{HALT}_{\TM}}
+\newcommand{\ETM}{E_{\TM}}
+\newcommand{\EQTM}{\mathit{EQ}_{\TM}}
+\newcommand{\MIN}{\mathit{MIN}_{\TM}}
+\newcommand{\SELF}{\mathrm{SELF}}
+\newcommand{\Pw}[1]{P_{#1}}
+\newcommand{\Powerset}{\mathcal{P}}
+
+% --- Cabecera ---------------------------------------------------------------
+\title{\textbf{Resumen te\'orico -- Pr\'actico 03}\\[0.2em]
+       \textbf{Autoreferencia, Teorema de la Recursi\'on y Or\'aculos}\\[0.3em]
+       \normalsize Computabilidad y Complejidad (Teor\'ia de la Computaci\'on II)\\
+       \normalsize FCEFQyN -- Universidad Nacional de R\'io Cuarto\\
+       \normalsize Primer Cuatrimestre de 2026}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\thispagestyle{empty}
+
+\hrule
+\vspace{0.4em}
+\begin{center}
+\small
+Resumen te\'orico-pr\'actico que acompa\~na al Pr\'actico 03. Fuentes
+principales: Cap\'itulo 6 del libro de M.~Sipser, \emph{Introduction to the
+Theory of Computation} (\texttt{chapter-06.pdf}), y l\'aminas de la c\'atedra
+(\texttt{autoref.pdf}).
+\end{center}
+\vspace{0.4em}
+\hrule
+
+\tableofcontents
+\bigskip\hrule\bigskip
+
+% =============================================================================
+\section{Motivaci\'on: la paradoja de la autoreproducci\'on}
+
+Sipser abre el Cap\'itulo 6 con una vieja paradoja: si toda m\'aquina $A$
+que produce otra m\'aquina $B$ es necesariamente \emph{m\'as compleja} que
+$B$, entonces ninguna m\'aquina podr\'ia construirse a s\'i misma. Como
+nosotros mismos somos m\'aquinas (en alg\'un sentido biol\'ogico) y nos
+reproducimos, la paradoja debe estar mal planteada.
+
+El \textbf{Teorema de la Recursi\'on} resuelve la paradoja mostrando que las
+m\'aquinas \emph{s\'i} pueden autoreproducirse, e incluso pueden obtener su
+propia descripci\'on y operar con ella. Esa capacidad es la base de muchas
+herramientas: virus inform\'aticos, quines, introspecci\'on en lenguajes
+modernos, y demostraciones limpias de indecibilidad.
+
+\bigskip\hrule\bigskip
+
+% =============================================================================
+\section{La funci\'on $q$ y la m\'aquina $\SELF$}
+
+\subsection{El lema constructivo}
+
+\begin{lema}[Sipser 6.1]
+\label{lem:q}
+Existe una funci\'on computable
+\[
+  q:\Sstar \longrightarrow \Sstar
+\]
+tal que, para toda $w\in\Sstar$, $q(w)=\enc{\Pw{w}}$, donde $\Pw{w}$ es una
+M\'aquina de Turing que, en cualquier entrada, borra la cinta, escribe $w$ y
+se detiene.
+\end{lema}
+
+\begin{intuicion}
+Dada una cadena $w$, construir ``a mano'' una MT que la imprima es trivial:
+cableamos $w$ en una tabla de transiciones que la escribe letra por letra.
+Lo no obvio del lema es que esa construcci\'on es \emph{computable} en $w$:
+hay una MT $Q$ que, recibiendo $w$, produce la descripci\'on $\enc{\Pw{w}}$.
+\end{intuicion}
+
+\subsection{La m\'aquina $\SELF$}
+
+\begin{teorema}[Sipser, p\'aginas 246--248]
+Existe una M\'aquina de Turing $\SELF$ que, en cualquier entrada, imprime su
+propia descripci\'on $\enc{\SELF}$ en la cinta y se detiene.
+\end{teorema}
+
+\begin{proof}[Construcci\'on]
+$\SELF$ se descompone en dos partes $A$ y $B$ ejecutadas en secuencia:
+
+\begin{itemize}
+  \item \textbf{Parte $A$:} es la m\'aquina $\Pw{\enc{B}}$ del
+        Lema~\ref{lem:q}. Al ejecutarse, deja $\enc{B}$ en la cinta.
+  \item \textbf{Parte $B$:} con $\enc{B}$ en la cinta:
+        \begin{enumerate}
+          \item computa $q(\enc{B}) = \enc{A}$;
+          \item combina $\enc{A}$ y $\enc{B}$ en $\enc{AB}=\enc{\SELF}$;
+          \item imprime $\enc{\SELF}$ y se detiene.
+        \end{enumerate}
+\end{itemize}
+
+Observar que no hay circularidad: $\enc{A}$ no aparece como dato cableado en
+$B$; se \emph{reconstruye en tiempo de ejecuci\'on} aplicando $q$ a la
+cadena $\enc{B}$ que dej\'o $A$.
+\end{proof}
+
+\subsection{Analog\'ia textual}
+
+Sipser ilustra la t\'ecnica con una oraci\'on autoreproductiva:
+
+\begin{center}\emph{
+  Copiar dos veces el siguiente p\'arrafo, una con doble comillas:\\
+  ``Copiar dos veces el siguiente p\'arrafo, una con doble comillas:''}
+\end{center}
+
+La parte $B$ es la oraci\'on sin comillas; la parte $A$ es la misma oraci\'on
+entre comillas. Al ``ejecutar'' las instrucciones se obtiene el texto
+original. La l\'inea con comillas es exactamente $\Pw{\enc{B}}$ (un dato
+literal); la l\'inea sin comillas es el ``programa'' que la consume.
+
+\bigskip\hrule\bigskip
+
+% =============================================================================
+\section{El Teorema de la Recursi\'on}
+
+\begin{teorema}[Sipser 6.3, recursi\'on]
+\label{teo:recursion}
+Sea $T$ una M\'aquina de Turing que computa una funci\'on
+$t: \Sstar\times\Sstar \to \Sstar$. Entonces existe una MT $R$ que computa
+una funci\'on $r:\Sstar\to\Sstar$ tal que, para toda $w\in\Sstar$,
+\[
+  r(w) \;=\; t\bigl(\enc{R},\, w\bigr).
+\]
+\end{teorema}
+
+\begin{intuicion}
+$T$ es ``lo que se quiere hacer'' suponiendo que ya se tiene $\enc{R}$ a
+mano; el teorema garantiza que existe una MT $R$ que se comporta como $T$
+con su propia descripci\'on autom\'aticamente inyectada en la primera
+componente. En otras palabras: una MT puede \emph{obtener su propia
+descripci\'on} y computar con ella.
+\end{intuicion}
+
+\begin{proof}[Esquema]
+Se construye $R$ en tres partes $A,B,T$:
+\begin{itemize}
+  \item $A=\Pw{\enc{BT}}$: deja $\enc{BT}$ en la cinta sin tocar la entrada
+        $w$.
+  \item $B$: aplica $q$ a $\enc{BT}$, obtiene $\enc{A}$, combina con $BT$
+        para obtener $\enc{ABT}=\enc{R}$, escribe $\enc{R,w}$ y pasa el
+        control a $T$.
+  \item $T$ termina la computaci\'on como en el enunciado.
+\end{itemize}
+$R$ resulta as\'i una MT bien definida con la propiedad pedida.
+\end{proof}
+
+\subsection*{Diagrama mental}
+
+\begin{center}
+\begin{tabular}{ccc}
+$\enc{M},\;w$ & $\rightarrow$ & $T(\enc{M},w)$  \\
+$w$           & $\rightarrow$ & $R$ usa su propia descripci\'on para computar $T(\enc{R},w)$ \\
+\end{tabular}
+\end{center}
+
+\subsection*{C\'omo usar el teorema}
+
+A la hora de dise\~nar una MT, se puede simplemente incluir en su pseudoc\'odigo
+la frase ``\emph{obtener la propia descripci\'on $\enc{M}$ por el Teorema
+de la Recursi\'on}''. El Teorema garantiza que tal m\'aquina existe.
+
+\bigskip\hrule\bigskip
+
+% =============================================================================
+\section{Aplicaciones cl\'asicas del Teorema de la Recursi\'on}
+
+\subsection{Indecibilidad de $\ATM$ (nuevo enfoque)}
+
+Una de las consecuencias m\'as elegantes del Teorema de la Recursi\'on es una
+prueba muy corta de la indecibilidad de
+\[
+  \ATM \;=\; \{\encMw \mid M \text{ acepta } w\}.
+\]
+
+\begin{teorema}[Sipser 6.5]
+$\ATM$ es indecidible.
+\end{teorema}
+
+\begin{proof}
+Supongamos, para llegar a una contradicci\'on, que existe una MT $H$ que
+decide $\ATM$. Definimos:
+
+\medskip\noindent\textbf{$B = $ ``Con entrada $w$:}
+\begin{enumerate}
+  \item obtener su propia descripci\'on $\enc{B}$ (Teorema de la Recursi\'on);
+  \item simular $H$ con entrada $\enc{B,w}$;
+  \item hacer lo contrario de lo que $H$ dice: aceptar si $H$ rechaza, y
+        rechazar si $H$ acepta.''
+\end{enumerate}
+\medskip
+
+Para cualquier $w$, $B$ acepta $w$ si y solo si $H$ rechaza $\enc{B,w}$, es
+decir, si y solo si $B$ \emph{no} acepta $w$. Contradicci\'on. Luego $H$ no
+puede existir.
+\end{proof}
+
+\begin{observacion}
+La prueba evita la diagonalizaci\'on de Cantor (Teorema 4.11) y reemplaza el
+truco de ``aplicarse al propio c\'odigo'' por la herramienta general del
+Teorema de la Recursi\'on. El resultado es el mismo, pero el argumento se
+vuelve casi mec\'anico.
+\end{observacion}
+
+\subsection{Las MT minimales no son reconocibles}
+
+\begin{definicion}[Sipser 6.6]
+Si $M$ es una MT, la \emph{longitud} de $\enc{M}$ es la cantidad de s\'imbolos
+de la cadena que la describe. Decimos que $M$ es \emph{minimal} si no existe
+una MT equivalente con descripci\'on m\'as corta. Definimos
+\[
+  \MIN \;=\; \{\enc{M} \mid M \text{ es minimal}\}.
+\]
+\end{definicion}
+
+\begin{teorema}[Sipser 6.7]
+$\MIN$ no es Turing-reconocible.
+\end{teorema}
+
+\begin{proof}
+Supongamos que un enumerador $E$ enumera $\MIN$. Construimos:
+
+\medskip\noindent\textbf{$C = $ ``Con entrada $w$:}
+\begin{enumerate}
+  \item obtener su propia descripci\'on $\enc{C}$ (Recursi\'on);
+  \item ejecutar $E$ hasta que aparezca una MT $D$ con $|\enc{D}|>|\enc{C}|$;
+  \item simular $D$ sobre $w$.''
+\end{enumerate}
+\medskip
+
+Como $\MIN$ es infinito, eventualmente $E$ imprime una MT $D$ con
+$|\enc{D}|>|\enc{C}|$. Por construcci\'on, $C$ es \emph{equivalente} a $D$
+(simula a $D$ paso a paso). Pero $|\enc{C}|<|\enc{D}|$, luego $D$ \emph{no}
+es minimal. Contradicci\'on con $\enc{D}\in\MIN$.
+\end{proof}
+
+\subsection{Teorema del punto fijo}
+
+\begin{teorema}[Sipser 6.8, punto fijo]
+\label{teo:fixedpoint}
+Sea $t:\Sstar\to\Sstar$ computable. Existe una MT $F$ tal que $t(\enc{F})$
+describe una MT equivalente a $F$.
+\end{teorema}
+
+\begin{proof}[Esquema]
+Definimos $F$:
+\begin{enumerate}
+  \item Obtener $\enc{F}$ (Recursi\'on).
+  \item Computar $t(\enc{F})$, que es la descripci\'on de cierta MT $G$.
+  \item Simular $G$ sobre la entrada.
+\end{enumerate}
+Entonces $F$ y $G$ tienen comportamientos id\'enticos, y $t(\enc{F})=\enc{G}$
+describe una MT equivalente a $F$.
+\end{proof}
+
+El teorema dice que toda transformaci\'on computable de descripciones de MT
+tiene un \emph{punto fijo sem\'antico}: alguna MT cuyo comportamiento queda
+inalterado por la transformaci\'on. Es el an\'alogo del Teorema de Rice en
+su forma m\'as primitiva.
+
+\bigskip\hrule\bigskip
+
+% =============================================================================
+\section{Introspecci\'on en lenguajes de programaci\'on}
+
+El Teorema de la Recursi\'on garantiza la posibilidad de \emph{obtener la
+propia descripci\'on}. En lenguajes de programaci\'on reales esta capacidad
+se llama \textbf{introspecci\'on} (o \emph{reflection}).
+
+\subsection{El m\'odulo \texttt{inspect} de Python}
+
+Python expone esta capacidad mediante:
+\begin{itemize}
+  \item \texttt{inspect.getsource(obj)}: devuelve el c\'odigo fuente de
+        \texttt{obj} (funci\'on, clase, etc.). Es la versi\'on real de
+        ``obtener $\enc{M}$''.
+  \item \texttt{inspect.getmembers(obj)}: lista todos los miembros de un
+        objeto: atributos, m\'etodos, dunders.
+  \item \texttt{inspect.signature(funci\'on)}: devuelve la firma
+        (par\'ametros y anotaciones).
+  \item \texttt{inspect.isfunction}, \texttt{inspect.isclass}, etc.:
+        predicados para clasificar miembros.
+\end{itemize}
+
+Ejemplo m\'inimo:
+
+\begin{pycode}
+import inspect
+def saludar(nombre: str) -> str:
+    return f"Hola, {nombre}"
+print(inspect.getsource(saludar))
+print(inspect.signature(saludar))
+\end{pycode}
+
+\subsection{Quines: el patron $A+B$}
+
+Un \emph{quine} es un programa que imprime su propio codigo fuente. La forma
+canonica usa el patron $A+B$ de $\SELF$. En Python:
+
+\begin{pycode}
+B = 'B = {!r}\nprint(B.format(B))\n'
+print(B.format(B))
+\end{pycode}
+
+Aqui \texttt{repr} cumple el rol de la funcion $q$ del Lema~\ref{lem:q}:
+toma una cadena y produce el literal Python que la representa.
+
+\subsection{Creaci\'on din\'amica de clases}
+
+Python permite construir clases en tiempo de ejecucion con la built-in
+\texttt{type(nombre, bases, atributos)}. Es exactamente el constructor que
+invoca internamente la sentencia \texttt{class}:
+
+\begin{pycode}
+Punto = type("Punto", (object,), {
+    "__init__": lambda self, x, y: setattr(self, "x", x) or setattr(self, "y", y),
+    "norma": lambda self: (self.x ** 2 + self.y ** 2) ** 0.5,
+})
+\end{pycode}
+
+Esto es la version programable de la construccion del Lema~\ref{lem:q}: a
+partir de una \emph{descripcion} (nombre, bases, diccionario) se produce un
+nuevo objeto ejecutable.
+
+\bigskip\hrule\bigskip
+
+% =============================================================================
+\section{M\'aquinas con or\'aculo y reducibilidad de Turing}
+
+\subsection{Definiciones}
+
+\begin{definicion}[Sipser 6.18, or\'aculo]
+Un \emph{or\'aculo} para el lenguaje $B$ es un dispositivo externo capaz de
+reportar, en un \'unico paso, si una cadena $w$ pertenece o no a $B$. Una
+\emph{MT con or\'aculo} $M^{B}$ es una MT modificada con la posibilidad de
+hacer consultas a tal or\'aculo. Formalmente se modela con un par de
+estados especiales $q_{\text{ask}},q_{\text{yes}},q_{\text{no}}$ y una cinta
+adicional para escribir la consulta.
+\end{definicion}
+
+\begin{definicion}[Sipser 6.20, Turing reducibility]
+$A$ es \emph{Turing reducible} a $B$, notado $A\redT B$, si $A$ es decidible
+relativo a $B$; es decir, existe una MT con or\'aculo $M^{B}$ que decide
+$A$.
+\end{definicion}
+
+\subsection{Propiedades b\'asicas}
+
+\begin{teorema}[Sipser 6.21]
+Si $A\redT B$ y $B$ es decidible, entonces $A$ es decidible.
+\end{teorema}
+
+\begin{proof}
+Sea $M^{B}$ un decisor relativo a $B$ y $D_B$ un decisor (real) de $B$. Una
+MT estandar $M'$ simula a $M^{B}$ reemplazando cada consulta al or\'aculo por
+una simulacion completa de $D_B$. $M'$ decide $A$ sin or\'aculos.
+\end{proof}
+
+\begin{observacion}
+\textbf{$\redT$ generaliza a $\redm$.} Si $A\redm B$ con reduccion $f$,
+construimos una MT con or\'aculo $B$ que dada $x$ computa $f(x)$ y consulta
+``$f(x)\in B$?''. La respuesta del or\'aculo es la respuesta para
+``$x\in A$?''. Luego toda mapping reduction es una Turing reduction.
+\end{observacion}
+
+\subsection{Ejemplo cl\'asico: $\ETM \redT \ATM$}
+
+\begin{ejemplo}[Sipser 6.19]
+$\ETM = \{\enc{M} \mid \lang(M)=\emptyset\}$ es decidible relativo a $\ATM$.
+
+\medskip\noindent\textbf{$T^{\ATM} = $ ``Con entrada $\enc{M}$:}
+\begin{enumerate}
+  \item construir la MT $N=$ ``En cualquier entrada: ejecutar $M$ en
+        paralelo sobre todas las cadenas de $\Sstar$; aceptar si alguna es
+        aceptada por $M$'';
+  \item consultar al or\'aculo si $\enc{N,0}\in\ATM$;
+  \item si la respuesta es NO, aceptar; si es S\'I, rechazar.''
+\end{enumerate}
+\medskip
+
+\noindent Si $\lang(M)\neq\emptyset$, $N$ acepta toda entrada y la consulta
+da S\'I; $T$ rechaza. Si $\lang(M)=\emptyset$, $N$ nunca acepta y la
+consulta da NO; $T$ acepta. Por lo tanto $T^{\ATM}$ decide $\ETM$.
+\end{ejemplo}
+
+\subsection{L\'imite del poder de los or\'aculos: argumento de cardinalidad}
+
+A\'un teniendo un or\'aculo poderoso, existen lenguajes inalcanzables. La
+clave es contar.
+
+\begin{teorema}[Sipser, Problema 6.19]
+\label{teo:cardA_TM}
+Existen lenguajes $L\subseteq\Sstar$ que no son reconocidos por ninguna MT
+con or\'aculo $\ATM$.
+\end{teorema}
+
+\begin{proof}
+La familia $\mathcal{M}_{\ATM}$ de MT con or\'aculo $\ATM$ es contable
+(cada una se describe por una cadena finita). Por lo tanto el conjunto de
+lenguajes reconocidos por elementos de $\mathcal{M}_{\ATM}$ es contable. En
+cambio, $\Powerset(\Sstar)$ es incontable (Corolario 4.18). Por
+comparaci\'on de cardinalidades existe alg\'un $L\in\Powerset(\Sstar)$ fuera
+de esa familia.
+\end{proof}
+
+\begin{observacion}
+El argumento es \emph{robusto bajo cambios de or\'aculo}: para cualquier
+$B\subseteq\Sstar$ existen lenguajes no reconocibles por MT con or\'aculo
+$B$. Esto da una idea de la \emph{jerarqu\'ia aritm\'etica} y de los grados
+de Turing.
+\end{observacion}
+
+\bigskip\hrule\bigskip
+
+% =============================================================================
+\section{Conexi\'on con el pr\'actico}
+
+\subsection*{Mapa ejercicio $\leftrightarrow$ teor\'ia}
+
+\begin{center}
+\begin{tabular}{cll}
+\toprule
+Ej. & Tema & Herramienta te\'orica principal \\
+\midrule
+2  & quine en Python                      & Lema~\ref{lem:q} y $\SELF$ \\
+3  & dos MT que se imprimen mutuamente    & Lema~\ref{lem:q} + Teorema~\ref{teo:recursion} \\
+4  & lenguajes no reconocibles con $M^{\ATM}$ & Teorema~\ref{teo:cardA_TM} \\
+5  & introspecci\'on de una clase Python  & \texttt{inspect} como an\'alogo de ``obtener $\enc{M}$'' \\
+6  & creaci\'on din\'amica de una clase   & \texttt{type} como an\'alogo de $q$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection*{Resumen ejecutivo de la t\'ecnica de autoreferencia}
+
+\begin{enumerate}
+  \item Si necesitamos una MT que use $\enc{M}$, escribimos su pseudoc\'odigo
+        usando libremente la frase ``obtener $\enc{M}$'' y aplicamos el
+        Teorema~\ref{teo:recursion} para garantizar su existencia.
+  \item Si necesitamos una MT que imprima cierto texto fijo $w$, usamos
+        $\Pw{w}$ del Lema~\ref{lem:q}.
+  \item Si necesitamos una MT que produzca otra MT a partir de su propia
+        descripci\'on, combinamos ambos: $\SELF$ + transformaci\'on
+        computable $\tau$.
+\end{enumerate}
+
+\subsection*{Pseudoc\'odigo unificado}
+
+\begin{verbatim}
+M = "En entrada x:
+  1. (Si se necesita) obtener <M> por el Teorema de la Recursion.
+  2. Computar f(<M>, x) (o cualquier funcion computable usando <M>).
+  3. Imprimir, simular, aceptar/rechazar, etc."
+\end{verbatim}
+
+\bigskip\hrule\bigskip
+
+% =============================================================================
+\section*{S\'intesis final}
+\addcontentsline{toc}{section}{S\'intesis final}
+
+El Cap\'itulo 6 de Sipser y las l\'aminas \texttt{autoref.pdf} introducen tres
+ideas que se entrelazan:
+
+\begin{itemize}
+  \item \textbf{Autoreferencia}: una MT puede obtener su propia descripci\'on
+        (Teorema de la Recursi\'on). De aqu\'i se derivan, mec\'anicamente,
+        $\SELF$, los quines, la no reconocibilidad de $\MIN$ y una nueva
+        prueba de indecibilidad de $\ATM$.
+  \item \textbf{Or\'aculos y $\redT$}: extender una MT con un or\'aculo es la
+        forma m\'as general de la noci\'on intuitiva de reducci\'on. Sin
+        embargo, agregar un or\'aculo no permite escapar de los l\'imites
+        cardinales: existen lenguajes incontables y or\'aculos numerables.
+  \item \textbf{Introspecci\'on}: en lenguajes Turing-completos reales (Python
+        es el ejemplo can\'onico), las facilidades de \texttt{inspect} y
+        \texttt{type} hacen tangibles las construcciones de la teor\'ia.
+\end{itemize}
+
+En conjunto, este pr\'actico convierte un tema aparentemente filos\'ofico
+(``\!\!?puede un programa hablar de s\'i mismo?'') en una herramienta
+operativa de la teor\'ia de la computaci\'on y de la programaci\'on real.
+
+\end{document}
