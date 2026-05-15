@@ -1,0 +1,719 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-tabla,es-noshorthands]{babel}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{tcolorbox}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{parskip}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!60!black,
+    urlcolor=blue!60!black,
+    citecolor=blue!60!black
+}
+
+\newtheoremstyle{definicion}
+    {1em}{1em}{}{}{\bfseries}{.}{.5em}{}
+\theoremstyle{definicion}
+\newtheorem{definicion}{Definición}[section]
+\newtheorem{teorema}[definicion]{Teorema}
+\newtheorem{proposicion}[definicion]{Proposición}
+\newtheorem{ejemplo}[definicion]{Ejemplo}
+\newtheorem{observacion}[definicion]{Observación}
+
+\newtcolorbox{intuicion}{
+    colback=blue!5!white,
+    colframe=blue!60!black,
+    title=Intuición,
+    fonttitle=\bfseries,
+    boxrule=0.5pt,
+    arc=2pt
+}
+
+\newtcolorbox{idea}{
+    colback=green!5!white,
+    colframe=green!40!black,
+    title=Idea clave,
+    fonttitle=\bfseries,
+    boxrule=0.5pt,
+    arc=2pt
+}
+
+\newcommand{\MT}{\textsc{mt}}
+\newcommand{\MTs}{\textsc{mt}s}
+\newcommand{\enc}[1]{\langle #1 \rangle}
+\newcommand{\Lang}{\mathcal{L}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\redP}{\leq_{P}}
+\newcommand{\NP}{\mathrm{NP}}
+\newcommand{\Pclass}{\mathrm{P}}
+
+\title{\textbf{Resumen Teórico: La Clase NP y NP-Completitud}\\[0.3em]
+\large Computabilidad y Complejidad --- UNRC}
+\author{Basado en el material de Pablo Castro (UNRC)}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+\vspace{1em}
+\hrule
+\vspace{1em}
+
+\section{Introducción}
+
+En el teórico anterior estudiamos la clase $\Pclass$: los problemas decidibles en tiempo polinomial por una máquina de Turing determinista. La pregunta natural ahora es: \emph{¿hay problemas más difíciles que los de $\Pclass$ pero que aún tengan ``algo de estructura''?} La respuesta es la clase $\NP$, que reúne a una enorme cantidad de problemas naturales para los cuales no se conoce ningún algoritmo polinomial pero que, sin embargo, exhiben una propiedad común: \emph{una solución, si existiera, puede ser verificada rápidamente}.
+
+Este resumen recorre las herramientas clásicas de esta área:
+\begin{enumerate}
+    \item La definición de $\NP$ mediante máquinas de Turing no deterministas y mediante verificadores polinomiales.
+    \item Ejemplos canónicos de problemas en $\NP$: \texttt{HAMPATH}, \texttt{CLIQUE}, \texttt{SUBSET-SUM}, \texttt{COMP}.
+    \item La relación $\Pclass \subseteq \NP$ y la conjetura $\Pclass \overset{?}{=} \NP$.
+    \item Reducibilidad polinomial: la herramienta que permite comparar la dificultad de problemas.
+    \item NP-completitud: los problemas ``más difíciles'' dentro de $\NP$.
+    \item El Teorema de Cook--Levin: SAT es NP-completo.
+    \item Reducciones clásicas: $\mathrm{SAT} \redP 3\mathrm{SAT}$, $3\mathrm{SAT} \redP \mathrm{CLIQUE}$, $3\mathrm{SAT} \redP \mathrm{VERTEX\text{-}COVER}$, $3\mathrm{SAT} \redP \mathrm{HAMPATH}$.
+    \item Una primera mirada a la complejidad espacial.
+\end{enumerate}
+
+\begin{intuicion}
+Hay problemas que parecen ``fáciles de chequear pero difíciles de resolver''. Si alguien nos entrega un camino y nos pregunta si es Hamiltoniano, podemos verificarlo en tiempo lineal. Pero \emph{encontrar} ese camino, sin ayuda externa, parece requerir explorar exponencialmente muchas alternativas. La clase $\NP$ formaliza esta asimetría entre \emph{decidir} y \emph{verificar}, y la pregunta abierta $\Pclass \overset{?}{=} \NP$ pregunta si esa asimetría es real o ilusoria.
+\end{intuicion}
+
+\section{La clase NP}
+
+Así como definimos $\Pclass$ a partir de máquinas de Turing deterministas, definimos $\NP$ a partir de máquinas de Turing \emph{no deterministas}.
+
+\begin{definicion}[Tiempo no determinista]
+\[
+\mathrm{NTIME}(t(n)) = \{ L \mid L \text{ es decidido por una \MT\ no determinista en } O(t(n)) \text{ pasos}\}.
+\]
+Recordemos que el tiempo de una \MT\ no determinista es el largo de la \emph{rama más larga} de su árbol de cómputo.
+\end{definicion}
+
+\begin{definicion}[Clase $\NP$]
+\[
+\NP = \bigcup_{k > 0} \mathrm{NTIME}(n^k).
+\]
+Es decir, $\NP$ es la clase de los lenguajes decidibles por alguna \MT\ no determinista en tiempo polinomial.
+\end{definicion}
+
+\begin{intuicion}
+Una \MT\ no determinista en tiempo polinomial es ``mágica'': en cada paso puede elegir entre varias transiciones, y acepta una entrada si \emph{alguna} secuencia de elecciones lleva a un estado de aceptación. Esto se parece a tener un oráculo que ``adivina'' la respuesta correcta y luego permite verificarla.
+\end{intuicion}
+
+\section{Un ejemplo guía: caminos Hamiltonianos}
+
+\begin{definicion}[Camino Hamiltoniano]
+Dado un grafo dirigido $G = (V, E)$, un \textbf{camino Hamiltoniano} entre $s$ y $t$ es un camino que parte de $s$, termina en $t$ y pasa \emph{exactamente una vez} por cada nodo de $V$.
+\end{definicion}
+
+\begin{definicion}[Lenguaje \texttt{HAMPATH}]
+\[
+\mathrm{HAMPATH} = \{ \enc{G, s, t} \mid G \text{ tiene un camino Hamiltoniano de } s \text{ a } t\}.
+\]
+\end{definicion}
+
+\subsection{Una solución no determinista para HAMPATH}
+
+Describamos cómo una \MT\ no determinista $N$ puede decidir \texttt{HAMPATH} en tiempo polinomial. Dado $\enc{G, s, t}$:
+\begin{enumerate}
+    \item \textbf{Adivinar.} Escribir, de forma \emph{no determinista}, una secuencia de $|V|$ nodos $v_1, v_2, \dots, v_{|V|}$. (Cada elección se realiza ``probando todas las alternativas en paralelo''.)
+    \item \textbf{Verificar.} Comprobar:
+    \begin{itemize}
+        \item Todos los nodos $v_i$ son distintos.
+        \item $v_1 = s$ y $v_{|V|} = t$.
+        \item Para cada $i$, hay un arco $(v_i, v_{i+1}) \in E$.
+    \end{itemize}
+    Si todo se cumple, aceptar; si no, rechazar.
+\end{enumerate}
+
+Ambas etapas se hacen en tiempo polinomial, así que $\mathrm{HAMPATH} \in \NP$.
+
+\begin{idea}
+El patrón es general: una \MT\ no determinista para un problema en $\NP$ tiene dos fases.
+\begin{itemize}
+    \item \textbf{Fase 1 (adivinanza).} Genera \emph{no deterministamente} un candidato a solución.
+    \item \textbf{Fase 2 (verificación).} Recorre el candidato y revisa, de manera \emph{determinista} y \emph{polinomial}, si efectivamente resuelve el problema.
+\end{itemize}
+\end{idea}
+
+\section{Verificadores y certificados: definición alternativa de NP}
+
+La idea ``adivinar y verificar'' se puede formalizar sin recurrir a las \MTs\ no deterministas: basta con definir verificadores deterministas que reciben tanto la entrada como un \emph{testigo} extra.
+
+\begin{definicion}[Verificador]
+Sea $A$ un lenguaje. Una \MT\ determinista $V$ es un \textbf{verificador} para $A$ si
+\[
+A = \{ w \mid \exists\, c : V \text{ acepta } (w, c)\}.
+\]
+La cadena $c$ se llama \textbf{certificado} (o testigo) de la pertenencia de $w$ a $A$.
+\end{definicion}
+
+\begin{definicion}[Verificador polinomial]
+Un verificador $V$ se dice \textbf{polinomial} si:
+\begin{enumerate}
+    \item $V$ corre en tiempo $O(n^k)$ para algún $k > 0$, donde $n = |w|$.
+    \item Los certificados son polinomialmente acotados: existe $k' > 0$ tal que
+    \[
+    A = \{ w \mid \exists\, c : |c| \leq |w|^{k'} \text{ y } V \text{ acepta } (w, c)\}.
+    \]
+\end{enumerate}
+\end{definicion}
+
+\begin{intuicion}
+Un certificado es la \emph{evidencia} de que la respuesta es ``sí''. Para \texttt{HAMPATH}, el certificado natural es el propio camino Hamiltoniano: una vez que tenemos el camino, verificar que lo es se hace recorriendo aristas. Para que esto sea útil, el certificado tiene que ser \emph{corto} (polinomial respecto a la entrada) y \emph{rápido de chequear} (también polinomial).
+\end{intuicion}
+
+\subsection{Equivalencia entre las dos definiciones}
+
+\begin{teorema}[Caracterización de $\NP$]\label{teo:equiv-np}
+$L \in \NP$ si y solo si $L$ tiene un verificador polinomial.
+\end{teorema}
+
+\begin{proof}[Esquema de la demostración]
+\textbf{($\Leftarrow$) De verificador a \MT\ no determinista.}\quad
+Supongamos que $L$ tiene un verificador polinomial $V$ con certificados de tamaño $\leq |w|^k$. Construimos una \MT\ no determinista $N$ que sobre la entrada $w$:
+\begin{enumerate}
+    \item Adivina no deterministamente una cadena $c$ con $|c| \leq |w|^k$.
+    \item Simula $V$ sobre $(w, c)$ y acepta si y solo si $V$ acepta.
+\end{enumerate}
+Ambas fases son polinomiales, así que $N$ decide $L$ en tiempo polinomial.
+
+\textbf{($\Rightarrow$) De \MT\ no determinista a verificador.}\quad
+Supongamos que $L$ es decidido por una \MT\ no determinista $N$ en tiempo $n^k$. Construimos un verificador $V$ que recibe $(w, c)$ donde $c$ codifica una secuencia de elecciones no deterministas (una rama del árbol de cómputo). $V$ simula $N$ siguiendo esas elecciones y acepta si la rama termina aceptando. Como $N$ corre en tiempo $n^k$, una rama se describe en espacio $O(n^k)$ y se simula en tiempo $O(n^k)$.
+\end{proof}
+
+\begin{idea}
+Tenemos dos formas equivalentes de pensar a $\NP$:
+\begin{itemize}
+    \item \textbf{Operacional:} $\NP$ son los problemas decidibles en tiempo polinomial por una \MT\ \emph{no determinista}.
+    \item \textbf{Declarativa:} $\NP$ son los problemas cuyas instancias positivas admiten una \emph{prueba corta} (certificado polinomial) que puede ser verificada en tiempo polinomial.
+\end{itemize}
+La segunda visión suele ser la más útil en la práctica: probar que un problema está en $\NP$ casi siempre significa exhibir un certificado natural.
+\end{idea}
+
+\section{Ejemplos de problemas en NP}
+
+Veamos varios problemas clásicos y argumentemos que están en $\NP$ describiendo un verificador polinomial para cada uno.
+
+\subsection{HAMPATH}
+
+Ya lo vimos: el certificado es el camino Hamiltoniano $p = v_1 v_2 \cdots v_{|V|}$. El verificador chequea:
+\begin{itemize}
+    \item Los $v_i$ son nodos distintos de $G$.
+    \item $v_1 = s$, $v_{|V|} = t$.
+    \item $(v_i, v_{i+1}) \in E$ para todo $i$.
+\end{itemize}
+Tamaño del certificado: $|V|$ nodos, claramente polinomial. Tiempo del verificador: lineal en $|G|$. Por lo tanto $\mathrm{HAMPATH} \in \NP$.
+
+\subsection{COMP (números compuestos)}
+
+\begin{ejemplo}
+\[
+\mathrm{COMP} = \{ x \mid \exists\, p, q > 1 : x = p \cdot q\}.
+\]
+\end{ejemplo}
+
+\textbf{Certificado.} Un par $(p, q)$ con $p, q > 1$ y $p \cdot q = x$.
+
+\textbf{Verificador.} Chequea $p, q > 1$ y computa $p \cdot q$ (multiplicación entera, polinomial en la cantidad de bits) comparando con $x$. Como $p, q < x$, tienen menos bits que $x$, así que el certificado es polinomial. Por lo tanto $\mathrm{COMP} \in \NP$.
+
+\subsection{CLIQUE}
+
+\begin{definicion}[Clique]
+Dado un grafo no dirigido $G$, un \textbf{clique} es un subgrafo en el cual cada par de nodos está conectado. Un \textbf{$k$-clique} es un clique con exactamente $k$ nodos.
+\end{definicion}
+
+\begin{ejemplo}
+\[
+\mathrm{CLIQUE} = \{ \enc{G, k} \mid G \text{ tiene un } k\text{-clique}\}.
+\]
+\end{ejemplo}
+
+\textbf{Certificado.} Un subconjunto $c \subseteq V$ con $|c| = k$.
+
+\textbf{Verificador.} Dado $(\enc{G, k}, c)$:
+\begin{itemize}
+    \item Chequear que los nodos de $c$ pertenecen a $V$.
+    \item Chequear que entre cualquier par de nodos de $c$ existe un arco.
+    \item Aceptar si ambas condiciones se cumplen, rechazar en caso contrario.
+\end{itemize}
+
+El subconjunto $c$ tiene tamaño polinomial ($\leq |V|$) y la verificación involucra $\binom{k}{2}$ chequeos de aristas, polinomial. Por lo tanto $\mathrm{CLIQUE} \in \NP$.
+
+\subsection{SUBSET-SUM}
+
+\begin{ejemplo}
+\[
+\mathrm{SUBSET\text{-}SUM} = \{ \enc{S, t} \mid \exists\, S' \subseteq S : \textstyle\sum S' = t\}.
+\]
+Por ejemplo, $\enc{\{4, 11, 16, 21, 27\}, 25} \in \mathrm{SUBSET\text{-}SUM}$ porque $4 + 21 = 25$.
+\end{ejemplo}
+
+\textbf{Certificado.} El subconjunto $S' \subseteq S$.
+
+\textbf{Verificador.} Suma los elementos de $S'$ y compara con $t$; chequea además que $S' \subseteq S$.
+
+Tamaño del certificado: a lo sumo $|S|$ números, polinomial. Tiempo: lineal. Por lo tanto $\mathrm{SUBSET\text{-}SUM} \in \NP$.
+
+\subsection{Problemas que parecen estar afuera de NP}
+
+\begin{observacion}
+No todo problema tiene un certificado obvio. Considere los complementos:
+\[
+\overline{\mathrm{HAMPATH}} = \{ w \mid w \notin \mathrm{HAMPATH}\}, \qquad
+\overline{\mathrm{CLIQUE}} = \{ w \mid w \notin \mathrm{CLIQUE}\}.
+\]
+Para mostrar que un grafo \emph{tiene} un camino Hamiltoniano basta un camino; pero para mostrar que \emph{no tiene} ninguno, no se conoce un certificado polinomial natural. Estos problemas pertenecen a la clase $\mathrm{coNP}$, y no se sabe si $\NP = \mathrm{coNP}$.
+\end{observacion}
+
+\section{P vs NP}
+
+Podemos resumir las dos clases:
+\begin{itemize}
+    \item $\Pclass$: lenguajes que se pueden \emph{decidir} rápidamente.
+    \item $\NP$: lenguajes cuya pertenencia se puede \emph{verificar} rápidamente.
+\end{itemize}
+
+\begin{proposicion}
+$\Pclass \subseteq \NP$.
+\end{proposicion}
+
+\begin{proof}
+Si $L \in \Pclass$, hay una \MT\ determinista $M$ que decide $L$ en tiempo polinomial. Definimos un verificador $V$ que ignora el certificado $c$ y simplemente simula $M(w)$. Esto es polinomial y muestra $L \in \NP$.
+\end{proof}
+
+\begin{tcolorbox}[colback=yellow!10!white, colframe=orange!70!black, title=\textbf{Pregunta abierta: $\Pclass \overset{?}{=} \NP$}, fonttitle=\bfseries]
+¿Es $\Pclass = \NP$? Es decir, ¿todo problema cuya solución se puede \emph{verificar} rápidamente se puede también \emph{resolver} rápidamente? Es uno de los grandes problemas no resueltos de la computación; la mayoría de los investigadores conjetura que $\Pclass \neq \NP$, pero nadie ha logrado una prueba. \emph{A priori}, la verificabilidad polinomial parece más potente que la decidibilidad polinomial.
+\end{tcolorbox}
+
+\section{Reducibilidad polinomial}
+
+Para comparar la dificultad relativa de dos problemas se introduce una noción de \emph{reducción} análoga a las que se usan en computabilidad, pero ahora con la restricción extra de que la función reductora debe ser eficiente.
+
+\begin{definicion}[Función polinomialmente computable]
+Una función $f : \Sigma^* \to \Sigma^*$ es \textbf{polinomialmente computable} si existe una \MT\ que la computa en tiempo polinomial.
+\end{definicion}
+
+\begin{definicion}[Reducibilidad polinomial]
+Un lenguaje $A$ es \textbf{polinomialmente reducible} a un lenguaje $B$, notado $A \redP B$, si existe una función polinomialmente computable $f : \Sigma^* \to \Sigma^*$ tal que
+\[
+\forall\, w : \quad w \in A \iff f(w) \in B.
+\]
+\end{definicion}
+
+\begin{intuicion}
+$A \redP B$ significa que ``resolver $A$ no puede ser sustancialmente más difícil que resolver $B$ módulo un trabajo polinomial''. Si sabemos resolver $B$, podemos resolver $A$ traduciendo cada instancia de $A$ a una de $B$ y usando el algoritmo de $B$.
+\end{intuicion}
+
+\subsection{Propiedades de la reducibilidad polinomial}
+
+\begin{proposicion}\label{prop:red-P}
+Si $A \redP B$ y $B \in \Pclass$, entonces $A \in \Pclass$.
+\end{proposicion}
+
+\begin{proof}
+Sea $M$ una \MT\ que computa $f$ en tiempo $O(n^k)$ (la reducción) y $M_B$ una \MT\ que decide $B$ en tiempo $O(n^{k'})$. Construyamos una \MT\ $N$ que decide $A$:
+\begin{enumerate}
+    \item Sobre la entrada $w$, ejecutar $M(w)$ para obtener $f(w)$.
+    \item Ejecutar $M_B(f(w))$; aceptar si $M_B$ acepta, rechazar si rechaza.
+\end{enumerate}
+Por correctitud de la reducción, $N$ decide $A$. Para el tiempo: $|f(w)| \leq |w|^k$ (porque $M$ corre en $O(|w|^k)$ pasos y no puede escribir más), así que el paso 2 tarda $O((|w|^k)^{k'}) = O(|w|^{k \cdot k'})$. Total: $O(|w|^k) + O(|w|^{k \cdot k'})$, polinomial.
+\end{proof}
+
+\begin{proposicion}[Transitividad]
+Si $A \redP B$ y $B \redP C$, entonces $A \redP C$.
+\end{proposicion}
+
+\begin{proof}[Idea]
+Componer las dos reducciones: la composición de funciones polinomialmente computables es polinomialmente computable (la salida de la primera es polinomial en la entrada, y eso alimenta a la segunda).
+\end{proof}
+
+\begin{observacion}
+También se puede probar (análogamente) que si $A \redP B$ y $B \in \NP$, entonces $A \in \NP$. Las reducciones polinomiales ``preservan hacia atrás'' la pertenencia a $\Pclass$ y a $\NP$.
+\end{observacion}
+
+\section{NP-Completitud}
+
+Dentro de $\NP$ hay problemas que son ``los más difíciles'': si alguien encontrara un algoritmo polinomial para alguno de ellos, automáticamente tendría algoritmos polinomiales para todos los problemas de $\NP$. Esos problemas se llaman \emph{NP-completos}.
+
+\begin{definicion}[NP-completitud]
+Un lenguaje $L$ es \textbf{NP-completo} si:
+\begin{enumerate}
+    \item $L \in \NP$.
+    \item Para todo $A \in \NP$, se cumple $A \redP L$ (se dice que $L$ es \textbf{NP-difícil}).
+\end{enumerate}
+\end{definicion}
+
+\begin{proposicion}\label{prop:np-completo-p}
+Si algún problema NP-completo está en $\Pclass$, entonces $\Pclass = \NP$.
+\end{proposicion}
+
+\begin{proof}
+Sea $L$ NP-completo con $L \in \Pclass$. Para cualquier $A \in \NP$, tenemos $A \redP L$. Por la Proposición \ref{prop:red-P}, como $L \in \Pclass$, se sigue $A \in \Pclass$. Por lo tanto $\NP \subseteq \Pclass$, y como ya teníamos $\Pclass \subseteq \NP$, concluimos $\Pclass = \NP$.
+\end{proof}
+
+\begin{idea}
+Los NP-completos son ``el centro nervioso'' de $\NP$. Probar $\Pclass = \NP$ se reduce a encontrar \emph{un} algoritmo polinomial para \emph{cualquiera} de ellos. Recíprocamente, probar $\Pclass \neq \NP$ se reduce a demostrar que \emph{ninguno} de ellos admite uno.
+\end{idea}
+
+\section{SAT y el Teorema de Cook--Levin}
+
+\subsection{Fórmulas booleanas y SAT}
+
+\begin{definicion}[Fórmulas booleanas]
+Sea $X = \{x, y, z, \dots\}$ un conjunto numerable de variables. La gramática de las fórmulas booleanas es:
+\[
+\phi, \psi \;::=\; X \mid \neg\phi \mid \phi \land \psi \mid \phi \lor \psi.
+\]
+\end{definicion}
+
+\begin{definicion}[Asignación y satisfacibilidad]
+Una \textbf{asignación} es una función $v : X \to \{0, 1\}$. Una fórmula $\phi$ es \textbf{satisfacible} si existe una asignación $v$ que la hace verdadera, denotado $v \models \phi$.
+\end{definicion}
+
+\begin{definicion}[Lenguaje SAT]
+\[
+\mathrm{SAT} = \{ \enc{\phi} \mid \phi \text{ es una fórmula booleana satisfacible}\}.
+\]
+\end{definicion}
+
+\subsection{Formas normales: CNF y 3-CNF}
+
+\begin{definicion}[Cláusula, CNF, 3-CNF]
+Una \textbf{cláusula} es una disyunción de literales (variables o sus negaciones):
+\[
+(\ell_1 \lor \ell_2 \lor \dots \lor \ell_n).
+\]
+Una fórmula está en \textbf{CNF} (Conjunctive Normal Form) si es una conjunción de cláusulas:
+\[
+c_1 \land c_2 \land \dots \land c_m.
+\]
+Está en \textbf{3-CNF} si cada cláusula tiene exactamente 3 literales. El lenguaje \texttt{3-SAT} es el problema de satisfacibilidad restringido a fórmulas en 3-CNF.
+\end{definicion}
+
+\begin{ejemplo}
+$(x_0 \lor x_1 \lor x_3) \land (\neg x_0 \lor \neg x_1 \lor x_2)$ es una fórmula en 3-CNF.
+\end{ejemplo}
+
+\begin{observacion}
+Toda fórmula booleana se puede escribir en CNF (aunque, en general, no en 3-CNF sin agregar variables nuevas; lo veremos al reducir $\mathrm{SAT}$ a $3\mathrm{SAT}$).
+\end{observacion}
+
+\subsection{Teorema de Cook--Levin}
+
+\begin{teorema}[Cook--Levin]\label{teo:cook-levin}
+$\mathrm{SAT}$ es NP-completo.
+\end{teorema}
+
+La demostración tiene dos partes.
+
+\textbf{Parte 1: $\mathrm{SAT} \in \NP$.}\quad
+Dada $\phi$, el certificado es una asignación $v$ a las variables de $\phi$. El verificador evalúa $\phi$ bajo $v$ en tiempo polinomial (recorre el árbol sintáctico).
+
+\textbf{Parte 2: todo $A \in \NP$ se reduce a $\mathrm{SAT}$.}\quad
+Esta es la parte difícil: dado un lenguaje arbitrario $A \in \NP$ decidido por una \MT\ no determinista $N$ en tiempo $n^k$, hay que construir, en tiempo polinomial, una fórmula $\phi_w$ tal que
+\[
+w \in A \iff \phi_w \text{ es satisfacible}.
+\]
+
+\subsection{Idea de la reducción: la tabla de cómputo}
+
+Si $N$ acepta $w$, hay una secuencia de configuraciones $C_0 \to C_1 \to \dots \to C_{n^k}$ que empieza en la configuración inicial sobre $w$ y termina en un estado de aceptación. Esta secuencia se puede representar como una \textbf{tabla} (o ``tablero'') de $n^k \times n^k$ celdas:
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+$C_0$ (configuración inicial) & & & & \\
+\hline
+$C_1$ & & & & \\
+\hline
+$\vdots$ & & & & \\
+\hline
+$C_{n^k}$ (aceptación) & & & & \\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{itemize}
+    \item Cada \textbf{fila} representa una configuración (cinta + estado + cabezal).
+    \item Hay $n^k$ filas (una por paso de tiempo) y $n^k$ columnas (longitud máxima de cinta usada).
+    \item Cada celda contiene un símbolo de $C = \Gamma \cup \Sigma \cup Q \cup \{\#\}$, donde $\Gamma$ es el alfabeto de cinta, $\Sigma$ el alfabeto de entrada, $Q$ los estados, y $\#$ un delimitador.
+\end{itemize}
+
+\subsection{Variables proposicionales}
+
+Para cada celda $(i, j)$ y cada símbolo $s \in C$, introducimos una variable
+\[
+x_{i,j,s} \text{ que es verdadera} \iff \text{la celda } (i, j) \text{ contiene el símbolo } s.
+\]
+
+La cantidad de variables es $|C| \cdot n^{2k} = O(n^{2k})$, polinomial.
+
+\subsection{Estructura de la fórmula $\phi$}
+
+\[
+\phi \;=\; \phi_{\text{cell}} \;\land\; \phi_{\text{start}} \;\land\; \phi_{\text{move}} \;\land\; \phi_{\text{accept}}.
+\]
+
+Cada componente expresa una propiedad de la tabla.
+
+\subsubsection*{$\phi_{\text{cell}}$: cada celda contiene exactamente un símbolo}
+
+\[
+\phi_{\text{cell}} \;=\; \bigwedge_{1 \leq i, j \leq n^k} \left[ \Big(\bigvee_{s \in C} x_{i,j,s}\Big) \;\land\; \Big( \bigwedge_{\substack{s, t \in C \\ s \neq t}} (\neg x_{i,j,s} \lor \neg x_{i,j,t}) \Big) \right].
+\]
+
+La primera parte dice ``hay al menos un símbolo''; la segunda dice ``no hay dos símbolos distintos a la vez''. Tamaño: $O(n^{2k})$.
+
+\subsubsection*{$\phi_{\text{start}}$: la primera fila es la configuración inicial}
+
+\[
+\phi_{\text{start}} \;=\; x_{1,1,\#} \land x_{1,2,q_0} \land x_{1,3,w_1} \land x_{1,4,w_2} \land \dots \land x_{1,n+2,w_n} \land x_{1,n+3,\sqcup} \land \dots \land x_{1,n^k - 1, \sqcup} \land x_{1, n^k, \#}.
+\]
+
+Es decir, la fila 1 codifica la cinta inicial con el cabezal en $q_0$ apuntando al primer símbolo de $w$, blanqueado a partir de la posición $n+3$, con delimitadores $\#$ a los costados. Tamaño: $O(n^k)$.
+
+\subsubsection*{$\phi_{\text{accept}}$: alguna fila contiene el estado de aceptación}
+
+\[
+\phi_{\text{accept}} \;=\; \bigvee_{1 \leq i, j \leq n^k} x_{i, j, q_{\text{accept}}}.
+\]
+
+Tamaño: $O(n^{2k})$.
+
+\subsubsection*{$\phi_{\text{move}}$: cada paso es una transición válida}
+
+Esta es la parte más delicada. La idea es usar \textbf{ventanas de $2 \times 3$ celdas}: una ventana de la tabla, centrada en una posición $(i, j)$, consta de 6 celdas (3 en la fila $i$ y 3 en la fila $i+1$). Una ventana es \emph{legal} si su contenido es consistente con \emph{alguna} transición posible de $N$ (incluyendo el caso de celdas que no cambian porque están lejos del cabezal).
+
+\begin{teorema}[Ventanas y ramas de cómputo]
+Si todas las ventanas $2 \times 3$ de la tabla son legales, entonces la tabla describe una rama de cómputo válida de $N$.
+\end{teorema}
+
+\textbf{Intuición.}\quad
+\begin{itemize}
+    \item Si un símbolo está en el centro de una ventana sin ser adyacente a un estado (cabezal), entonces no debe cambiar de una fila a la siguiente: la ventana lo fuerza a permanecer.
+    \item Si una ventana contiene al estado-cabezal en el centro, las posibles ``filas inferiores'' se restringen a las que corresponden a alguna transición $\delta(q, a)$.
+\end{itemize}
+
+\textbf{Ejemplo.}\quad
+Supongamos $\delta(q_1, a) = \{(q_1, b, R)\}$ y $\delta(q_1, b) = \{(q_2, c, L), (q_2, a, R)\}$. Entonces las siguientes son ventanas legales:
+\[
+\begin{array}{|c|c|c|}\hline a & q_1 & b \\ \hline q_2 & a & c \\ \hline\end{array} \qquad
+\begin{array}{|c|c|c|}\hline a & q_1 & b \\ \hline a & a & q_2 \\ \hline\end{array} \qquad
+\begin{array}{|c|c|c|}\hline a & a & q_1 \\ \hline a & a & b \\ \hline\end{array}
+\]
+
+Entonces:
+\[
+\phi_{\text{move}} \;=\; \bigwedge_{1 \leq i < n^k,\, 1 < j < n^k} (\text{la ventana centrada en } (i, j) \text{ es legal}).
+\]
+
+Cada ventana se describe como una gran disyunción sobre las configuraciones legales de 6 celdas; como solo se usan 6 variables, cada cláusula tiene tamaño constante. Tamaño total: $O(n^{2k})$.
+
+\subsection{Tamaño total de $\phi$}
+
+\[
+|\phi_{\text{cell}}| = O(n^{2k}), \quad |\phi_{\text{start}}| = O(n^k), \quad |\phi_{\text{accept}}| = O(n^{2k}), \quad |\phi_{\text{move}}| = O(n^{2k}).
+\]
+
+Total: $O(n^{2k})$, polinomial. Además la construcción es polinomialmente computable: simplemente recorremos todas las celdas y emitimos las cláusulas correspondientes.
+
+\subsection{Correctitud}
+
+\begin{itemize}
+    \item Si $N$ acepta $w$, existe una rama de cómputo aceptante; codifica una tabla cuya asignación correspondiente satisface $\phi$.
+    \item Si $\phi$ es satisfacible, la asignación describe una tabla en la que: cada celda tiene un único símbolo ($\phi_{\text{cell}}$), la primera fila es la configuración inicial ($\phi_{\text{start}}$), las transiciones son legales ($\phi_{\text{move}}$), y se alcanza un estado de aceptación ($\phi_{\text{accept}}$). Esa tabla es, por tanto, una rama de cómputo aceptante de $N$ sobre $w$, así que $w \in A$.
+\end{itemize}
+
+Esto concluye la demostración del Teorema \ref{teo:cook-levin}.
+
+\begin{idea}
+La fuerza del Teorema de Cook--Levin es enorme: una vez probado que $\mathrm{SAT}$ es NP-completo, demostrar que un nuevo problema $L$ es NP-completo no requiere repetir todo este argumento. Basta:
+\begin{enumerate}
+    \item Mostrar que $L \in \NP$.
+    \item Reducir polinomialmente algún problema NP-completo conocido (como $\mathrm{SAT}$, $3\mathrm{SAT}$, etc.) a $L$.
+\end{enumerate}
+La transitividad de la reducción polinomial cierra el círculo automáticamente.
+\end{idea}
+
+\section{3-SAT es NP-completo}
+
+\begin{teorema}
+$3\mathrm{SAT}$ es NP-completo.
+\end{teorema}
+
+\begin{proof}[Esquema]
+\textbf{(1) $3\mathrm{SAT} \in \NP$.}\quad Idéntico al caso de $\mathrm{SAT}$: el certificado es una asignación.
+
+\textbf{(2) $\mathrm{SAT} \redP 3\mathrm{SAT}$.}\quad Construiremos, dada una fórmula CNF arbitraria $\phi$, una fórmula 3-CNF $\phi'$ equisatisfacible (es decir, satisfacible si y solo si $\phi$ lo es). Como la fórmula construida en Cook--Levin se puede escribir fácilmente en CNF, basta con tratar fórmulas en CNF.
+
+Sea una cláusula $C = (x_0 \lor x_1 \lor \dots \lor x_{n-1})$ con $n$ literales. Introducimos $n - 3$ variables auxiliares $z_1, z_2, \dots, z_{n-3}$ y la reescribimos como una conjunción de $n - 2$ cláusulas de exactamente 3 literales:
+\[
+(x_0 \lor x_1 \lor z_1) \land (\neg z_1 \lor x_2 \lor z_2) \land (\neg z_2 \lor x_3 \lor z_3) \land \dots \land (\neg z_{n-3} \lor x_{n-2} \lor x_{n-1}).
+\]
+
+\textbf{Equisatisfacibilidad.}\quad
+\begin{itemize}
+    \item Si la cláusula original $C$ se satisface con algún literal $x_i$ verdadero, podemos asignar $z_1, \dots, z_{i-1}$ a 1 y $z_i, \dots, z_{n-3}$ a 0 para satisfacer las $n - 2$ cláusulas nuevas.
+    \item Recíprocamente, si las nuevas cláusulas se satisfacen, no es posible que todos los $x_i$ sean falsos: una inducción simple a lo largo de la cadena de $z$s muestra que alguna debe ser verdadera.
+\end{itemize}
+
+\textbf{Tamaño y tiempo.}\quad Para una cláusula de tamaño $n$, generamos $n - 2$ cláusulas y $n - 3$ variables. Si $\phi$ tiene tamaño $N$, la fórmula $\phi'$ tiene tamaño $O(N)$ y se computa en tiempo polinomial.
+
+Como ya sabemos $\mathrm{SAT}$ es NP-completo, por transitividad ($A \redP \mathrm{SAT} \redP 3\mathrm{SAT}$ para todo $A \in \NP$) concluimos que $3\mathrm{SAT}$ también lo es.
+\end{proof}
+
+\section{Reducciones desde 3-SAT}
+
+A partir de $3\mathrm{SAT}$ podemos probar la NP-completitud de muchos otros problemas. La estrategia es siempre la misma: dada una fórmula en 3-CNF, construir polinomialmente una instancia equivalente del problema objetivo.
+
+\subsection{3-SAT $\redP$ CLIQUE}
+
+Dada $\phi = (a_1 \lor b_1 \lor c_1) \land (a_2 \lor b_2 \lor c_2) \land \dots \land (a_k \lor b_k \lor c_k)$, construimos un grafo $G_\phi$ y elegimos $k$ (la cantidad de cláusulas):
+
+\begin{itemize}
+    \item Por cada cláusula generamos un \emph{grupo} de 3 nodos, uno por literal.
+    \item Conectamos cada par de nodos con un arco \emph{excepto} si:
+    \begin{itemize}
+        \item Pertenecen a la misma cláusula (mismo grupo).
+        \item Son contradictorios entre sí (uno es $x$ y el otro $\neg x$).
+    \end{itemize}
+\end{itemize}
+
+\begin{teorema}
+$\phi$ es satisfacible si y solo si $G_\phi$ tiene un $k$-clique.
+\end{teorema}
+
+\begin{proof}[Idea]
+\begin{itemize}
+    \item Si $\phi$ es satisfacible, hay una asignación que hace verdadera alguna literal por cláusula. Tomar uno de esos literales por cláusula: forman un $k$-clique (todos están en grupos distintos y ninguno es contradictorio con otro porque la asignación los hace simultáneamente verdaderos).
+    \item Si $G_\phi$ tiene un $k$-clique $K$, $K$ debe tener \emph{exactamente uno por cláusula} (no puede tener dos del mismo grupo). Como los nodos de $K$ no son contradictorios, asignando 1 a los literales correspondientes obtenemos una asignación que satisface $\phi$.
+\end{itemize}
+\end{proof}
+
+La construcción se hace en tiempo polinomial: $G_\phi$ tiene $3k$ nodos y $O(k^2)$ aristas.
+
+\begin{ejemplo}
+Consideremos $\phi = (x_1 \lor x_2 \lor x_3) \land (\neg x_1 \lor \neg x_2 \lor \neg x_3) \land (\neg x_1 \lor x_2 \lor x_2)$. El grafo tiene 9 nodos, agrupados en 3 grupos de 3. Un 3-clique consiste en elegir un literal verdadero por cláusula, evitando contradicciones; por ejemplo, $\{x_3, \neg x_1, x_2\}$ funciona y corresponde a la asignación $v(x_1)=0, v(x_2)=1, v(x_3)=1$.
+\end{ejemplo}
+
+\begin{idea}
+Como $\mathrm{CLIQUE} \in \NP$ (ya lo vimos) y $3\mathrm{SAT} \redP \mathrm{CLIQUE}$, concluimos que $\mathrm{CLIQUE}$ es NP-completo.
+\end{idea}
+
+\subsection{3-SAT $\redP$ VERTEX-COVER}
+
+\begin{definicion}[Cubrimiento de vértices]
+Dado un grafo no dirigido $G = (V, E)$ y un entero $k \leq |V|$, un \textbf{cubrimiento de vértices} de tamaño $k$ es un subconjunto $V' \subseteq V$ con $|V'| = k$ tal que cada arco de $G$ tiene al menos un extremo en $V'$. El lenguaje es
+\[
+\mathrm{VERTEX\text{-}COVER} = \{ \enc{G, k} \mid G \text{ tiene un cubrimiento de tamaño } k\}.
+\]
+\end{definicion}
+
+\textbf{Cubrimiento en $\NP$.}\quad El certificado es un subconjunto $V'$ de tamaño $k$; el verificador recorre las aristas y comprueba que cada una toca algún vértice de $V'$. Polinomial.
+
+\textbf{Reducción $3\mathrm{SAT} \redP \mathrm{VERTEX\text{-}COVER}$.}\quad Dada una fórmula $\phi$ con $m$ variables y $\ell$ cláusulas (en 3-CNF), construimos un grafo $G_\phi$ con dos tipos de \emph{gadgets}:
+
+\begin{itemize}
+    \item \textbf{Gadget de variable.} Por cada variable $x$, dos nodos $x$ y $\overline{x}$ conectados por una arista.
+    \item \textbf{Gadget de cláusula.} Por cada cláusula, un triángulo con 3 nodos (uno por literal).
+    \item \textbf{Conexión.} Cada nodo de un triángulo se conecta con el nodo de variable que tiene el mismo \emph{label} (un literal $\neg x$ del triángulo se conecta con el nodo $\overline{x}$ del gadget de variable).
+\end{itemize}
+
+Buscamos un cubrimiento de tamaño $k = m + 2\ell$.
+
+\begin{teorema}
+$\phi$ es satisfacible si y solo si $G_\phi$ tiene un cubrimiento de vértices de tamaño $m + 2\ell$.
+\end{teorema}
+
+\begin{proof}[Idea]
+\textbf{(Total de nodos: $2m + 3\ell$.)} El grafo tiene $2m$ nodos de variable (uno por literal en cada par $x, \neg x$) y $3\ell$ nodos en gadgets de cláusula.
+
+\textbf{($\Rightarrow$) Satisfacibilidad $\Rightarrow$ cubrimiento.}\quad Dada una asignación que satisface $\phi$, para cada par $(x, \neg x)$ tomamos al nodo correspondiente al literal \emph{verdadero}. En cada triángulo elegimos los dos nodos correspondientes a literales \emph{falsos} en la asignación (el restante es uno que la asignación hace verdadero). Esto da $m + 2\ell$ nodos y se chequea que cubren todas las aristas.
+
+\textbf{($\Leftarrow$) Cubrimiento $\Rightarrow$ asignación.}\quad Un cubrimiento de tamaño $m + 2\ell$ es \emph{mínimo} para este grafo: cada par de variable requiere al menos 1 nodo, cada triángulo requiere al menos 2. Por lo tanto, debe contener exactamente 1 por par y 2 por triángulo. Asignamos 1 a las variables que aparecen como literal seleccionado en el par. Como los triángulos están cubiertos por 2 de sus 3 nodos, el nodo no seleccionado se conecta con un nodo de variable que también debe estar fuera; eso significa que su literal correspondiente está en el cubrimiento de variable y, por tanto, es verdadero bajo la asignación, satisfaciendo la cláusula.
+\end{proof}
+
+\subsection{3-SAT $\redP$ HAMPATH}
+
+Ya sabemos que $\mathrm{HAMPATH} \in \NP$. Para mostrar NP-completitud se reduce polinomialmente $3\mathrm{SAT}$ a $\mathrm{HAMPATH}$: dada una fórmula $\phi$ en 3-CNF, se construye un grafo $G_\phi$ que tiene un camino Hamiltoniano de $s$ a $t$ si y solo si $\phi$ es satisfacible. La construcción usa gadgets de variable (que codifican la asignación) y gadgets de cláusula (que fuerzan al camino a satisfacer cada cláusula); por su complejidad técnica solo describimos la idea, pero el resultado es que \textbf{HAMPATH es NP-completo}.
+
+\section{Otros problemas NP-completos clásicos}
+
+Existe un enorme catálogo de problemas NP-completos. Algunos otros mencionados en los ejercicios son:
+
+\begin{itemize}
+    \item \textbf{LPATH:} $\{\enc{G, a, b, k} \mid G \text{ contiene un camino simple de longitud} \geq k \text{ de } a \text{ a } b\}$.
+    \item \textbf{3-COLOR:} $\{\enc{G} \mid G \text{ es coloreable con 3 colores}\}$.
+    \item \textbf{SUBSET-SUM:} ya definido; se puede probar NP-completo reduciendo $3\mathrm{SAT}$.
+    \item \textbf{ISO:} ¿son dos grafos isomorfos? Se sabe que está en $\NP$, pero su estatus de NP-completitud es un problema clásico (en años recientes se han presentado algoritmos cuasi-polinomiales, sin que se haya probado NP-completitud ni pertenencia a $\Pclass$).
+\end{itemize}
+
+\section{Algunas propiedades útiles de las clases}
+
+A modo de cierre del recorrido por $\Pclass$ y $\NP$, mencionamos algunas propiedades de clausura que aparecen como ejercicios:
+
+\begin{itemize}
+    \item $\Pclass$ es cerrado bajo \textbf{unión}, \textbf{intersección}, \textbf{concatenación} y \textbf{complemento}.
+    \item $\NP$ es cerrado bajo \textbf{unión}, \textbf{intersección} y \textbf{concatenación}. No se sabe si es cerrado bajo complemento (esta pregunta es $\NP \overset{?}{=} \mathrm{coNP}$).
+\end{itemize}
+
+\section{Una breve mirada a la complejidad espacial}
+
+Cuando analizamos algoritmos, además del tiempo, otra dimensión importante es la \textbf{memoria}.
+
+\begin{definicion}[Complejidad espacial]
+La complejidad espacial de una \MT\ $M$ sobre una entrada de tamaño $n$ es la \emph{cantidad máxima de celdas de cinta} que utiliza durante su ejecución. Se denota $S_M(n)$.
+\end{definicion}
+
+\begin{intuicion}
+Las preguntas que se hacen para el espacio son análogas a las del tiempo: ¿cuánto espacio necesita un algoritmo para resolver un problema dado? ¿Hay clases de complejidad espacial análogas a $\Pclass$ y $\NP$? La respuesta es sí: se definen las clases $\mathrm{PSPACE}$, $\mathrm{NPSPACE}$, $\mathrm{L}$, $\mathrm{NL}$ y se estudian sus relaciones (por ejemplo, $\mathrm{PSPACE} = \mathrm{NPSPACE}$ por el Teorema de Savitch). El estudio sistemático de estas clases queda fuera del alcance de este resumen.
+\end{intuicion}
+
+\section{Resumen final}
+
+Las ideas centrales para llevar:
+
+\begin{enumerate}
+    \item \textbf{La clase $\NP$.} Definida operacionalmente como $\bigcup_{k>0} \mathrm{NTIME}(n^k)$, o equivalentemente, como la clase de problemas con \emph{verificadores polinomiales}. La caracterización por certificados es la herramienta práctica para probar la pertenencia.
+
+    \item \textbf{Patrón ``adivinar + verificar''.} Para mostrar $L \in \NP$ basta exhibir un certificado polinomial y un algoritmo polinomial de verificación. Ejemplos: \texttt{HAMPATH} (camino), \texttt{CLIQUE} (conjunto de nodos), \texttt{SUBSET-SUM} (subconjunto), \texttt{COMP} (factorización).
+
+    \item \textbf{$\Pclass \subseteq \NP$.} Todo problema decidible polinomialmente tiene un verificador trivial. La pregunta \emph{abierta} $\Pclass \overset{?}{=} \NP$ pregunta si la inclusión es estricta.
+
+    \item \textbf{Reducibilidad polinomial.} $A \redP B$ si existe $f$ polinomialmente computable con $w \in A \iff f(w) \in B$. Propiedades clave: \emph{transitividad}, \emph{preservación de $\Pclass$ y $\NP$ hacia atrás}.
+
+    \item \textbf{NP-completitud.} $L$ es NP-completo si $L \in \NP$ y todo $A \in \NP$ cumple $A \redP L$. Son ``los más difíciles''; resolver \emph{uno} polinomialmente colapsa $\Pclass = \NP$.
+
+    \item \textbf{Cook--Levin.} $\mathrm{SAT}$ fue el primer problema NP-completo encontrado. La demostración codifica una rama aceptante de una \MT\ no determinista como una asignación booleana, mediante la conjunción $\phi_{\text{cell}} \land \phi_{\text{start}} \land \phi_{\text{move}} \land \phi_{\text{accept}}$. El tamaño es polinomial ($O(n^{2k})$).
+
+    \item \textbf{Cadena de reducciones.} $\mathrm{SAT} \redP 3\mathrm{SAT} \redP \mathrm{CLIQUE}, \mathrm{VERTEX\text{-}COVER}, \mathrm{HAMPATH}, \dots$ Cada nueva reducción agrega un NP-completo al catálogo.
+
+    \item \textbf{El método estándar.} Para probar que un nuevo $L$ es NP-completo:
+    \begin{enumerate}
+        \item Mostrar $L \in \NP$ con un certificado natural.
+        \item Reducir polinomialmente algún NP-completo conocido a $L$.
+    \end{enumerate}
+
+    \item \textbf{Más allá del tiempo: el espacio.} El estudio de la memoria como recurso da lugar a clases análogas ($\mathrm{PSPACE}$, $\mathrm{L}$, $\mathrm{NL}$) que se exploran en los teóricos siguientes.
+\end{enumerate}
+
+\begin{intuicion}
+La teoría de NP-completitud le da estructura a un universo aparentemente caótico de problemas difíciles. Miles de problemas naturales --- desde planeamiento y scheduling hasta criptografía y verificación de programas --- caen dentro de la clase de NP-completos. Saber que un problema es NP-completo es a la vez una \emph{mala noticia} (no se conoce algoritmo polinomial) y un \emph{conocimiento útil} (no perder tiempo buscando uno, recurrir a heurísticas, aproximaciones o restricciones del problema). Por eso, NP-completitud no es un final triste sino una herramienta de diagnóstico fundamental.
+\end{intuicion}
+
+\end{document}
