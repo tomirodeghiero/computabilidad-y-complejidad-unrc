@@ -1,0 +1,1127 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-tabla,es-noshorthands]{babel}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{tcolorbox}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{parskip}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!60!black,
+    urlcolor=blue!60!black,
+    citecolor=blue!60!black
+}
+
+\newtheoremstyle{definicion}
+    {1em}{1em}{}{}{\bfseries}{.}{.5em}{}
+\theoremstyle{definicion}
+\newtheorem{definicion}{Definici\'on}[section]
+\newtheorem{teorema}[definicion]{Teorema}
+\newtheorem{proposicion}[definicion]{Proposici\'on}
+\newtheorem{corolario}[definicion]{Corolario}
+\newtheorem{ejemplo}[definicion]{Ejemplo}
+\newtheorem{observacion}[definicion]{Observaci\'on}
+
+\newtcolorbox{intuicion}{
+    colback=blue!5!white,
+    colframe=blue!60!black,
+    title=Intuici\'on,
+    fonttitle=\bfseries,
+    boxrule=0.5pt,
+    arc=2pt
+}
+
+\newtcolorbox{idea}{
+    colback=green!5!white,
+    colframe=green!40!black,
+    title=Idea clave,
+    fonttitle=\bfseries,
+    boxrule=0.5pt,
+    arc=2pt
+}
+
+\newcommand{\MT}{\textsc{mt}}
+\newcommand{\MTs}{\textsc{mt}s}
+\newcommand{\enc}[1]{\langle #1 \rangle}
+\newcommand{\Lang}{\mathcal{L}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\redP}{\leq_{P}}
+\newcommand{\NP}{\mathrm{NP}}
+\newcommand{\Pclass}{\mathrm{P}}
+\newcommand{\TIME}{\mathrm{TIME}}
+\newcommand{\NTIME}{\mathrm{NTIME}}
+\newcommand{\SPACE}{\mathrm{SPACE}}
+\newcommand{\NSPACE}{\mathrm{NSPACE}}
+\newcommand{\PSPACE}{\mathrm{PSPACE}}
+\newcommand{\NPSPACE}{\mathrm{NPSPACE}}
+\newcommand{\EXPTIME}{\mathrm{EXPTIME}}
+
+\title{\textbf{Resumen Te\'orico: Complejidad Computacional}\\[0.3em]
+\large Computabilidad y Complejidad --- UNRC}
+\author{Basado en el material de Pablo Castro (UNRC)}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+\vspace{1em}
+\hrule
+\vspace{1em}
+
+\section{Introducci\'on}
+
+En \emph{computabilidad} la pregunta central es: \emph{dado un problema $P$, ¿es computable?}. En \emph{complejidad}, en cambio, ya partimos de problemas computables y la pregunta cambia a: \emph{¿hay algoritmos eficientes para resolver $P$?}
+
+Surge entonces un interrogante metodol\'ogico: \emph{¿cu\'al modelo de computaci\'on usamos para evaluar si un algoritmo es eficiente o no?} Esta cuesti\'on es crucial; la respuesta --- v\'ia la \textbf{Tesis de Church--Turing Extendida} --- justificar\'a usar m\'aquinas de Turing como modelo de referencia.
+
+\begin{intuicion}
+Computabilidad pregunta ``¿hay algoritmo?''; complejidad pregunta ``¿hay algoritmo cuyo tiempo crezca razonablemente con el tama\~no de la entrada?''. Ambas son preguntas matem\'aticas, pero la segunda introduce un par\'ametro adicional: el tama\~no $n$ de la entrada y una funci\'on $T(n)$ que mide cu\'anto trabajo se realiza.
+\end{intuicion}
+
+\section{Tiempo de ejecuci\'on y notaciones asint\'oticas}
+
+\subsection{Tiempo como funci\'on}
+
+Dado un algoritmo (una \MT) $M$, su tiempo de ejecuci\'on se modela como una funci\'on
+\[
+T_M : \N \to \R^{\geq 0}
+\]
+que asigna, a cada $n$, la cantidad de pasos que $M$ realiza sobre alguna entrada de tama\~no $n$. Convenciones est\'andar:
+\begin{itemize}
+    \item $T$ se asume \textbf{mon\'otona}.
+    \item $M$ es una \MT\ que \textbf{termina en todas sus entradas}.
+    \item En general el an\'alisis se hace en el \textbf{peor caso}.
+    \item Interesa c\'omo crece $T$ cuando $n$ se hace grande (comportamiento asint\'otico).
+\end{itemize}
+
+\subsection{Notaci\'on $O$ (big-oh)}
+
+\begin{definicion}[Notaci\'on $O$]
+\[
+f(n) \in O(g(n)) \iff \exists\, c, n_0 > 0 : \forall n \geq n_0 : f(n) \leq c \cdot g(n).
+\]
+\end{definicion}
+
+\begin{intuicion}
+Para entradas grandes, $g$ crece igual o m\'as r\'apido que $f$ m\'odulo constantes multiplicativas. Es una \textbf{cota superior} asint\'otica.
+\end{intuicion}
+
+\subsection{Notaci\'on $o$ (little-oh)}
+
+\begin{definicion}[Notaci\'on $o$]
+\[
+f(n) \in o(g(n)) \iff \exists\, c, n_0 > 0 : \forall n \geq n_0 : f(n) < c \cdot g(n).
+\]
+Equivalentemente:
+\[
+\lim_{n \to \infty} \frac{f(n)}{g(n)} = 0 \iff f(n) \in o(g(n)).
+\]
+\end{definicion}
+
+\begin{observacion}
+$g$ crece \emph{estrictamente} m\'as r\'apido que $f$. En particular \emph{nunca} ocurre $f(n) \in o(f(n))$.
+\end{observacion}
+
+\subsection{Notaci\'on $\Omega$ (omega)}
+
+\begin{definicion}[Notaci\'on $\Omega$]
+\[
+f(n) \in \Omega(g(n)) \iff \exists\, c, n_0 > 0 : \forall n \geq n_0 : f(n) \geq c \cdot g(n).
+\]
+\end{definicion}
+
+\begin{intuicion}
+Para entradas grandes, $f$ crece igual o m\'as r\'apido que $g$ m\'odulo constantes. Es una \textbf{cota inferior} asint\'otica.
+\end{intuicion}
+
+\subsection{Notaci\'on $\Theta$ (theta)}
+
+\begin{definicion}[Notaci\'on $\Theta$]
+\[
+f(n) \in \Theta(g(n)) \iff f(n) \in O(g(n)) \text{ y } f(n) \in \Omega(g(n)).
+\]
+\end{definicion}
+
+\begin{intuicion}
+$f$ y $g$ crecen \emph{igual} m\'odulo constantes: es una cota \textbf{ajustada}.
+\end{intuicion}
+
+\subsection{Relaci\'on entre notaciones}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Notaci\'on & Significado & Tipo de cota \\
+\midrule
+$f \in O(g)$ & $f$ crece a lo sumo como $g$ & Superior \\
+$f \in o(g)$ & $f$ crece estrictamente menos que $g$ & Superior estricta \\
+$f \in \Omega(g)$ & $f$ crece al menos como $g$ & Inferior \\
+$f \in \Theta(g)$ & $f$ y $g$ crecen igual & Ajustada \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{An\'alisis de tiempo: un ejemplo gu\'ia}
+
+Sea el lenguaje
+\[
+A = \{ 0^k 1^k \mid k \geq 0 \}.
+\]
+Veremos tres algoritmos para decidirlo con distinta complejidad.
+
+\subsection{Primer algoritmo: $O(n^2)$}
+
+Dado el input $w$:
+\begin{enumerate}
+    \item Se recorre la cinta; si se encuentra \texttt{``10''} se rechaza.
+    \item Se vuelve al principio, se tacha el primer \texttt{0} y se busca el primer \texttt{1} y se tacha.
+    \item Se repite el paso 2 hasta que:
+    \begin{itemize}
+        \item No queden 0s ni 1s --- \emph{acepta}.
+        \item Queden solo 0s o solo 1s --- \emph{rechaza}.
+    \end{itemize}
+\end{enumerate}
+
+\textbf{An\'alisis.} El paso 1 hace $O(n)$ pasos. El paso 2, cada pasada, $O(n)$. El paso 3 se repite $\sim n/2$ veces. Total: $O(n) + O(n/2 \cdot n) \in O(n^2)$.
+
+\subsection{Segundo algoritmo: $O(n \log n)$}
+
+Idea: usar paridad.
+\begin{enumerate}
+    \item Recorrer la cinta; si se encuentra \texttt{``10''}, rechazar.
+    \item Repetir mientras haya 0s o 1s:
+    \begin{enumerate}
+        \item Contar la cantidad de 0s y 1s; si alguna es impar, rechazar.
+        \item Cada dos 0s, tachar uno (alternando), y lo mismo para los 1s.
+    \end{enumerate}
+    \item Si no quedan 0s ni 1s, aceptar; sino rechazar.
+\end{enumerate}
+
+\begin{ejemplo}
+Con $w = 0^{25}1^{25}$: la cantidad es par; tras tachar la mitad quedan 12 ceros y 12 unos; luego 6 y 6; luego 3 y 3; luego 2 y 2; luego 1 y 1. En cada iteraci\'on el n\'umero se \emph{divide por 2}, as\'i que hay $O(\log n)$ iteraciones, cada una de costo $O(n)$. Total: $O(n \log n)$.
+\end{ejemplo}
+
+\subsection{Tercer algoritmo: dos cintas, $O(n)$}
+
+Con una \MT\ de dos cintas:
+\begin{enumerate}
+    \item Recorrer la cinta; si encuentra \texttt{``10''}, rechazar.
+    \item Recorrer la cinta y copiar los ceros a la segunda cinta.
+    \item Recorrer la cinta otra vez; cada vez que aparezca un \texttt{1}, tachar un cero en la segunda cinta. Si no hay m\'as ceros, rechazar.
+    \item Si todos los ceros de la segunda cinta fueron tachados, aceptar; sino rechazar.
+\end{enumerate}
+
+Total: 4 fases lineales $\Rightarrow$ \textbf{$O(n)$}.
+
+\begin{idea}
+Un mismo problema admite algoritmos de tiempo muy diferente seg\'un el modelo y la astucia: $O(n^2)$, $O(n \log n)$, $O(n)$. Esto motiva preguntas finas: ¿cu\'al es el \emph{m\'inimo} tiempo posible? ¿importa el modelo de c\'omputo?
+\end{idea}
+
+\section{Clases de complejidad temporal y la clase P}
+
+\begin{definicion}[Clase $\TIME$]
+\[
+\TIME(t(n)) = \{ L \mid L \text{ se puede decidir con una \MT\ en } O(t(n)) \text{ pasos}\}.
+\]
+\end{definicion}
+
+Por ejemplo, $\TIME(O(n^2))$ contiene los problemas para los cuales existe un algoritmo que, en el peor caso, realiza $c \cdot n^2$ pasos.
+
+\subsection{Preguntas centrales de complejidad}
+
+\begin{itemize}
+    \item Dado un problema, ¿pertenece a $\TIME(O(t(n)))$?
+    \item ¿Hay problemas en $\TIME(O(t(n)))$ pero \emph{no} en $\TIME(O(t'(n)))$? (Jerarqu\'ias.)
+\end{itemize}
+
+\subsection{Crecimiento polinomial vs exponencial}
+
+\begin{center}
+\begin{tabular}{lccccc}
+\toprule
+ & $n=10$ & $n=20$ & $n=30$ & $n=40$ & $n=50$ \\
+\midrule
+$n$    & 0.00001\,s & 0.00002\,s & 0.00003\,s & 0.00004\,s & 0.00005\,s \\
+$n^2$  & 0.0002\,s  & 0.0004\,s  & 0.0009\,s  & 0.0016\,s  & 0.0025\,s  \\
+$n^3$  & 0.1\,s     & 3.2\,s     & 24.3\,s    & 1.7\,min   & 15.2\,min  \\
+$2^n$  & 0.001\,s   & 1.0\,s     & 17.9\,min  & 12.7\,d\'ias & 35.6\,a\~nos \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{idea}
+La diferencia entre polinomial y exponencial no es est\'etica: para $n=50$ el algoritmo $n^3$ tarda 15 minutos y el $2^n$ tarda 35 a\~nos. Por eso se consideran \textbf{tratables} los problemas con algoritmo en $O(n^k)$.
+\end{idea}
+
+\subsection{Definici\'on de la clase P}
+
+\begin{definicion}[Clase $\Pclass$]
+\[
+\Pclass = \bigcup_{k > 0} \TIME(O(n^k)).
+\]
+\end{definicion}
+
+\textbf{Propiedades clave:}
+\begin{itemize}
+    \item $\Pclass$ es \emph{invariante} respecto a los modelos deterministas razonables.
+    \item Si un problema tiene soluci\'on polinomial, los avances en hardware tienen impacto significativo.
+\end{itemize}
+
+\section{Modelos de computaci\'on y la Tesis de Church--Turing Extendida}
+
+\subsection{Modelos considerados}
+
+\begin{itemize}
+    \item \MTs\ deterministas con una sola cinta.
+    \item \MTs\ deterministas con varias cintas.
+    \item \MTs\ deterministas con cinta infinita en ambos lados.
+    \item \MTs\ no deterministas.
+\end{itemize}
+
+Las tres primeras se simulan entre s\'i en tiempo polinomial. La clase $\TIME$ toma como referencia las m\'aquinas deterministas.
+
+\subsection{\MT\ multicinta vs \MT\ de una cinta}
+
+\begin{teorema}
+Cualquier \MT\ con muchas cintas que hace $O(t(n))$ pasos puede ser traducida a una \MT\ de una cinta que la simula en $O(t(n)^2)$ pasos.
+\end{teorema}
+
+\begin{proof}[Idea]
+Se concatenan las $k$ cintas en una sola, separadas por un s\'imbolo \texttt{\#}, y se utilizan s\'imbolos especiales para marcar d\'onde est\'an las cabezas. Por cada paso de la \MT\ multicinta se recorre la cinta simulada (a lo sumo $k \cdot t(n)$ s\'imbolos), realizando $O(t(n))$ pasos. Como hay $t(n)$ pasos a simular, el total es $O(t(n)^2)$.
+\end{proof}
+
+\subsection{Tesis de Church--Turing Extendida}
+
+Recordemos la tesis cl\'asica:
+
+\begin{center}
+\emph{Si un problema es computable por alg\'un modelo de computaci\'on, entonces es computable en todos los otros.}
+\end{center}
+
+La versi\'on extendida agrega la dimensi\'on temporal:
+
+\begin{center}
+\emph{Si un problema es decidible en tiempo $O(t(n))$ por alg\'un modelo razonable de computaci\'on (\textbf{determinista}), entonces es decidible en $O(t(n)^k)$ en cualquier otro modelo razonable de computaci\'on (\textbf{determinista}).}
+\end{center}
+
+\begin{idea}
+La tesis extendida justifica usar las \MTs\ deterministas como modelo de referencia: si un problema tiene un algoritmo polinomial en cualquier modelo razonable, lo tiene en \MT. Por eso $\Pclass$ es robusta.
+\end{idea}
+
+\section{M\'aquinas no deterministas y su simulaci\'on}
+
+\subsection{Tiempo en una \MT\ no determinista}
+
+En una \MT\ \emph{determinista} la \'unica ejecuci\'on debe terminar en a lo sumo $t(n)$ pasos. En una \MT\ \emph{no determinista} hay un \emph{\'arbol} de c\'omputo y todas las ramas deben terminar en a lo sumo $t(n)$ pasos: el tiempo es la longitud de la \emph{rama m\'as larga}.
+
+\subsection{Simulaci\'on de una \MT\ no determinista}
+
+\begin{teorema}
+Cualquier \MT\ no determinista que hace $O(t(n))$ pasos puede ser simulada por una \MT\ determinista que hace $2^{O(t(n))}$ pasos.
+\end{teorema}
+
+\begin{proof}[Idea]
+Como la \MT\ termina, el \'arbol tiene a lo sumo $|b|^{t(n)}$ nodos (con $b$ el branching factor). En el peor caso hay que recorrerlos todos (con BFS por niveles para evitar perderse en una rama infinita). Como $|b|^{t(n)} \leq (2^c)^{t(n)} = 2^{c \cdot t(n)} \in 2^{O(t(n))}$.
+\end{proof}
+
+\begin{idea}
+El no determinismo permite ``adivinar'' decisiones, pero simularlo deterministamente cuesta una \emph{explosi\'on exponencial}. La pregunta $\Pclass \overset{?}{=} \NP$ es exactamente la pregunta: ¿es realmente necesaria esa explosi\'on?
+\end{idea}
+
+\section{La clase P: ejemplos}
+
+\subsection{PATH}
+
+\[
+\mathrm{Path} = \{ \enc{G, v, w} \mid G \text{ es un grafo con un camino de } v \text{ a } w\}.
+\]
+
+\textbf{Algoritmo ineficiente.} Para $i = 1, 2, \dots, |V|$, generar todos los posibles caminos de longitud $i$ que empiezan en $v$ y terminan en $w$, aceptando si alguno est\'a en el grafo. Es $O(n!)$ con $n = |V|$.
+
+\textbf{Algoritmo eficiente (b\'usqueda en anchura).}
+\begin{enumerate}
+    \item Marcar $v$.
+    \item Mientras haya nodos sin marcar: recorrer los arcos de $G$; para cada $(a, b)$ con $a$ marcado y $b$ no, marcar $b$. Si se marca $w$, aceptar.
+    \item Si no se lleg\'o, rechazar.
+\end{enumerate}
+Costo: $O(|V| \cdot |E|)$, polinomial.
+
+\subsection{Coprimos}
+
+\[
+\mathrm{Coprimos} = \{ \enc{x, y} \mid x \text{ y } y \text{ son coprimos}\}.
+\]
+
+\textbf{Algoritmo ineficiente.} Para todo $z$ con $1 < z \leq \min(x, y)$, chequear si $z \mid x$ y $z \mid y$. Como los n\'umeros vienen en binario, si tienen $n$ bits hay que hacer $2^n$ pasos: \emph{exponencial}.
+
+\textbf{Algoritmo eficiente (Euclides).} Dados $x, y$ en binario:
+\begin{itemize}
+    \item Repetir hasta que $y = 0$: $x \leftarrow x \bmod y$; intercambiar $x$ e $y$.
+    \item Si $x = 1$, aceptar; sino rechazar.
+\end{itemize}
+En cada paso $x$ se divide al menos por 2; con $n$ bits se hacen $n$ iteraciones. Cada divisi\'on se computa en tiempo polinomial $p(n)$. Total: $n \cdot p(n)$, polinomial.
+
+\begin{observacion}
+\textbf{Cuidado con la codificaci\'on.} El tama\~no de la entrada para un n\'umero $x$ es $\log_2 x$. Un algoritmo que itera ``hasta $x$'' no es polinomial en el tama\~no de la entrada.
+\end{observacion}
+
+\subsection{Gram\'aticas Libres de Contexto}
+
+\[
+\mathrm{GLC} = \{ \enc{G, w} \mid w \text{ es generado por la gram\'atica libre de contexto } G\}.
+\]
+
+Usando programaci\'on din\'amica y la \emph{forma normal de Chomsky} (producciones $A \to BC$, $A \to a$, $A \to \varepsilon$) se construye una matriz $M[i][j]$ con los no-terminales que generan $w_i \cdots w_j$. Es el algoritmo \textbf{CYK}.
+
+\begin{verbatim}
+D = "Sobre input w = w_1 ... w_n:
+  1. Si w = e, aceptar sii S -> e es regla.
+  2. Para i = 1 hasta n:                  [substrings de longitud 1]
+  3.   Para cada variable A:
+  4.     Si A -> b es regla con b = w_i, poner A en table(i, i).
+  5. Para l = 2 hasta n:                   [l = longitud del substring]
+  6.   Para i = 1 hasta n - l + 1:
+  7.     j = i + l - 1.
+  8.     Para k = i hasta j - 1:           [k = posicion de corte]
+  9.       Para cada regla A -> BC:
+ 10.         Si table(i,k) contiene B y table(k+1,j) contiene C,
+             poner A en table(i,j).
+ 11. Si S esta en table(1,n), aceptar; sino rechazar."
+\end{verbatim}
+Complejidad: $O(|v| \cdot n^3)$ aproximadamente. Es polinomial $\Rightarrow$ \textbf{GLC $\in \Pclass$}.
+
+\section{La clase NP}
+
+Al igual que con $\Pclass$, usamos \MTs\ no deterministas para definir una clase:
+
+\begin{definicion}[Tiempo no determinista]
+\[
+\NTIME(t(n)) = \{ L \mid L \text{ es decidido por una \MT\ no determinista en } O(t(n)) \text{ pasos}\}.
+\]
+\end{definicion}
+
+\begin{definicion}[Clase $\NP$]
+\[
+\NP = \bigcup_{k > 0} \NTIME(n^k).
+\]
+\end{definicion}
+
+\begin{intuicion}
+Una \MT\ no determinista en tiempo polinomial es ``m\'agica'': en cada paso elige entre varias transiciones y acepta si \emph{alguna} rama lleva a un estado de aceptaci\'on. Equivale a tener un or\'aculo que adivina la respuesta y luego solo hay que verificarla.
+\end{intuicion}
+
+\section{Caminos Hamiltonianos como ejemplo gu\'ia}
+
+\begin{definicion}[Camino Hamiltoniano]
+Dado un grafo dirigido $G = (V, E)$, un camino Hamiltoniano es un camino que pasa \emph{exactamente una vez} por cada nodo.
+\end{definicion}
+
+\begin{definicion}[Lenguaje HAMPATH]
+\[
+\mathrm{HAMPATH} = \{ \enc{G, s, t} \mid G \text{ tiene un camino Hamiltoniano de } s \text{ a } t\}.
+\]
+\end{definicion}
+
+\subsection{Soluci\'on no determinista para HAMPATH}
+
+Dado $\enc{G, s, t}$ en la cinta de entrada:
+\begin{enumerate}
+    \item \textbf{Adivinar.} Escribir, de forma no determinista, $|V|$ nodos.
+    \item \textbf{Verificar.} Comprobar que esos nodos est\'an consecutivamente conectados, son todos distintos, $v_1 = s$ y $v_{|V|} = t$. Aceptar si es as\'i, rechazar en caso contrario.
+\end{enumerate}
+
+\begin{idea}
+Patr\'on general para problemas en $\NP$:
+\begin{itemize}
+    \item \textbf{Etapa 1 (adivinanza):} se adivina no deterministamente una posible soluci\'on (candidato).
+    \item \textbf{Etapa 2 (verificaci\'on):} se verifica deterministamente, en tiempo polinomial, si efectivamente resuelve el problema.
+\end{itemize}
+\end{idea}
+
+\section{Verificadores y certificados}
+
+\subsection{Verificabilidad polinomial}
+
+Decimos que una cadena $c$ es un \textbf{certificado} (o testigo) de un problema si, junto con la entrada, permite ver la soluci\'on al problema.
+
+HAMPATH tiene dos caracter\'isticas importantes:
+\begin{enumerate}
+    \item \textbf{Certificados cortos.} Un camino Hamiltoniano se puede describir en menos espacio que el grafo.
+    \item \textbf{Verificaci\'on r\'apida.} Dado un camino, podemos verificar en tiempo lineal si es soluci\'on o no.
+\end{enumerate}
+
+Los problemas en $\NP$ poseen certificados polinomiales verificables polinomialmente.
+
+\subsection{Definici\'on formal}
+
+\begin{definicion}[Verificador]
+Sea $A$ un lenguaje. Una \MT\ determinista $V$ es un \textbf{verificador} para $A$ si
+\[
+A = \{ w \mid \exists\, c : V \text{ acepta } (w, c)\}.
+\]
+La cadena $c$ se llama \textbf{certificado}.
+\end{definicion}
+
+\begin{definicion}[Verificador polinomial]
+Un verificador $V$ se dice \textbf{polinomial} si $V$ corre en tiempo $O(n^k)$ y los certificados son polinomialmente acotados:
+\[
+A = \{ w \mid \exists\, c : |c| \leq |w|^k \text{ y } V \text{ acepta } (w, c)\}.
+\]
+\end{definicion}
+
+\subsection{Definici\'on alternativa de $\NP$}
+
+\begin{teorema}[Caracterizaci\'on de $\NP$]
+$L \in \NP$ si y solo si $L$ tiene un verificador polinomial.
+\end{teorema}
+
+\begin{proof}[Esquema]
+\textbf{($\Leftarrow$) De verificador a \MT\ no determinista.} Construimos una \MT\ no determinista $N$ que, sobre la entrada $w$, adivina un certificado $c$ con $|c| \leq |w|^k$ y simula $V(w, c)$. Ambas fases son polinomiales.
+
+\textbf{($\Rightarrow$) De \MT\ no determinista a verificador.} Construimos un verificador $V$ que recibe $(w, c)$ donde $c$ codifica una rama de c\'omputo de $N$. $V$ usa $c$ para guiar la simulaci\'on y acepta si la rama acepta.
+\end{proof}
+
+\begin{idea}
+Dos visiones equivalentes de $\NP$:
+\begin{itemize}
+    \item \textbf{Operacional:} problemas decidibles en tiempo polinomial por una \MT\ \emph{no determinista}.
+    \item \textbf{Declarativa:} problemas cuyas instancias positivas admiten una \emph{prueba corta} verificable polinomialmente.
+\end{itemize}
+La declarativa es la m\'as \'util en la pr\'actica: probar $L \in \NP$ casi siempre significa exhibir un certificado natural.
+\end{idea}
+
+\section{Ejemplos de problemas en NP}
+
+\subsection{HAMPATH}
+
+Ya visto: certificado = el camino; verificaci\'on lineal. \textbf{HAMPATH $\in \NP$}.
+
+\subsection{COMP (n\'umeros compuestos)}
+
+\begin{ejemplo}
+\[
+\mathrm{COMP} = \{ x \mid \exists\, p, q > 1 : x = p \cdot q\}.
+\]
+\end{ejemplo}
+
+\textbf{Certificado.} Un par $(p, q)$ con $p, q > 1$ y $p \cdot q = x$.
+
+\textbf{Verificador.} Chequea $p, q > 1$ y computa $p \cdot q$ (multiplicaci\'on polinomial en cantidad de bits) comparando con $x$. Como $p, q < x$, los certificados son polinomiales. \textbf{COMP $\in \NP$}.
+
+\subsection{CLIQUE}
+
+\begin{definicion}[Clique]
+Dado un grafo no dirigido $G$, un \textbf{clique} es un subgrafo en el cual cada par de nodos est\'a conectado. Un \textbf{$k$-clique} es un clique con $k$ nodos.
+\end{definicion}
+
+\[
+\mathrm{CLIQUE} = \{ \enc{G, k} \mid G \text{ tiene un } k\text{-clique}\}.
+\]
+
+\textbf{Certificado.} Un subconjunto $c \subseteq V$.
+
+\textbf{Verificador.} Dado $\enc{G, c}$:
+\begin{itemize}
+    \item Controlar que los nodos de $c$ est\'en en $G$.
+    \item Controlar que todos los pares de nodos en $c$ tengan arcos entre ellos.
+    \item Aceptar si ambas condiciones se cumplen.
+\end{itemize}
+
+El subconjunto tiene longitud polinomial. \textbf{CLIQUE $\in \NP$}.
+
+\subsection{SUBSET-SUM}
+
+\begin{ejemplo}
+\[
+\mathrm{SUBSET\text{-}SUM} = \{ \enc{S, t} \mid \exists\, S' \subseteq S : \textstyle\sum S' = t\}.
+\]
+Por ejemplo, $\enc{\{4, 11, 16, 21, 27\}, 25} \in \mathrm{SUBSET\text{-}SUM}$ porque $4 + 21 = 25$.
+\end{ejemplo}
+
+\textbf{Certificado.} El subconjunto $S' \subseteq S$.
+\textbf{Verificador.} Suma los elementos de $S'$ y compara con $t$. Polinomial. \textbf{SUBSET-SUM $\in \NP$}.
+
+\subsection{Problemas afuera de $\NP$}
+
+\begin{observacion}
+No todo problema tiene un certificado obvio. Considere los complementos:
+\[
+\overline{\mathrm{HAMPATH}} = \{ w \mid w \notin \mathrm{HAMPATH}\}, \qquad
+\overline{\mathrm{CLIQUE}} = \{ w \mid w \notin \mathrm{CLIQUE}\}.
+\]
+Para mostrar que un grafo \emph{tiene} un camino Hamiltoniano basta un camino; para mostrar que \emph{no tiene} ninguno, no se conoce un certificado polinomial natural. An\'alogamente para CLIQUE. Estos problemas pertenecen a $\mathrm{coNP}$ y no se sabe si $\NP = \mathrm{coNP}$.
+\end{observacion}
+
+\section{P vs NP}
+
+Podemos resumir:
+\begin{itemize}
+    \item $\Pclass$: lenguajes \emph{decididos} r\'apidamente.
+    \item $\NP$: lenguajes cuya pertenencia se puede \emph{verificar} r\'apidamente.
+\end{itemize}
+
+\begin{proposicion}
+$\Pclass \subseteq \NP$.
+\end{proposicion}
+
+\begin{proof}
+Si $L \in \Pclass$, hay una \MT\ determinista $M$ que decide $L$ en tiempo polinomial. Definimos un verificador $V$ que ignora el certificado y simula $M(w)$. Esto es polinomial y muestra $L \in \NP$.
+\end{proof}
+
+\begin{tcolorbox}[colback=yellow!10!white, colframe=orange!70!black, title=\textbf{Pregunta abierta: $\Pclass \overset{?}{=} \NP$}, fonttitle=\bfseries]
+¿Es $\Pclass = \NP$? Es decir, ¿todo problema cuya soluci\'on se puede \emph{verificar} r\'apidamente se puede tambi\'en \emph{resolver} r\'apidamente? Es uno de los grandes problemas no resueltos de la computaci\'on. \emph{A priori}, la verificabilidad polinomial parece m\'as potente que la decidibilidad polinomial.
+\end{tcolorbox}
+
+\section{Reducibilidad polinomial}
+
+Para comparar la dificultad relativa de dos problemas se introduce una noci\'on de reducci\'on an\'aloga a las de computabilidad, pero con la exigencia de eficiencia.
+
+\begin{definicion}[Funci\'on polinomialmente computable]
+Una funci\'on $f : \Sigma^* \to \Sigma^*$ es \textbf{polinomialmente computable} si existe una \MT\ que la computa en tiempo polinomial.
+\end{definicion}
+
+\begin{definicion}[Reducibilidad polinomial]
+Un lenguaje $A$ es \textbf{polinomialmente reducible} a $B$, notado $A \redP B$, si existe una funci\'on polinomialmente computable $f : \Sigma^* \to \Sigma^*$ tal que
+\[
+\forall\, w : \quad w \in A \iff f(w) \in B.
+\]
+\end{definicion}
+
+\begin{intuicion}
+$A \redP B$ significa que ``resolver $A$ no es sustancialmente m\'as dif\'icil que resolver $B$ m\'odulo un trabajo polinomial''. Si sabemos resolver $B$, podemos resolver $A$ traduciendo cada instancia de $A$ a una de $B$ y usando el algoritmo de $B$.
+\end{intuicion}
+
+\subsection{Propiedades de la reducibilidad polinomial}
+
+\begin{proposicion}\label{prop:red-P}
+Si $A \redP B$ y $B \in \Pclass$, entonces $A \in \Pclass$.
+\end{proposicion}
+
+\begin{proof}
+Sea $M$ una \MT\ que computa $f$ en tiempo $O(n^k)$ y $M_B$ una \MT\ que decide $B$ en tiempo $O(n^{k'})$. Construyamos $N$ que decide $A$:
+\begin{enumerate}
+    \item Sobre la entrada $w$, ejecutar $M(w)$ para obtener $f(w)$.
+    \item Ejecutar $M_B(f(w))$; aceptar si $M_B$ acepta, rechazar si rechaza.
+\end{enumerate}
+Como $M$ corre en $O(|w|^k)$ pasos, $|f(w)| \leq |w|^k$. Paso 2: $O((|w|^k)^{k'}) = O(|w|^{k \cdot k'})$. Total polinomial.
+\end{proof}
+
+\begin{proposicion}[Transitividad]
+Si $A \redP B$ y $B \redP C$, entonces $A \redP C$.
+\end{proposicion}
+
+\begin{observacion}
+An\'alogamente: si $A \redP B$ y $B \in \NP$, entonces $A \in \NP$. Las reducciones polinomiales preservan ``hacia atr\'as'' la pertenencia a $\Pclass$ y a $\NP$.
+\end{observacion}
+
+\section{NP-Completitud}
+
+Dentro de $\NP$ hay problemas que son ``los m\'as dif\'iciles'': si alguien encontrara un algoritmo polinomial para alguno de ellos, autom\'aticamente tendr\'ia algoritmos polinomiales para todos los problemas de $\NP$.
+
+\begin{definicion}[NP-completitud]
+Un lenguaje $L$ es \textbf{NP-completo} si:
+\begin{enumerate}
+    \item $L \in \NP$.
+    \item Para todo $A \in \NP$, $A \redP L$ (se dice que $L$ es \textbf{NP-d\'ificil} o \emph{NP-hard}).
+\end{enumerate}
+\end{definicion}
+
+\begin{proposicion}\label{prop:np-completo-p}
+Si alg\'un problema NP-completo est\'a en $\Pclass$, entonces $\Pclass = \NP$.
+\end{proposicion}
+
+\begin{proof}
+Sea $L$ NP-completo con $L \in \Pclass$. Para cualquier $A \in \NP$, $A \redP L$. Por la Proposici\'on~\ref{prop:red-P}, $A \in \Pclass$. As\'i $\NP \subseteq \Pclass$, y como $\Pclass \subseteq \NP$, concluimos $\Pclass = \NP$.
+\end{proof}
+
+\begin{idea}
+Los NP-completos son ``el centro nervioso'' de $\NP$. Probar $\Pclass = \NP$ se reduce a encontrar \emph{un} algoritmo polinomial para \emph{cualquiera} de ellos. Rec\'iprocamente, probar $\Pclass \neq \NP$ se reduce a mostrar que \emph{ninguno} de ellos admite uno.
+\end{idea}
+
+\section{SAT, 3-SAT y el Teorema de Cook--Levin}
+
+\subsection{F\'ormulas booleanas}
+
+\begin{definicion}[F\'ormulas booleanas]
+Sea $X = \{x, y, z, \dots\}$ un conjunto numerable de variables. La gram\'atica es
+\[
+\phi, \psi \;::=\; X \mid \neg\phi \mid \phi \land \psi \mid \phi \lor \psi.
+\]
+\end{definicion}
+
+\begin{definicion}[Asignaci\'on y satisfacibilidad]
+Una \textbf{asignaci\'on} es una funci\'on $v : X \to \{0, 1\}$. Una f\'ormula $\phi$ es \textbf{satisfacible} si existe $v$ que la hace verdadera ($v \models \phi$).
+\end{definicion}
+
+\begin{definicion}[Lenguaje SAT]
+\[
+\mathrm{SAT} = \{ \enc{\phi} \mid \phi \text{ es una f\'ormula booleana satisfacible}\}.
+\]
+\end{definicion}
+
+\subsection{CNF y 3-CNF}
+
+\begin{definicion}[Cl\'ausula, CNF, 3-CNF]
+Una \textbf{cl\'ausula} es una disyunci\'on de literales:
+\[
+(\ell_1 \lor \ell_2 \lor \dots \lor \ell_n).
+\]
+Una f\'ormula est\'a en \textbf{CNF} si es una conjunci\'on de cl\'ausulas. Est\'a en \textbf{3-CNF} si cada cl\'ausula tiene exactamente 3 literales. El lenguaje \texttt{3-SAT} es SAT restringido a 3-CNF.
+\end{definicion}
+
+\begin{ejemplo}
+$(x_0 \lor x_1 \lor x_3) \land (\neg x_0 \lor \neg x_1 \lor x_2)$ est\'a en 3-CNF.
+\end{ejemplo}
+
+\begin{observacion}
+Toda f\'ormula booleana se puede escribir en CNF.
+\end{observacion}
+
+\subsection{Teorema de Cook--Levin}
+
+\begin{teorema}[Cook--Levin]\label{teo:cook-levin}
+$\mathrm{SAT}$ es NP-completo.
+\end{teorema}
+
+La demostraci\'on tiene dos partes.
+
+\textbf{Parte 1: $\mathrm{SAT} \in \NP$.} El certificado es una asignaci\'on $v$. El verificador eval\'ua $\phi$ bajo $v$ en tiempo polinomial.
+
+\textbf{Parte 2: todo $A \in \NP$ se reduce a SAT.} Dado $A \in \NP$ decidido por una \MT\ no determinista $N$ en tiempo $n^k$, hay que construir, en tiempo polinomial, una f\'ormula $\phi_w$ tal que
+\[
+w \in A \iff \phi_w \text{ es satisfacible}.
+\]
+
+\subsection{La tabla de c\'omputo}
+
+Consideramos una matriz de $n^k \times n^k$ celdas:
+\begin{itemize}
+    \item Cada \textbf{fila} representa una configuraci\'on (cinta + estado + cabezal).
+    \item Hay $n^k$ filas (una por paso de tiempo) y $n^k$ columnas.
+    \item Cada celda contiene un s\'imbolo de $C = \Gamma \cup \Sigma \cup Q \cup \{\#\}$.
+\end{itemize}
+Se pasa de la fila $i$ a la fila $i+1$ si del estado en la fila $i$ existe una ejecuci\'on de $N$ que llega a la $i+1$.
+
+\subsection{Variables proposicionales}
+
+Para cada celda $(i, j)$ y s\'imbolo $s \in C$ introducimos
+\[
+x_{i,j,s} \text{ verdadera} \iff cell[i][j] = s.
+\]
+Cantidad de variables: $|C| \cdot n^{2k} = O(n^{2k})$.
+
+\subsection{Estructura de $\phi$}
+
+\[
+\phi \;=\; \phi_{\text{cell}} \;\land\; \phi_{\text{start}} \;\land\; \phi_{\text{move}} \;\land\; \phi_{\text{accept}}.
+\]
+
+\subsubsection*{$\phi_{\text{cell}}$: cada celda tiene exactamente un s\'imbolo}
+
+\[
+\phi_{\text{cell}} \;=\; \bigwedge_{1 \leq i, j \leq n^k} \left[ \Big(\bigvee_{s \in C} x_{i,j,s}\Big) \;\land\; \Big( \bigwedge_{\substack{s, t \in C \\ s \neq t}} (\neg x_{i,j,s} \lor \neg x_{i,j,t}) \Big) \right].
+\]
+Tama\~no $O(n^{2k})$.
+
+\subsubsection*{$\phi_{\text{start}}$: la primera fila es la configuraci\'on inicial}
+
+\[
+\phi_{\text{start}} \;=\; x_{1,1,\#} \land x_{1,2,q_0} \land x_{1,3,w_1} \land \dots \land x_{1,n+2,w_n} \land x_{1,n+3,\sqcup} \land \dots \land x_{1,n^k - 1, \sqcup} \land x_{1, n^k, \#}.
+\]
+Tama\~no $O(n^k)$.
+
+\subsubsection*{$\phi_{\text{accept}}$: alguna fila contiene el estado de aceptaci\'on}
+
+\[
+\phi_{\text{accept}} \;=\; \bigvee_{1 \leq i, j \leq n^k} x_{i, j, q_{\text{accept}}}.
+\]
+Tama\~no $O(n^{2k})$.
+
+\subsubsection*{$\phi_{\text{move}}$: cada paso es una transici\'on v\'alida}
+
+Idea: \textbf{ventanas de $2 \times 3$ celdas}. Una ventana consta de 6 celdas (3 en la fila $i$, 3 en la fila $i+1$). Es \emph{legal} si su contenido es consistente con alguna transici\'on posible de $N$ (incluyendo el caso de celdas que no cambian).
+
+\begin{teorema}[Ventanas y ramas de c\'omputo]
+Si todas las ventanas $2 \times 3$ son legales, entonces la matriz describe una rama de c\'omputo v\'alida de $N$.
+\end{teorema}
+
+\textbf{Intuici\'on.} Si un s\'imbolo est\'a en el centro de una ventana sin ser adyacente a un estado, debe mantenerse igual en la pr\'oxima fila. Si una ventana contiene un estado-cabezal en el centro, las filas inferiores se restringen a las que corresponden a alguna transici\'on $\delta(q, a)$.
+
+\textbf{Ejemplo de ventanas legales.} Si $\delta(q_1, a) = \{(q_1, b, R)\}$ y $\delta(q_1, b) = \{(q_2, c, L), (q_2, a, R)\}$, las siguientes son legales:
+\[
+\begin{array}{|c|c|c|}\hline a & q_1 & b \\ \hline q_2 & a & c \\ \hline\end{array} \qquad
+\begin{array}{|c|c|c|}\hline a & q_1 & b \\ \hline a & a & q_2 \\ \hline\end{array} \qquad
+\begin{array}{|c|c|c|}\hline a & a & q_1 \\ \hline a & a & b \\ \hline\end{array}
+\]
+
+Entonces:
+\[
+\phi_{\text{move}} \;=\; \bigwedge_{0 < i, j < n^k} (\text{la ventana centrada en } (i, j) \text{ es legal}).
+\]
+Tama\~no $O(n^{2k})$.
+
+\subsection{Tama\~no total y correctitud}
+
+\[
+|\phi| = |\phi_{\text{cell}}| + |\phi_{\text{start}}| + |\phi_{\text{move}}| + |\phi_{\text{accept}}| = O(n^{2k}).
+\]
+\textbf{Polinomial}. La construcci\'on es polinomialmente computable.
+
+\textbf{Correctitud.} Si $N$ acepta $w$, hay una rama aceptante; codifica una tabla cuya asignaci\'on satisface $\phi$. Si $\phi$ es satisfacible, la asignaci\'on describe una matriz que cumple las cuatro condiciones, por lo cual es una rama aceptante de $N$ sobre $w$.
+
+\begin{idea}
+Una vez probado Cook--Levin, demostrar que un nuevo $L$ es NP-completo no requiere repetir todo el argumento. Basta:
+\begin{enumerate}
+    \item Mostrar $L \in \NP$.
+    \item Reducir polinomialmente alg\'un problema NP-completo conocido (SAT, 3-SAT, $\dots$) a $L$.
+\end{enumerate}
+La transitividad de $\redP$ cierra el c\'irculo.
+\end{idea}
+
+\subsection{3-SAT es NP-completo}
+
+\begin{teorema}
+$\mathrm{3\text{-}SAT}$ es NP-completo.
+\end{teorema}
+
+\begin{proof}[Esquema]
+\textbf{(1)} $\mathrm{3\text{-}SAT} \in \NP$: id\'entico a SAT.
+
+\textbf{(2) $\mathrm{SAT} \redP \mathrm{3\text{-}SAT}$.} Como la f\'ormula de Cook--Levin se puede escribir en CNF, basta reducir CNF a 3-CNF. Dada
+\[
+(x_0 \lor x_1 \lor \dots \lor x_{n-1})
+\]
+con $n$ literales, introducimos $n - 2$ variables auxiliares $z_1, \dots, z_{n-2}$ y la reescribimos como:
+\[
+(x_0 \lor x_1 \lor z_1) \land (\neg z_1 \lor x_2 \lor z_2) \land \dots \land (\neg z_{n-2} \lor x_{n-2} \lor x_{n-1}).
+\]
+\textbf{Equisatisfacibilidad.} Si la cl\'ausula original se satisface con alg\'un $x_i$ verdadero, podemos asignar los $z_j$ adecuadamente. Rec\'iprocamente, si las nuevas cl\'ausulas se satisfacen, por inducci\'on alguna $x_i$ debe ser verdadera.
+
+\textbf{Tama\~no y tiempo.} La f\'ormula tiene tama\~no $O(N)$ y se computa en tiempo polinomial. Por transitividad, $\mathrm{3\text{-}SAT}$ es NP-completo.
+\end{proof}
+
+\section{Reducciones desde 3-SAT}
+
+\subsection{3-SAT $\redP$ CLIQUE}
+
+Dada $\phi = (a_1 \lor b_1 \lor c_1) \land \dots \land (a_k \lor b_k \lor c_k)$ en 3-CNF, construimos $G_\phi$:
+\begin{itemize}
+    \item Por cada cl\'ausula generamos un \emph{grupo} de 3 nodos (uno por literal).
+    \item Conectamos cada par de nodos con un arco \emph{excepto} si:
+    \begin{itemize}
+        \item Pertenecen a la misma cl\'ausula (mismo grupo).
+        \item Son contradictorios entre s\'i ($x$ y $\neg x$).
+    \end{itemize}
+\end{itemize}
+
+\begin{teorema}
+$\phi$ es satisfacible si y solo si $G_\phi$ tiene un $k$-clique.
+\end{teorema}
+
+\begin{proof}[Idea]
+\begin{itemize}
+    \item Si $\phi$ es satisfacible, alguna asignaci\'on hace verdadero al menos un literal por cl\'ausula; los nodos correspondientes forman un $k$-clique.
+    \item Si $G_\phi$ tiene un $k$-clique, este debe tener exactamente uno por cl\'ausula (no se pueden dos del mismo grupo) y ninguno contradictorio. Asignando 1 a los literales correspondientes se satisface $\phi$.
+\end{itemize}
+\end{proof}
+
+Construcci\'on polinomial. \textbf{CLIQUE es NP-completo}.
+
+\subsection{3-SAT $\redP$ VERTEX-COVER}
+
+\begin{definicion}[Cubrimiento de v\'ertices]
+Dado $G = (V, E)$ y un entero $k \leq |V|$, un \textbf{cubrimiento de v\'ertices} de tama\~no $k$ es un $V' \subseteq V$ con $|V'| = k$ tal que cada arco de $G$ tiene al menos un extremo en $V'$. El lenguaje es
+\[
+\mathrm{VERTEX\text{-}COVER} = \{ \enc{G, k} \mid G \text{ tiene un cubrimiento de tama\~no } k\}.
+\]
+\end{definicion}
+
+\textbf{Cubrimiento en $\NP$.} El certificado es $V'$; el verificador chequea que $|V'| = k$ y que cada arista toca $V'$.
+
+\textbf{Reducci\'on 3-SAT $\redP$ VC.} Dada $\phi$ con $m$ variables y $\ell$ cl\'ausulas, construimos $G_\phi$ con dos gadgets:
+\begin{itemize}
+    \item \textbf{Gadget de variable.} Por cada variable $x$, dos nodos $x$ y $\overline{x}$ unidos por una arista.
+    \item \textbf{Gadget de cl\'ausula.} Por cada cl\'ausula, un tri\'angulo con 3 nodos (uno por literal).
+    \item \textbf{Conexi\'on.} Cada nodo de un tri\'angulo se conecta con el nodo de variable del mismo label.
+\end{itemize}
+Buscamos un cubrimiento de tama\~no $k = m + 2\ell$.
+
+\begin{teorema}
+$\phi$ es satisfacible si y solo si $G_\phi$ tiene un cubrimiento de tama\~no $m + 2\ell$.
+\end{teorema}
+
+\begin{proof}[Idea]
+\textbf{($\Rightarrow$)} Dada una asignaci\'on satisfaciente, para cada par $(x, \neg x)$ tomamos el nodo del literal verdadero, y en cada tri\'angulo tomamos los dos correspondientes a literales falsos.
+
+\textbf{($\Leftarrow$)} Un cubrimiento de tama\~no $m + 2\ell$ debe tener exactamente 1 por par y 2 por tri\'angulo. Asignamos True a las variables del cubrimiento: como el nodo no seleccionado del tri\'angulo se conecta con un literal del cubrimiento de variable, ese literal es verdadero bajo la asignaci\'on, satisfaciendo la cl\'ausula.
+\end{proof}
+
+\subsection{3-SAT $\redP$ HAMPATH}
+
+Sabemos que HAMPATH $\in \NP$. Para mostrar NP-completitud se reduce polinomialmente 3-SAT a HAMPATH: dada una f\'ormula $\phi$ en 3-CNF se construye un grafo $G_\phi$ que tiene un camino Hamiltoniano de $s$ a $t$ si y solo si $\phi$ es satisfacible. La construcci\'on usa gadgets de variable (que codifican la asignaci\'on) y gadgets de cl\'ausula (que fuerzan al camino a satisfacer cada cl\'ausula). El resultado: \textbf{HAMPATH es NP-completo}.
+
+\subsection{Otros NP-completos cl\'asicos}
+
+\begin{itemize}
+    \item \textbf{LPATH:} $\{\enc{G, a, b, k} \mid G \text{ contiene un camino simple de longitud} \geq k \text{ de } a \text{ a } b\}$.
+    \item \textbf{3-COLOR:} $\{\enc{G} \mid G \text{ es coloreable con 3 colores}\}$.
+    \item \textbf{SUBSET-SUM:} se prueba NP-completo reduciendo 3-SAT.
+    \item \textbf{ISO:} se sabe que est\'a en $\NP$, pero su status de NP-completitud es un problema cl\'asico; en a\~nos recientes se han presentado algoritmos cuasi-polinomiales.
+\end{itemize}
+
+\section{Propiedades de clausura}
+
+\begin{itemize}
+    \item $\Pclass$ es cerrado bajo \emph{uni\'on}, \emph{intersecci\'on}, \emph{concatenaci\'on} y \emph{complemento}.
+    \item $\NP$ es cerrado bajo \emph{uni\'on}, \emph{intersecci\'on} y \emph{concatenaci\'on}. No se sabe si es cerrado bajo \emph{complemento} (esto equivale a $\NP \overset{?}{=} \mathrm{coNP}$).
+\end{itemize}
+
+\section{Complejidad espacial}
+
+Cuando analizamos algoritmos hay \emph{dos dimensiones} importantes:
+\begin{itemize}
+    \item \textbf{Tiempo:} cantidad de instrucciones b\'asicas que se realizan.
+    \item \textbf{Espacio:} cantidad de memoria que necesita el algoritmo.
+\end{itemize}
+Usamos \MTs; la memoria se mide como la \textbf{cantidad de celdas de cinta} que la \MT\ inspecciona.
+
+\subsection{Definici\'on formal}
+
+\begin{definicion}[Complejidad espacial]
+Sea $M$ una \MT\ que siempre termina. La complejidad espacial de $M$ es la funci\'on $f : \N \to \N$ donde
+\[
+f(n) = \text{cantidad m\'axima de celdas que } M \text{ mira para cualquier entrada de longitud } n.
+\]
+Si $M$ es no determinista, $f(n)$ es la cantidad m\'axima de celdas inspeccionadas en \textbf{cualquier rama}.
+\end{definicion}
+
+\subsection{Clases de complejidad espacial}
+
+\begin{definicion}[Clases de espacio]
+\[
+\SPACE(f(n)) = \{ L \mid L \text{ es decidido por una \MT\ en espacio } O(f(n))\}.
+\]
+\[
+\NSPACE(f(n)) = \{ L \mid L \text{ es decidido por una \MT\ no determinista en espacio } O(f(n))\}.
+\]
+\[
+\PSPACE = \bigcup_{k \geq 1} \SPACE(O(n^k)), \qquad \NPSPACE = \bigcup_{k \geq 1} \NSPACE(O(n^k)).
+\]
+\end{definicion}
+
+\subsection{SAT $\in \PSPACE$}
+
+Los algoritmos pueden \emph{reusar} espacio pero no pueden reusar tiempo. Veamos:
+
+Sea $M$ la \MT\ tal que dado $\phi$:
+\begin{enumerate}
+    \item Para cada asignaci\'on de valores de verdad de $\phi$:
+    \item Evaluar $\phi$ en la asignaci\'on.
+    \begin{itemize}
+        \item Si se eval\'ua a true, aceptar.
+        \item Sino limpiar la porci\'on de memoria usada y continuar.
+    \end{itemize}
+    \item Rechazar.
+\end{enumerate}
+
+Solo necesita una cantidad \textbf{lineal} de espacio (una asignaci\'on a la vez). $\Rightarrow$ \textbf{SAT $\in \PSPACE$}.
+
+\subsection{$\overline{\mathrm{ALL}_{\mathrm{NFA}}} \in \NPSPACE$}
+
+\[
+\overline{\mathrm{ALL}_{\mathrm{NFA}}} = \{\enc{A} \mid A \text{ es un NFA y } L(A) \neq \Sigma^*\}.
+\]
+
+$N$ sobre input $\enc{M}$ con $M$ un NFA:
+\begin{enumerate}
+    \item Poner una marca en el estado inicial.
+    \item Repetir $2^{|Q|}$ veces:
+    \begin{itemize}
+        \item No deterministamente elegir un s\'imbolo y cambiar las marcas para simular $M$.
+    \end{itemize}
+    \item Si no se marcaron estados de aceptaci\'on, aceptar; sino rechazar.
+\end{enumerate}
+Si hay una cadena que $A$ no acepta, hay una cadena de longitud a lo sumo $2^{|Q|}$ no aceptada. Solo se necesita una cantidad \textbf{lineal} de espacio (las marcas).
+
+\section{El Teorema de Savitch}
+
+\begin{teorema}[Savitch]\label{teo:savitch}
+$\NSPACE(f(n)) \subseteq \SPACE(f(n)^2)$.
+\end{teorema}
+
+Es decir, toda \MT\ no determinista que usa $f(n)$ espacio puede simularse por una \MT\ determinista que usa a lo sumo $f(n)^2$ espacio.
+
+\begin{observacion}
+No podemos simular el \'arbol completo porque cada rama podr\'ia tener longitud exponencial $f(n) \cdot 2^{O(f(n))}$ y eso costar\'ia espacio exponencial.
+\end{observacion}
+
+\textbf{Propiedad \'util:} una \MT\ que usa $O(f(n))$ espacio puede realizar a lo sumo $f(n) \cdot 2^{O(f(n))}$ pasos antes de empezar a repetir configuraciones.
+
+\subsection{El algoritmo \texttt{canyield}}
+
+La prueba consiste en definir un programa recursivo
+\[
+\texttt{canyield}(c_1, c_2, t)
+\]
+que dice: \emph{¿se puede ir de la configuraci\'on $c_1$ a la configuraci\'on $c_2$ en a lo sumo $t$ pasos, usando poco espacio?}
+
+\begin{verbatim}
+canyield(c1, c2, t):
+  1. Si t = 1, verificar si c1 = c2 o si en un paso se llega de c1 a c2;
+     aceptar o rechazar segun esto.
+  2. Si t > 1, para cada configuracion cm:
+       3. Ejecutar canyield(c1, cm, t/2)
+       4. Ejecutar canyield(cm, c2, t/2)
+       5. Si los pasos 3 y 4 aceptan, aceptar.
+  6. Si no se acepto para ninguna, rechazar.
+\end{verbatim}
+
+\subsection{An\'alisis}
+
+Corremos $\texttt{canyield}(c_0, q_{\text{accept}}, 2^{d \cdot f(n)})$ para alguna constante $d$:
+\begin{itemize}
+    \item La \MT\ original puede realizar a lo sumo $2^{O(f(n))}$ pasos: si acepta, el algoritmo aceptar\'a.
+    \item La pila de recursi\'on solo puede tener tama\~no \textbf{logar\'itmico} ($t$ se divide por 2 en cada llamada): $\log 2^{d \cdot f(n)} = d \cdot f(n) \in O(f(n))$.
+    \item En cada llamada utilizamos $O(f(n))$ celdas para la configuraci\'on.
+    \item Espacio total: configuraciones $\times$ pila = $O(f(n)) \times O(f(n)) = O(f(n)^2)$.
+\end{itemize}
+
+\subsection{Consecuencias}
+
+\begin{corolario}
+$\NPSPACE = \PSPACE$.
+\end{corolario}
+
+\begin{proof}
+Si $L \in \NPSPACE$, $L \in \NSPACE(O(n^k))$ para alg\'un $k$. Por Savitch, $L \in \SPACE(O(n^{2k})) \subseteq \PSPACE$. La inclusi\'on rec\'iproca es trivial.
+\end{proof}
+
+\begin{idea}
+Para el \emph{espacio} polinomial, el no determinismo no ayuda. Esto contrasta con el caso del \emph{tiempo}, donde no se sabe si $\Pclass = \NP$.
+\end{idea}
+
+\section{Jerarqu\'ia P $\subseteq$ NP $\subseteq$ PSPACE $\subseteq$ EXPTIME y PSPACE-Completitud}
+
+\subsection{Cadena de inclusiones}
+
+\[
+\boxed{\;\Pclass \subseteq \NP \subseteq \PSPACE = \NPSPACE \subseteq \EXPTIME.\;}
+\]
+
+\begin{itemize}
+    \item $\Pclass \subseteq \NP$: ya visto.
+    \item $\NP \subseteq \PSPACE$: una \MT\ no determinista en tiempo polinomial usa solo espacio polinomial; alternativamente, podemos simular cada certificado posible reusando espacio (ejemplo SAT).
+    \item $\PSPACE = \NPSPACE$: Teorema de Savitch.
+    \item $\NPSPACE \subseteq \EXPTIME$: una \MT\ con $O(f(n))$ espacio realiza a lo sumo $f(n) \cdot 2^{O(f(n))}$ pasos antes de repetir configuraci\'on. Si $f$ es polinomial, esto da tiempo exponencial.
+\end{itemize}
+
+No se sabe cu\'ales de las inclusiones son estrictas: $\Pclass \overset{?}{=} \NP$ y $\NP \overset{?}{=} \PSPACE$ son problemas abiertos.
+
+\subsection{PSPACE-Completitud}
+
+\begin{definicion}[PSPACE-Completitud]
+Un problema $B$ se dice \textbf{PSPACE-completo} si:
+\begin{enumerate}
+    \item $B \in \PSPACE$.
+    \item Para todo $A \in \PSPACE$, $A \redP B$.
+\end{enumerate}
+\end{definicion}
+
+\begin{observacion}
+Tambi\'en usamos \emph{reducibilidad polinomial} (no espacial): si un procedimiento corre en tiempo polinomial, tambi\'en corre en espacio polinomial.
+\end{observacion}
+
+\section{Ideas clave para repasar}
+
+\begin{enumerate}
+    \item \textbf{Notaciones $O, o, \Omega, \Theta$.} Hablan de crecimiento asint\'otico m\'odulo constantes. $o$ es estricto, $\Theta$ es ajustada.
+    \item \textbf{Mismo problema, distinto tiempo.} El lenguaje $0^k 1^k$ tiene algoritmos $O(n^2)$, $O(n \log n)$, $O(n)$ con dos cintas. Modelo y astucia importan.
+    \item \textbf{La clase $\Pclass$.} $\Pclass = \bigcup_k \TIME(O(n^k))$. Es robusta (Tesis de Church--Turing Extendida). Sus problemas se consideran \emph{tratables}.
+    \item \textbf{Multicinta vs una cinta.} La simulaci\'on cuesta cuadr\'atico ($O(t(n)^2)$), pero preserva polinomial.
+    \item \textbf{Tiempo en MT no determinista.} Es el largo de la rama m\'as larga. La simulaci\'on determinista cuesta $2^{O(t(n))}$.
+    \item \textbf{Patr\'on ``adivinar + verificar''.} Para mostrar $L \in \NP$ basta exhibir un certificado polinomial y un algoritmo de verificaci\'on polinomial.
+    \item \textbf{Dos visiones equivalentes de $\NP$.} Operacional (MT no determinista en tiempo polinomial) y declarativa (verificador polinomial con certificado polinomial).
+    \item \textbf{$\Pclass \subseteq \NP$.} Trivial (verificador que ignora $c$). Pregunta abierta: $\Pclass \overset{?}{=} \NP$.
+    \item \textbf{Reducibilidad $\redP$.} Es transitiva. Si $A \redP B$ y $B \in \Pclass$ (resp. $\NP$), entonces $A \in \Pclass$ (resp. $\NP$).
+    \item \textbf{NP-Completitud.} $L$ es NP-completo si $L \in \NP$ y todo $A \in \NP$ se reduce a $L$. Si \emph{uno} de ellos est\'a en $\Pclass$, entonces $\Pclass = \NP$.
+    \item \textbf{Cook--Levin.} SAT es el primer NP-completo. La prueba codifica una rama aceptante de una \MT\ no determinista como una asignaci\'on booleana mediante $\phi_{\text{cell}} \land \phi_{\text{start}} \land \phi_{\text{move}} \land \phi_{\text{accept}}$. Tama\~no $O(n^{2k})$.
+    \item \textbf{Cadena de reducciones.}
+    \[
+    \mathrm{SAT} \redP \mathrm{3\text{-}SAT} \redP \mathrm{CLIQUE},\, \mathrm{VERTEX\text{-}COVER},\, \mathrm{HAMPATH},\, \dots
+    \]
+    \item \textbf{M\'etodo est\'andar.} Para ver que un nuevo $L$ es NP-completo: (i) mostrar $L \in \NP$; (ii) reducir polinomialmente alg\'un NP-completo conocido a $L$.
+    \item \textbf{Espacio.} Se puede \emph{reusar}; el tiempo no. SAT $\in \PSPACE$ aunque sea exponencial en tiempo (en el peor caso conocido).
+    \item \textbf{Teorema de Savitch.} $\NSPACE(f) \subseteq \SPACE(f^2)$. En particular $\NPSPACE = \PSPACE$. Prueba v\'ia \texttt{canyield} con pila logar\'itmica.
+    \item \textbf{Jerarqu\'ia.} $\Pclass \subseteq \NP \subseteq \PSPACE = \NPSPACE \subseteq \EXPTIME$. Ninguna inclusi\'on intermedia se sabe estricta.
+\end{enumerate}
+
+\section{Preguntas t\'ipicas de examen}
+
+\textbf{Q1. Verdadero o falso.}
+\begin{center}
+\begin{tabular}{cll}
+\toprule
+ & Afirmaci\'on & Justificaci\'on \\
+\midrule
+a & $2n \in O(n)$ (V) & Con $c=2$, $n_0=1$. \\
+b & $n^2 \in O(n)$ (F) & $n^2/n = n \to \infty$. \\
+c & $n^2 \in O(n \log^2 n)$ (F) & $n^2/(n\log^2 n) = n/\log^2 n \to \infty$. \\
+d & $3^n \in 2^{O(n)}$ (V) & $3^n = 2^{n \log_2 3} \in 2^{O(n)}$. \\
+e & $2^n \in o(3^n)$ (V) & $(2/3)^n \to 0$. \\
+f & $1 \in o(1/n)$ (F) & $1/(1/n) = n \to \infty$. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Q2. ¿Por qu\'e el algoritmo ingenuo para Coprimos no es polinomial?}\quad
+Porque los n\'umeros vienen en binario: la entrada tiene tama\~no $\log_2 x$. Recorrer hasta $\min(x, y)$ son $2^n$ pasos con $n$ bits. El algoritmo eficiente (Euclides) divide por 2 en cada paso, dando $O(n \cdot p(n))$.
+
+\textbf{Q3. ¿Es $\Pclass$ cerrada bajo uni\'on, intersecci\'on, concatenaci\'on y complemento?}\quad S\'i. Uni\'on/intersecci\'on: ejecutar ambos algoritmos. Concatenaci\'on: probar los $|w|+1$ cortes. Complemento: invertir aceptaci\'on.
+
+\textbf{Q4. ¿Por qu\'e $\Pclass \subseteq \NP$?}\quad Si $L \in \Pclass$, hay $M$ determinista polinomial; el verificador $V$ ignora el certificado y simula $M(w)$.
+
+\textbf{Q5. ¿Por qu\'e CLIQUE est\'a en $\NP$?}\quad Certificado: subconjunto $c$. Verificador: chequear $|c| = k$, $c \subseteq V$, y que cada par en $c$ est\'e conectado.
+
+\textbf{Q6. Si un NP-completo est\'a en $\Pclass$, ¿qu\'e se concluye?}\quad $\Pclass = \NP$, porque todo $A \in \NP$ se reduce al NP-completo y eso preserva $\Pclass$.
+
+\textbf{Q7. Idea de la reducci\'on $\mathrm{SAT} \redP \mathrm{3\text{-}SAT}$.}\quad Cada cl\'ausula de tama\~no $n$ se reescribe usando $n-2$ variables nuevas $z_j$:
+\[
+(x_0 \lor x_1 \lor z_1) \land (\neg z_1 \lor x_2 \lor z_2) \land \dots \land (\neg z_{n-2} \lor x_{n-2} \lor x_{n-1}).
+\]
+Equisatisfacible y polinomial.
+
+\textbf{Q8. ¿Qu\'e es una ``ventana legal'' en Cook--Levin?}\quad Una ventana de $2 \times 3$ celdas (3 en fila $i$, 3 en fila $i+1$) cuyo contenido es consistente con alguna transici\'on de $N$. Si todas las ventanas son legales, la tabla describe una rama v\'alida.
+
+\textbf{Q9. Enunciar Savitch y su consecuencia.}\quad $\NSPACE(f(n)) \subseteq \SPACE(f(n)^2)$. Consecuencia: $\PSPACE = \NPSPACE$. Prueba: \texttt{canyield} recursivo con pila logar\'itmica.
+
+\textbf{Q10. ¿Por qu\'e SAT $\in \PSPACE$?}\quad Se recorren todas las asignaciones reusando el mismo bloque de memoria. Espacio lineal.
+
+\textbf{Q11. Tesis de Church--Turing Extendida.}\quad Cualquier modelo razonable determinista que decide un problema en $O(t(n))$ es simulable en $O(t(n)^k)$ por cualquier otro modelo razonable determinista.
+
+\textbf{Q12. ¿Por qu\'e ``Path'' est\'a en $\Pclass$?}\quad Algoritmo de BFS: marcar $v$ y propagar a los vecinos hasta cubrir todos los nodos alcanzables. $O(|V| \cdot |E|)$.
+
+\section{Resumen ultra breve}
+
+\begin{itemize}
+    \item \textbf{Complejidad} estudia el tiempo y el espacio que requieren los algoritmos. Notaciones $O, o, \Omega, \Theta$ describen crecimiento asint\'otico m\'odulo constantes.
+    \item \textbf{Clase $\Pclass$:} problemas decidibles en tiempo polinomial por una \MT\ determinista. Tratables. Invariante respecto a modelos deterministas razonables (Tesis Church--Turing Extendida).
+    \item \textbf{Clase $\NP$:} problemas decidibles en tiempo polinomial por una \MT\ \emph{no determinista} $\equiv$ problemas con \emph{verificador polinomial} (certificado corto, verificaci\'on r\'apida). Patr\'on ``adivinar + verificar''. Ejemplos: HAMPATH, CLIQUE, SUBSET-SUM, COMP.
+    \item \textbf{Reducibilidad $A \redP B$:} existe $f$ polinomial con $w \in A \iff f(w) \in B$. Transitiva. Preserva $\Pclass$ y $\NP$.
+    \item \textbf{NP-Completos:} los m\'as dif\'iciles de $\NP$. \textbf{Cook--Levin:} SAT es NP-completo. Reducciones cl\'asicas: $\mathrm{SAT} \redP \mathrm{3\text{-}SAT} \redP \mathrm{CLIQUE}, \mathrm{VERTEX\text{-}COVER}, \mathrm{HAMPATH}$.
+    \item \textbf{Espacio:} se puede \emph{reusar}; el tiempo no. SAT $\in \PSPACE$. \textbf{Savitch:} $\NSPACE(f) \subseteq \SPACE(f^2)$, por lo cual $\PSPACE = \NPSPACE$.
+    \item \textbf{Jerarqu\'ia:} $\Pclass \subseteq \NP \subseteq \PSPACE = \NPSPACE \subseteq \EXPTIME$. Las inclusiones intermedias se conjeturan estrictas pero ninguna se ha demostrado.
+\end{itemize}
+
+\end{document}
